@@ -10,3 +10,4 @@ main/public/lib
 node_modules
 temp/
 .idea
+main/templates/bit/script.html
