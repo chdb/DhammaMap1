@@ -3,13 +3,18 @@
     var module = angular.module('users');
 
     module.controller('SignupController', function($scope, Restangular, gaAppConfig, gaToast, gaBrowserHistory,
-                                                   gaAuthentication, _, gaTracking, $state) {
+                                                   gaAuthentication, _, gaTracking, $state, gaValidators) {
         if (gaAuthentication.isLogged()) {
             gaBrowserHistory.back();
         }
 
         $scope.cfg = gaAppConfig;
+		  
         $scope.captchaControl = {};
+		  //console.log($scope.cfg);
+		  //console.log(gaValidators);
+        $scope.usernameMinLen = gaValidators.user.username[0];
+        $scope.usernameMaxLen = gaValidators.user.username[1];
 
         $scope.signup = function() {
             $scope.loading = true;

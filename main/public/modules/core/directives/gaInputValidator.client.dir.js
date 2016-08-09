@@ -18,7 +18,7 @@
      * This min/max value for name is then passed to client as gaValidators.user.name === [3, 100]
      * Now, when we use directive:
      * <input name="name" ga-input-validator validator-category="user">
-     * It will autmatically adds ng-minlength and ng-maxlength like this:
+     * It will automatically add ng-minlength and ng-maxlength like this:
      * <input name="name" ga-input-validator ng-minlength="3" ng-maxlength="100" validator-category="user">
      *
      * If you want to use md-maxlength to show character counter pass show-counter="true"
