@@ -15,9 +15,9 @@
                            validator-category="user"
                            tabindex="2"
                            required
-                           name="username" type="text">
+                           name="username_rule" type="text">
 
-                    <div ng-if="signupForm.username.$dirty" ng-messages="signupForm.username.$error">
+                    <div ng-if="signupForm.username_rule.$dirty" ng-messages="signupForm.username_rule.$error">
 									  <div ng-message="minlength">Username needs to be at least {{ usernameMinLen }} characters long
 							  </div><div ng-message="maxlength">Username can be up to {{ usernameMaxLen }} characters long
 							  </div><div ng-message="required" >Username is required</div>

@@ -18,7 +18,9 @@
             var ngModel = ctrls[1];
             scope.name = scope.name || 'password';
             scope.label = scope.label || 'Password';
-            scope.lengths = gaValidators.user.password;
+				var v = gaValidators.user.password_rule
+            scope.minlen = v ? v[0] : 0;
+            scope.maxlen = v ? v[1] : 0;
             scope.form = form;
             if (attrs.repeatPassword) {
                 scope.$watch(function() {

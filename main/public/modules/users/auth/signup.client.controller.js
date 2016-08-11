@@ -13,8 +13,12 @@
         $scope.captchaControl = {};
 		  //console.log($scope.cfg);
 		  //console.log(gaValidators);
-        $scope.usernameMinLen = gaValidators.user.username[0];
-        $scope.usernameMaxLen = gaValidators.user.username[1];
+		  //
+		  var v = gaValidators.user.username_rule;
+		  console.log(v)
+        $scope.usernameMinLen = v ? v[0] : 0;
+        $scope.usernameMaxLen = v ? v[1] : 0;
+		  console.log('uname: '+ $scope.usernameMinLen +' : '+ $scope.usernameMaxLen)
 
         $scope.signup = function() {
             $scope.loading = true;
