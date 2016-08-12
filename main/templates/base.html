@@ -11,12 +11,12 @@
 
 <body layout="row" layout-fill>
 <md-sidenav md-is-locked-open="$mdMedia('gt-md')" md-component-id="leftSidenav"
-            ng-include="'/p/modules/core/layout/sidenav.view.html'"
+            ng-include="'/p/modules/core/layout/sidenav.html'"
             class="md-sidenav-left sidenav-left md-whiteframe-z2">
 </md-sidenav>
 <div layout="column" role="main" flex>
     <md-toolbar>
-        <div ng-controller="HeaderController" ng-include="'/p/modules/core/layout/header.view.html'"></div>
+        <div ng-controller="HeaderController" ng-include="'/p/modules/core/layout/header.html'"></div>
     </md-toolbar>
     <md-content flex md-scroll-y
                 lr-infinite-scroll="mainContentScrolled" scroll-threshold="200"

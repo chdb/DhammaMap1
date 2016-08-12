@@ -8,12 +8,12 @@
                 url         : '/admin',
                 abstract    : true,
                 controller  : 'AdminController',
-                templateUrl : '/p/modules/admin/layout/admin.view.html'
+                templateUrl : '/p/modules/admin/layout/admin.html'
             })
             .state('admin.appConfig', {
                 url         : '/config',
                 controller  : 'AdminAppConfigController',
-                templateUrl : '/p/modules/admin/app-config/app-config.view.html'
+                templateUrl : '/p/modules/admin/app-config/app-config.html'
             });
     });
 }());

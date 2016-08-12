@@ -32,7 +32,7 @@
                 label         : '@',
                 ngModel       : '='
             },
-            templateUrl : '/p/modules/users/directives/gaEmail.view.html'
+            templateUrl : '/p/modules/users/directives/gaEmail.html'
         };
     });
 

@@ -9,12 +9,12 @@
             .state('home', {
                 url         : '/',
                 controller  : 'HomeController',
-                templateUrl : '/p/modules/core/home/home.view.html'
+                templateUrl : '/p/modules/core/home/home.html'
             })
             .state('feedback', {
                 url         : '/feedback',
                 controller  : 'FeedbackController',
-                templateUrl : '/p/modules/core/feedback/feedback.view.html'
+                templateUrl : '/p/modules/core/feedback/feedback.html'
             });
     });
 }());

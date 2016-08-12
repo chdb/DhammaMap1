@@ -44,7 +44,7 @@
                 ngModel        : '=',
                 repeatPassword : '&'
             },
-            templateUrl : '/p/modules/users/directives/gaPassword.view.html'
+            templateUrl : '/p/modules/users/directives/gaPassword.html'
         };
 
     });

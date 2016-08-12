@@ -7,7 +7,7 @@
             .state('signin', {
                 url         : '/signin',
                 controller  : 'SigninController',
-                templateUrl : '/p/modules/users/auth/signin.view.html',
+                templateUrl : '/p/modules/users/auth/signin.html',
                 data        : {
                     signedOutOnly : true
                 }
@@ -15,7 +15,7 @@
             .state('signup', {
                 url         : '/signup',
                 controller  : 'SignupController',
-                templateUrl : '/p/modules/users/auth/signup.view.html',
+                templateUrl : '/p/modules/users/auth/signup.html',
                 data        : {
                     signedOutOnly : true
                 }
@@ -33,7 +33,7 @@
             .state('forgot', {
                 url         : '/password/forgot',
                 controller  : 'ForgotController',
-                templateUrl : '/p/modules/users/auth/password/forgot.view.html',
+                templateUrl : '/p/modules/users/auth/password/forgot.html',
                 data        : {
                     signedOutOnly : true
                 }
@@ -41,7 +41,7 @@
             .state('reset', {
                 url         : '/password/reset/:token',
                 controller  : 'ResetController',
-                templateUrl : '/p/modules/users/auth/password/reset.view.html',
+                templateUrl : '/p/modules/users/auth/password/reset.html',
                 data        : {
                     signedOutOnly : true
                 }
@@ -51,29 +51,29 @@
                 url      : '/user/:username',
                 views    : {
                     '' : {
-                        templateUrl : '/p/modules/users/profile/profile.view.html',
+                        templateUrl : '/p/modules/users/profile/profile.html',
                         controller  : 'ProfileController'
                     }
                 }
             })
             .state('profile.view', {
                 url         : '',
-                templateUrl : '/p/modules/users/profile/profile-view.view.html'
+                templateUrl : '/p/modules/users/profile/profile-view.html'
             })
             .state('profile.edit', {
                 url         : '/edit',
                 controller  : 'ProfileEditController',
-                templateUrl : '/p/modules/users/profile/profile-edit.view.html'
+                templateUrl : '/p/modules/users/profile/profile-edit.html'
             })
             .state('profile.password', {
                 url         : '/password',
                 controller  : 'ProfilePasswordController',
-                templateUrl : '/p/modules/users/profile/profile-password.view.html'
+                templateUrl : '/p/modules/users/profile/profile-password.html'
             })
             .state('users', {
                 url         : '/users',
                 controller  : 'UsersController',
-                templateUrl : '/p/modules/users/users-list/users.view.html'
+                templateUrl : '/p/modules/users/users-list/users.html'
             });
     });
 }());
