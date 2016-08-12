@@ -11,16 +11,16 @@ import util
 
 
 class BaseValidator(object):
-    """Base factory class for creating validators for ndb.Model properties
-    To create a validator for some property, its model class has to define an rule attribute having one of these types:
+    """Base factory class for creating validators for ndb properties
+    To create a validator for some property, its model class defines a rule in the form of a class attribute with one of these types:
         list        - with 2 elements, determining min and max length of string
         regex       - which will be validated against string
         function    - custom validation function
-    After defining attributes, we can create a validator factory for our new model like this, for example:
-            class MySuperValidator (BaseValidator):
-                short_name_rule = [2, 4]
+    For example:
+        class MySuperValidator (BaseValidator):
+            short_name_rule = [2, 4]
     Now the call 
-            MySuperValidator.create('short_name_rule') 
+        MySuperValidator.create('short_name_rule') 
     returns a function which will throw an error if a string is not between 2-4 chars.
     Similarly if short_name_rule was a regex, or if it was a function, the appropriate function is returned as validator
     This is useful for passing a 'validator' argument to ndb.Property constructor and also passing a 'type'
@@ -39,7 +39,7 @@ class BaseValidator(object):
             Args:		lengths (list)  : list of length 2. e.g [3, 7] indicating that 
                                             string should be between 3 and 7 characters
                         regex (string)  : Regular expression
-                        required (bool) : Whether empty value '' should be accepted as valid, ignoring other constrains
+                        required (bool) : Whether empty value '' should be accepted as valid, ignoring other constraints
             Returns:	function        : Function, which will be used for validating input
             """
             def validator_function(value, prop):
@@ -50,11 +50,10 @@ class BaseValidator(object):
                 Returns:	string          : Returns original string, if valid
                 Raises:		ValueError      : If input isn't valid
                 """
-                # when we compare ndb.Property with equal operator e.g User.name == 'abc' it
-                # passes arguments to validator in different order than as when e.g putting data,
-                # hence the following parameters switch
-                if isinstance(value, ndb.Property):
-                    value = prop
+                # NB For compatibility with Flask's RequestParser type conversion we have this arg order (vslue,prop)
+                if isinstance(value, ndb.Property):     # ...But ndb.validator args are the other way round IE (prop,value)
+                    value = prop            # ...so if the "value" is a ndb.Property, then the "prop" is really the value 
+                
                 if not required and value == '':
                     return ''
                 if regex:
