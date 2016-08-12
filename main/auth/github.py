@@ -48,8 +48,8 @@ def signin_github():
 def retrieve_user_from_github(response):
     auth_id = 'github_%s' % str(response['id'])
     user_db = model.User.get_by('auth_ids', auth_id)
-    bio = response['bio'][:UserValidator.bio[1]] if response['bio'] else ''
-    location = response['location'][:UserValidator.location[1]] if response['location'] else ''
+    bio = response['bio'][:UserValidator.bio_span[1]] if response['bio'] else ''
+    location = response['location'][:UserValidator.location_span[1]] if response['location'] else ''
     return user_db or auth.create_or_get_user_db(
         auth_id,
         response.get('name', ''),
@@ -60,3 +60,14 @@ def retrieve_user_from_github(response):
         bio=bio,
         github=response.get('login')
     )
+
+# Todo replace opaque repeated code such as  
+#   bio = response['bio'][:UserValidator.bio_span[1]] if response['bio'] else ''
+# with 
+#   bio = getField(response, 'bio', 'bio_span')
+def getField(response, name, span):
+    field = response[name]
+    if field:
+        max = getattr(UserValidator, span)[1]
+        return field [:max]
+    return ''
