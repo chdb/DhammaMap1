@@ -29,7 +29,7 @@
             scope       : {
                 remember : '='
             },
-            templateUrl : '/p/modules/users/directives/gaAuthOptions.client.dir.html'
+            templateUrl : '/p/modules/users/directives/gaAuthOptions.dir.html'
         };
 
     });

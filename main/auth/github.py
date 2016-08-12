@@ -61,13 +61,14 @@ def retrieve_user_from_github(response):
         github=response.get('login')
     )
 
-# Todo replace opaque repeated code such as  
+# Todo replace opaque and repeated code such as  
 #   bio = response['bio'][:UserValidator.bio_span[1]] if response['bio'] else ''
 # with 
-#   bio = getField(response, 'bio', 'bio_span')
-def getField(response, name, span):
+#   bio = getField(response, 'bio')
+def getField(response, name):
     field = response[name]
     if field:
+        span = name + '_span' # depend on validators following this naming convention
         max = getattr(UserValidator, span)[1]
         return field [:max]
     return ''

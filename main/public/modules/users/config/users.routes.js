@@ -7,7 +7,7 @@
             .state('signin', {
                 url         : '/signin',
                 controller  : 'SigninController',
-                templateUrl : '/p/modules/users/auth/signin.client.view.html',
+                templateUrl : '/p/modules/users/auth/signin.view.html',
                 data        : {
                     signedOutOnly : true
                 }
@@ -15,7 +15,7 @@
             .state('signup', {
                 url         : '/signup',
                 controller  : 'SignupController',
-                templateUrl : '/p/modules/users/auth/signup.client.view.html',
+                templateUrl : '/p/modules/users/auth/signup.view.html',
                 data        : {
                     signedOutOnly : true
                 }
@@ -33,7 +33,7 @@
             .state('forgot', {
                 url         : '/password/forgot',
                 controller  : 'ForgotController',
-                templateUrl : '/p/modules/users/auth/password/forgot.client.view.html',
+                templateUrl : '/p/modules/users/auth/password/forgot.view.html',
                 data        : {
                     signedOutOnly : true
                 }
@@ -41,7 +41,7 @@
             .state('reset', {
                 url         : '/password/reset/:token',
                 controller  : 'ResetController',
-                templateUrl : '/p/modules/users/auth/password/reset.client.view.html',
+                templateUrl : '/p/modules/users/auth/password/reset.view.html',
                 data        : {
                     signedOutOnly : true
                 }
@@ -51,29 +51,29 @@
                 url      : '/user/:username',
                 views    : {
                     '' : {
-                        templateUrl : '/p/modules/users/profile/profile.client.view.html',
+                        templateUrl : '/p/modules/users/profile/profile.view.html',
                         controller  : 'ProfileController'
                     }
                 }
             })
             .state('profile.view', {
                 url         : '',
-                templateUrl : '/p/modules/users/profile/profile-view.client.view.html'
+                templateUrl : '/p/modules/users/profile/profile-view.view.html'
             })
             .state('profile.edit', {
                 url         : '/edit',
                 controller  : 'ProfileEditController',
-                templateUrl : '/p/modules/users/profile/profile-edit.client.view.html'
+                templateUrl : '/p/modules/users/profile/profile-edit.view.html'
             })
             .state('profile.password', {
                 url         : '/password',
                 controller  : 'ProfilePasswordController',
-                templateUrl : '/p/modules/users/profile/profile-password.client.view.html'
+                templateUrl : '/p/modules/users/profile/profile-password.view.html'
             })
             .state('users', {
                 url         : '/users',
                 controller  : 'UsersController',
-                templateUrl : '/p/modules/users/users-list/users.client.view.html'
+                templateUrl : '/p/modules/users/users-list/users.view.html'
             });
     });
 }());
