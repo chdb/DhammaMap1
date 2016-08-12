@@ -79,8 +79,8 @@ class UserPasswordAPI(Resource):
     def post(self, key):
         """Changes user's password"""
         parser = reqparse.RequestParser()
-        parser.add_argument('currentPassword', type=UserValidator.create('password', required=False), dest='current_password')
-        parser.add_argument('newPassword', type=UserValidator.create('password'), dest='new_password')
+        parser.add_argument('currentPassword', type=UserValidator.create('password_span', required=False), dest='current_password')
+        parser.add_argument('newPassword', type=UserValidator.create('password_span'), dest='new_password')
         args = parser.parse_args()
         # Users, who signed up via social networks have empty password_hash, so they have to be allowed
         # to change it as well

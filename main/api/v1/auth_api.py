@@ -24,7 +24,7 @@ class SignupAPI(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('email', type=UserValidator.create('unique_email'), required=True)
         parser.add_argument('username', type=UserValidator.create('unique_username'))
-        parser.add_argument('password', type=UserValidator.create('password'))
+        parser.add_argument('password', type=UserValidator.create('password_span'))
         parser.add_argument('remember', type=inputs.boolean, default=False)
         args = parser.parse_args()
 
@@ -105,8 +105,8 @@ class ResetPasswordAPI(Resource):
          and signing in in parallel
         """
         parser = reqparse.RequestParser()
-        parser.add_argument('token', type=UserValidator.create('token'))
-        parser.add_argument('newPassword', type=UserValidator.create('password'), dest='new_password')
+        parser.add_argument('token', type=UserValidator.create('token_span'))
+        parser.add_argument('newPassword', type=UserValidator.create('password_span'), dest='new_password')
         args = parser.parse_args()
         user_db = User.get_by('token', args.token)
         user_db.password_hash = util.password_hash(args.new_password)

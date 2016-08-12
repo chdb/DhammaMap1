@@ -19,7 +19,7 @@ class FeedbackAPI(Resource):
             return abort(418)
         parser = reqparse.RequestParser()
         parser.add_argument('message', type=ArgumentValidator.create('feedback'), required=True)
-        parser.add_argument('email', type=UserValidator.create('email', required=False))
+        parser.add_argument('email', type=UserValidator.create('email_rx', required=False))
         args = parser.parse_args()
         body = '%s\n\n%s' % (args.message, args.email)
         kwargs = {'reply_to': args.email} if args.email else {}

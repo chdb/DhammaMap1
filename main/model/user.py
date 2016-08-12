@@ -10,13 +10,13 @@ import util
 
 class UserValidator(model.BaseValidator):
     """Defines validators for user properties. For detailed description see BaseValidator"""
-    name_rule     = [0, 100]
-    username_rule = [3, 40]
-    password_rule = [6, 70]
-    bio_rule      = [0, 140]
-    location_rule = [0, 70]
-    social_rule   = [0, 50]
-    email_rule    = util.EMAIL_REGEX
+    name_span     = [0, 100]
+    username_span = [3, 40]
+    password_span = [6, 70]
+    bio_span      = [0, 140]
+    location_span = [0, 70]
+    social_span   = [0, 50]
+    email_rx  = util.EMAIL_REGEX
 
     @classmethod
     def existing_token(cls, token):
@@ -52,9 +52,9 @@ class UserValidator(model.BaseValidator):
 
 class User(model.Base):
     """A class describing datastore user."""
-    name        = ndb.StringProperty (default=''   , validator=UserValidator.create('name_rule'))
-    username    = ndb.StringProperty (required=True, validator=UserValidator.create('username_rule'))
-    email       = ndb.StringProperty (default=''   , validator=UserValidator.create('email_rule', required=False))
+    name        = ndb.StringProperty (default=''   , validator=UserValidator.create('name_span'))
+    username    = ndb.StringProperty (required=True, validator=UserValidator.create('username_span'))
+    email       = ndb.StringProperty (default=''   , validator=UserValidator.create('email_rx', required=False))
     auth_ids    = ndb.StringProperty (repeated=True)
     permissions = ndb.StringProperty (repeated=True)
     active      = ndb.BooleanProperty(default= True)
@@ -62,14 +62,14 @@ class User(model.Base):
     verified    = ndb.BooleanProperty(default=False)
     token       = ndb.StringProperty (default='')
     password_hash=ndb.StringProperty (default='')
-    bio         = ndb.StringProperty (default='', validator=UserValidator.create('bio_rule'))
-    location    = ndb.StringProperty (default='', validator=UserValidator.create('location_rule'))
-    facebook    = ndb.StringProperty (default='', validator=UserValidator.create('social_rule'))
-    twitter     = ndb.StringProperty (default='', validator=UserValidator.create('social_rule'))
-    gplus       = ndb.StringProperty (default='', validator=UserValidator.create('social_rule'))
-    instagram   = ndb.StringProperty (default='', validator=UserValidator.create('social_rule'))
-    linkedin    = ndb.StringProperty (default='', validator=UserValidator.create('social_rule'))
-    github      = ndb.StringProperty (default='', validator=UserValidator.create('social_rule'))
+    bio         = ndb.StringProperty (default='', validator=UserValidator.create('bio_span'))
+    location    = ndb.StringProperty (default='', validator=UserValidator.create('location_span'))
+    facebook    = ndb.StringProperty (default='', validator=UserValidator.create('social_span'))
+    twitter     = ndb.StringProperty (default='', validator=UserValidator.create('social_span'))
+    gplus       = ndb.StringProperty (default='', validator=UserValidator.create('social_span'))
+    instagram   = ndb.StringProperty (default='', validator=UserValidator.create('social_span'))
+    linkedin    = ndb.StringProperty (default='', validator=UserValidator.create('social_span'))
+    github      = ndb.StringProperty (default='', validator=UserValidator.create('social_span'))
 
     PUBLIC_PROPERTIES = ['avatar_url', 'name', 'username', 'bio', 'location',
                          'facebook', 'twitter', 'gplus', 'linkedin', 'github', 'instagram']

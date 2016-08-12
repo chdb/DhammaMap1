@@ -125,7 +125,7 @@ def parse_signin(func):
     def decorated_function(*args, **kwargs): # pylint: disable=missing-docstring
         parser = reqparse.RequestParser()
         parser.add_argument('login', type=str, required=True)
-        parser.add_argument('password', type=model.UserValidator.create('password'), required=True)
+        parser.add_argument('password', type=model.UserValidator.create('password_span'), required=True)
         parser.add_argument('remember', type=inputs.boolean, default=False)
         g.args = parser.parse_args()
         g.user_db = model.User.get_by_credentials(g.args.login, g.args.password)

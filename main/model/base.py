@@ -58,17 +58,17 @@ class BaseValidator(object):
                 if not required and value == '':
                     return ''
                 if regex:
-                    return match_regex(value, regex)
-                return util.constrain_string(value, lengths[0], lengths[1])
+                    return util.match_regex(value, regex)
+                return util.limit_string(value, lengths[0], lengths[1])
 
             return validator_function
 
         attr = getattr(cls, name)
         if _.is_list(attr):
             return create_validator(lengths=attr, required=required)
-        elif _.is_string(attr):
+        if _.is_string(attr):
             return create_validator(regex=attr, required=required)
-        elif _.is_function(attr):
+        if _.is_function(attr):
             return attr
 
     @classmethod

@@ -9,8 +9,10 @@ from google.appengine.ext import ndb #pylint: disable=import-error
 import config
 from pydash import _
 
-#todo: this is both too strict and tooo lenient. Replace it with a good but lenient re pre-validator , to be followed by proper live validation by mailgun service 
-EMAIL_REGEX      = r'^[-!#$%&\'*+\\.\/0-9=?A-Za-z^_`{|}~]+@([-0-9A-Za-z]+\.)+([0-9A-Za-z]){2,4}$'
+#todo: this is both too strict and too lenient. Replace it with a good but lenient rx.  Use as a pre-validator, to be followed by proper live validation by mailgun service 
+#  
+EMAIL_REGEX      = r'^[a-z0-9-!#$%&\'*+\.\/=?^_`{|}~]+@([-0-9a-z]+\.)+([0-9a-z]){2,}$'
+#                  r'^[a-z0-9-!#$%&\'*+\/=?^_`{|}~.]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$'
 #email address  :=                          <local-part>  @  <domain-part>
 #domain-part    :=                                           <d-labels>      <top-level-domain>
 #local-part     :=                     <local-part-char> +
@@ -21,6 +23,14 @@ EMAIL_REGEX      = r'^[-!#$%&\'*+\\.\/0-9=?A-Za-z^_`{|}~]+@([-0-9A-Za-z]+\.)+([0
 #dl-char        :=                                           -                                  ## literal
 #dl-char        :=                                            0-9A-Za-z                         ## ranges 
 #top-level-d    :=                                                           ([0-9A-Za-z]){2,4} ##          NB! max of 4 is too strict
+
+# Note that by default, email fields on  clientside forms dont use the above.  Instead they will use the regex provided by AngularJS
+#var EMAIL_REGEXP = /^[a-z0-9!#$%&'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
+#  python str =    r'^[a-z0-9!#$%&\'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$'
+# This is broadly similar except for allowing the domain-part to be just a TLD   eg joebloggs@com    
+# it is also lowercase only for use with a case-insensitive search
+#and does not allow domain part to start with -
+
 
 def uuid():
     """Generates random UUID used as user token for verification, reseting password etc.
@@ -79,7 +89,7 @@ def dict_to_list(input_dict):
     return _.keys(_.pick(input_dict, _.identity))
 
 
-def constrain_string(string, minlen, maxlen):
+def limit_string(string, minlen, maxlen):
     """Validation function constrains minimal and maximal lengths of string.
     Args:		string (string) : String to be checked
                 minlen (int)    : Minimal length
@@ -87,10 +97,11 @@ def constrain_string(string, minlen, maxlen):
     Returns:	string          : Returns given string
     Raises:	    ValueError      : If string doesn't fit into min/max constrains
     """
-    if len(string) < minlen:
+    n = len(string) 
+    if n < minlen:
         raise ValueError('Input need to be at least %s characters long' % minlen)
     if maxlen > 0:
-        if len(string) > maxlen:
+        if n > maxlen:
             raise ValueError('Input need to be maximum %s characters long' % maxlen)
     return string
 
