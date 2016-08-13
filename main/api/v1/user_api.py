@@ -10,7 +10,7 @@ import util
 
 from main import API
 from model import User, UserValidator
-from api.helpers import ArgumentValidator, make_list_response, make_empty_ok_response
+from api.helpers import ArgumentValidator, make_list_response, empty_ok_response
 from flask import request, g
 from pydash import _
 from api.decorators import model_by_key, user_by_username, authorization_required, admin_required
@@ -22,9 +22,9 @@ class UsersAPI(Resource):
     in parallel with obtaining total count via *_async functions
     """
     def get(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('cursor', type=ArgumentValidator.create('cursor'))
-        args = parser.parse_args()
+        p = reqparse.RequestParser()
+        p.add_argument('cursor', type=ArgumentValidator.create('cursor'))
+        args = p.parse_args()
 
         users_future = User.query() \
             .order(-User.created) \
@@ -62,14 +62,14 @@ class UserByKeyAPI(Resource):
         new_data = _.pick(request.json, update_properties)
         g.model_db.populate(**new_data)
         g.model_db.put()
-        return make_empty_ok_response()
+        return empty_ok_response()
 
     @admin_required
     @model_by_key
     def delete(self, key):
         """Deletes user"""
         g.model_key.delete()
-        return make_empty_ok_response()
+        return empty_ok_response()
 
 
 @API.resource('/api/v1/users/<string:key>/password')
@@ -78,16 +78,16 @@ class UserPasswordAPI(Resource):
     @model_by_key
     def post(self, key):
         """Changes user's password"""
-        parser = reqparse.RequestParser()
-        parser.add_argument('currentPassword', type=UserValidator.create('password_span', required=False), dest='current_password')
-        parser.add_argument('newPassword', type=UserValidator.create('password_span'), dest='new_password')
-        args = parser.parse_args()
+        p = reqparse.RequestParser()
+        p.add_argument('currentPassword', type=UserValidator.create('password_span', required=False), dest='current_password')
+        p.add_argument('newPassword', type=UserValidator.create('password_span'), dest='new_password')
+        args = p.parse_args()
         # Users, who signed up via social networks have empty password_hash, so they have to be allowed
         # to change it as well
         if g.model_db.password_hash != '' and not g.model_db.has_password(args.current_password):
             raise ValueError('Given password is incorrect.')
         g.model_db.password_hash = util.password_hash(args.new_password)
         g.model_db.put()
-        return make_empty_ok_response()
+        return empty_ok_response()
 
 

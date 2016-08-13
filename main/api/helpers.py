@@ -31,74 +31,61 @@ class Api(restful.Api): # pylint: disable=too-few-public-methods
 
 
 def handle_error(err):
-    """This error handler logs exception and then makes response with most
-    appropriate error message and error code
-
-    Args:
-        err (Exception): the raised Exception object
-
+    """This error handler logs exception and provides a response with error message and error code
+    Args:   err (Exception): the raised Exception object
     """
     logging.exception(err)
     message = ''
-    if hasattr(err, 'data') and err.data['message']:
-        message = err.data['message']
-    elif hasattr(err, 'message') and err.message:
-        message = err.message
-    elif hasattr(err, 'description'):
-        message = err.description
+    try:
+        if hasattr(err, 'data'):
+            message = err.data['message']
+        if not message and hasattr(err, 'message'):
+            message = err.message
+        if not message:
+            message = err.description
+    except:
+        message = 'Unrecognised error format: ' + repr(err)
     try:
         err.code
     except AttributeError:
         err.code = 500
-    return flask.jsonify({
-        'message': message
-    }), err.code
+        message += ' (Http code not found.)'
+    return flask.jsonify({'message': message
+                        }), err.code
 
 
-def make_not_found_exception():
-    """Raises 404 Not Found exception
-
-    Raises:
-        HTTPException: with 404 code
-    """
-    raise exceptions.NotFound()
+# def make_not_found_exception():
+    # """Raises 404 Not Found exception
+    # Raises: HTTPException: with 404 code
+    # """
+    # raise exceptions.NotFound()
 
 
-def make_bad_request_exception(message):
-    """Raises 400 Bad request exception
-
-    Raises:
-        HTTPException: with 400 code
-    """
-    raise exceptions.BadRequest(message)
+# def make_bad_request_exception(message):
+    # """Raises 400 Bad request exception
+    # Raises:  HTTPException: with 400 code
+    # """
+    # raise exceptions.BadRequest(message)
 
 
-def make_empty_ok_response():
+def empty_ok_response():
     """Returns OK response with empty body"""
     return '', 204
 
 
-def make_list_response(reponse_list, cursor=None, more=False, total_count=None):
-    """Creates reponse with list of items and also meta data useful for pagination
-
-    Args:
-        reponse_list (list): list of items to be in response
-        cursor (Cursor, optional): ndb query cursor
-        more (bool, optional): whether there's more items in terms of pagination
-        total_count (int, optional): Total number of items
-
-    Returns:
-        dict: response to be serialized and sent to client
+def make_list_response(response_list, cursor=None, more=False, total_count=None):
+    """Creates response with list of items and also meta data useful for pagination
+    Args    : response_list (list)         : list of items to be in response
+              cursor (Cursor, optional)   : ndb query cursor
+              more (bool, optional)       : whether there's more items in terms of pagination
+              total_count (int, optional) : Total number of items
+    Returns : (dict)   : the response to be serialized and sent to client
     """
-    return {
-        'list': reponse_list,
-        'meta': {
-            'nextCursor': cursor.urlsafe(),
-            'more': more,
-            'totalCount': total_count
-        }
-    }
-
+    return { 'list' : response_list
+           , 'meta' : { 'nextCursor': cursor.urlsafe()
+                      , 'more'      : more
+                      , 'totalCount': total_count
+           }          }
 
 class ArgumentValidator(model.BaseValidator):
     """This validator class contains attributes and methods for validating user's input,

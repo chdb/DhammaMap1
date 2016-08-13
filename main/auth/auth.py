@@ -132,9 +132,9 @@ def create_oauth_app(service_config, name):
 def save_request_params():
     """Function temporily saves 'remember' url parameter into users session.
     This is useful when we login via oauth, so redirects would wipe out our url parameters."""
-    parser = reqparse.RequestParser()
-    parser.add_argument('remember', type=inputs.boolean, default=False)
-    args = parser.parse_args()
+    p = reqparse.RequestParser()
+    p.add_argument('remember', type=inputs.boolean, default=False)
+    args = p.parse_args()
     flask.session['auth-params'] = {
         'remember': args.remember,
     }

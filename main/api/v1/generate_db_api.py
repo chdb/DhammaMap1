@@ -6,7 +6,7 @@ from flask import abort
 from config import DEVELOPMENT
 from model.factories import UserFactory
 from google.appengine.ext import ndb #pylint: disable=import-error
-from api.helpers import make_empty_ok_response
+from api.helpers import empty_ok_response
 
 @API.resource('/api/v1/generate_database')
 class GenerateDatabaseAPI(Resource):
@@ -16,4 +16,4 @@ class GenerateDatabaseAPI(Resource):
         if not DEVELOPMENT:
             abort(404)
         UserFactory.create_batch(50)
-        return make_empty_ok_response()
+        return empty_ok_response()
