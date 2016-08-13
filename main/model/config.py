@@ -12,22 +12,28 @@ from pydash import _
 
 class Config(Base, ConfigAuth):
     """A class describing datastore config."""
-    analytics_id = ndb.StringProperty(default='')  # Google Analytics ID
-    brand_name = ndb.StringProperty(default=config.APPLICATION_ID)  # Webapp name
-    description = ndb.StringProperty(default='')  # Webapp description
-    feedback_email = ndb.StringProperty(default='')  # Admin's email, where feedback will be sent
-    flask_secret_key = ndb.StringProperty(default=util.uuid())
-    notify_on_new_user = ndb.BooleanProperty(default=True)  # Whether to send email to admin if user signs up
-    recaptcha_forms = ndb.StringProperty(repeated=True)  # List of form names where recaptcha is enabled
-    recaptcha_private_key = ndb.StringProperty(default='')
-    recaptcha_public_key = ndb.StringProperty(default='')
-    salt = ndb.StringProperty(default=util.uuid())
-    verify_email = ndb.BooleanProperty(default=True)  # Whether to verify emails of newly registered users
+    analytics_id        = ndb.StringProperty(default='')  # Google Analytics ID
+    brand_name          = ndb.StringProperty(default=config.APPLICATION_ID)  # Webapp name
+    description         = ndb.StringProperty(default='')  # Webapp description
+    feedback_email      = ndb.StringProperty(default='')  # Admin's email, where feedback will be sent
+    flask_secret_key    = ndb.StringProperty(default=util.uuid())
+    recaptcha_forms     = ndb.StringProperty(repeated=True)  # List of form names where recaptcha is enabled
+    recaptcha_private_key=ndb.StringProperty(default='')
+    recaptcha_public_key= ndb.StringProperty(default='')
+    salt                = ndb.StringProperty(default=util.uuid())
+    verify_email        = ndb.BooleanProperty(default=True)  # Whether to verify emails of newly registered users
+    notify_on_new_user  = ndb.BooleanProperty(default=True)  # Whether to send email to admin if user signs up
 
     PUBLIC_PROPERTIES = ConfigAuth.get_public_properties() + \
-                        ['analytics_id', 'brand_name', 'description', 'recaptcha_public_key',
-                         'has_recaptcha', 'has_feedback_form', 'recaptcha_forms', 'verify_email']
-
+                        [ 'analytics_id'
+                        , 'brand_name'
+                        , 'description'
+                        , 'recaptcha_public_key'
+                        , 'has_recaptcha'
+                        , 'has_feedback_form'
+                        , 'recaptcha_forms'
+                        , 'verify_email'
+                        ]
     @property
     def has_feedback_form(self):
         """If feedback form should be displayed"""

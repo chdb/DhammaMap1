@@ -202,7 +202,7 @@
     });
 
     gulp.task('run-server', function() {
-        var proc = exec('python -u run.py');
+        var proc = exec('python -u run.py --appserver-args --log_level=debug');
         proc.stderr.on('data', function(data) {
             process.stderr.write(data);
         });
