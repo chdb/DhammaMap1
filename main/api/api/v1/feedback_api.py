@@ -23,17 +23,11 @@ class FeedbackAPI(Resource):
         # p.add_argument('email', type=UserVdr.fn('email_rx', required=False))  #this 'required' is for fn()
         # args = p.parse_args()
         args = rqParse( rqArg('message', vdr='feedback', required=True)
-                      , rqArg('fromEma', userVdr=('email_rx', False))
+                      , rqArg('fromEma'  , userVdr=('email_rx', False))
                       )
-        MaxSubjLen = 50              
-        if len(args.message) > MaxSubjLen:
-            subject ='%s...' % args.message[:(MaxSubjLen-3)].strip()
-        else:
-            subject = args.message.strip()
-        ka = {'reply_to': args.fromEma} if args.fromEma else {}
-        
-        task.sendEmail( subject
-                      , body= '%s\n\nfrom: %s' % (args.message, args.fromEma)
-                      , **ka
-                      )
+        body = '%s\n\nfrom: %s' % (args.message, args.fromEma)
+        kwargs = {'reply_to': args.fromEma} if args.fromEma else {}
+        task.sendEmail( subject='%s...' % body[:48].strip()
+                      , body=body
+                      , **kwargs)
         return empty_ok_response()

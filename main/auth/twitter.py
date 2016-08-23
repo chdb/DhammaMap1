@@ -48,10 +48,10 @@ def signin_twitter():
 
 def retrieve_user_from_twitter(response):
     auth_id = 'twitter_%s' % response['user_id']
-    user_db = model.User.get_by('auth_ids', auth_id)
+    user_db = model.User.get_by('authIDs_p', auth_id)
     return user_db or auth.create_or_get_user_db(
         auth_id=auth_id,
         name=response['screen_name'],
         username=response['screen_name'],
-        verified=True
+        verified_p=True
     )

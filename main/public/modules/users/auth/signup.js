@@ -15,10 +15,10 @@
 		  //console.log(gaValidators);
 		  //
 		  var v = gaValidators.user.username_span;
-		  console.log(v)
+		  //console.log(v)
         $scope.usernameMinLen = v ? v[0] : 0;
         $scope.usernameMaxLen = v ? v[1] : 0;
-		  console.log('uname: '+ $scope.usernameMinLen +' : '+ $scope.usernameMaxLen)
+		  //console.log('uname: '+ $scope.usernameMinLen +' : '+ $scope.usernameMaxLen)
 
         $scope.signup = function() {
             $scope.loading = true;

@@ -7,7 +7,7 @@ import factory
 
 
 class BaseFactory(NDBFactory):
-    """Base factory for factory_boy classes, for generating fixtures
+    """ndbModel factory for factory_boy classes, for generating fixtures
     This class should be extended"""
 
     class Meta: # pylint: disable=missing-docstring

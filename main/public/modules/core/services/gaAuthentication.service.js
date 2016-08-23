@@ -16,7 +16,7 @@
                 return !!me.user;
             },
             isAdmin  : function() {
-                return me.isLogged() && me.user.admin;
+                return me.isLogged() && me.user.admin_p;
             },
             setUser  : function(user) {
                 me.user = Restangular.restangularizeElement(null, user, 'users');

@@ -3,10 +3,10 @@
 from __future__ import absolute_import
 
 from google.appengine.ext import ndb
-from pydash import _
+#from pydash import _
+from model import ndbModel
 
-
-class ConfigAuth(object):
+class ConfigAuth(ndbModel):
     """A class describing datastore authentication properties."""
     auth_bitbucket_id    = ndb.StringProperty(default='')
     auth_bitbucket_secret= ndb.StringProperty(default='')
@@ -29,7 +29,7 @@ class ConfigAuth(object):
     auth_yahoo_id        = ndb.StringProperty(default='')
     auth_yahoo_secret    = ndb.StringProperty(default='')
 
-    @classmethod
-    def get_public_properties(cls):
-        """return list of public properties IE ones begining with 'auth_' and ending with '_id'"""
-        return _.filter(set(dir(cls)), lambda x: x.startswith('auth_') and x.endswith('_id'))
+    # @classmethod
+    # def get_public_properties(cls):
+        # """return list of public properties IE ones begining with 'auth_' and ending with '_id'"""
+        # return _.filter(set(dir(cls)), lambda x: x.startswith('auth_') and x.endswith('_id'))

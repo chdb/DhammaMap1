@@ -13,18 +13,18 @@ class UserFactory(BaseFactory):
     class Meta: # pylint: disable=missing-docstring
         model = User
 
-    name = FuzzyChoice(['John Doe', 'Machete', 'Bobby Tables'])
+    name     = FuzzyChoice(['John Doe', 'Machete', 'Bobby Tables'])
     username = factory.Sequence(lambda n: 'bobby%d' % n)
-    email = factory.LazyAttribute(lambda user: '%s@example.com' % user.username)
-    verified = FuzzyChoice([True, False])
-    active = FuzzyChoice([True, False])
-    bio = FuzzyChoice(['They see me rollin\'', 'They hatin\''])
+    email_p    = factory.LazyAttribute(lambda user: '%s@example.com' % user.username)
+    verified_p = FuzzyChoice([True, False])
+    active_p   = FuzzyChoice([True, False])
+    bio      = FuzzyChoice(['All component things\'', 'are impermanent.',' work out your',' own salvation ','with diligence.'])
     facebook = FuzzyText()
-    twitter = FuzzyText()
-    gplus = FuzzyText()
-    instagram = FuzzyText()
+    twitter  = FuzzyText()
+    gplus    = FuzzyText()
+    instagram= FuzzyText()
     linkedin = FuzzyText()
-    github = FuzzyText()
+    github   = FuzzyText()
 
     @classmethod
     def create_batch(cls, size, **kwargs):
@@ -36,4 +36,9 @@ class UserFactory(BaseFactory):
     @classmethod
     def create_admin(cls):
         """Creates mock admin user"""
-        cls(username='admin', password_hash=util.password_hash('123456'), admin=True, verified=True, active=True)
+        cls ( username='admin'
+            , pwdhash_h=util.password_hash('123456')
+            , admin_p=True
+            , verified_p=True
+            , active_p=True
+            )

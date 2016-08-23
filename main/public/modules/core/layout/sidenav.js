@@ -6,6 +6,7 @@
                                                     gaToast, $timeout) {
         $scope.auth = gaAuthentication;
         $scope.cfg = gaAppConfig;
+		  console.log(gaAppConfig);
         $scope.closeSidenav = function() {
             $mdSidenav('leftSidenav').close();
         };

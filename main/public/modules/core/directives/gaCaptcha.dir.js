@@ -8,26 +8,34 @@
      * @description
      * This directive inserts no-captcha into page.
      * In order to display captcha certain conditions must be met:
-     * - Captcha must be enabled for form, in which this directive is. This can be enabled/disabled via Admin Interface
-     * - Admin must set recaptcha_public_key & recaptcha_private_key
+     * - Captcha must be enabled for the form, in which this directive is called. This can be enabled/disabled via Admin Interface
+     * - Admin must set recaptcha_id & recaptcha_secret
      * - If captcha has attribute anonymousOnly, logged users won't see it
+			todo: Ok, but if that is all it is, why not call it 'disable' rather than 'anonymousOnly' ?
+					Also we have that functionality already in 'isEnabled' - see below
+					NB 'anonymousOnly' only appears in this directive defn - so what is *really* for and how is it used? 
      */
     module.directive('gaCaptcha', function(gaAppConfig, gaAuthentication) {
         /*jslint unparam:true*/
         var prelink = function(scope, el, attrs, form) {
             //jscs:disable requireCamelCaseOrUpperCaseIdentifiers
-            var anonOnly = attrs.anonymousOnly !== undefined && attrs.anonymousOnly !== 'false';
-            scope.isEnabled = gaAppConfig.has_recaptcha;
-            // gaAppConfig.recaptcha_forms contains list of form names e.g 'signinForm' from '<form name="signinForm">'
-            // which should display captcha, if the form name is not in the list, captcha won't be displayed even
-            // if directive is in the form
-            if ((anonOnly && gaAuthentication.isLogged()) || !gaAppConfig.recaptcha_forms[form.$name]) {
-                scope.isEnabled = false;
+            scope.isEnabled =    gaAppConfig.recaptcha_id
+										&& gaAppConfig.recaptcha_id.length > 0;
+				if (scope.isEnabled) 
+				{	// gaAppConfig.recaptcha_forms contains list of form names e.g 'signinForm' from '<form name="signinForm">'
+					// which should display captcha, if the form name is not in the list, captcha won't be displayed even
+					// if this directive is in the form
+					var anonOnly = attrs.anonymousOnly !== undefined 
+									&& attrs.anonymousOnly !== 'false';
+					if ((	anonOnly && gaAuthentication.isLogged()) 
+						|| ! gaAppConfig.recaptcha_forms[form.$name]
+						) 
+						scope.isEnabled = false;
+			
+					scope.recaptcha_id = gaAppConfig.recaptcha_id;
             }
-            scope.recaptcha_public_key = gaAppConfig.recaptcha_public_key;
-            if (!scope.isEnabled) {
+				else 
                 attrs.$set('ngRequired', false);
-            }
         };
 
         return {
@@ -49,7 +57,7 @@
                 'theme="light"',
                 'g-recaptcha-response="$parent.ngModel"',
                 'control="$parent.control"',
-                'site-key="{{ recaptcha_public_key }}">',
+                'site-key="{{ recaptcha_id }}">',
                 '</no-captcha>'
             ].join(' ')
         };

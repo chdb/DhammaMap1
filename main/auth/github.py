@@ -8,7 +8,7 @@ import config
 import model
 
 from main import app
-from model import UserValidator
+from model import UserVdr
 
 github_config = dict(
     access_token_method='POST',
@@ -47,28 +47,28 @@ def signin_github():
 
 def retrieve_user_from_github(response):
     auth_id = 'github_%s' % str(response['id'])
-    user_db = model.User.get_by('auth_ids', auth_id)
-    bio = response['bio'][:UserValidator.bio_span[1]] if response['bio'] else ''
-    location = response['location'][:UserValidator.location_span[1]] if response['location'] else ''
+    user_db = model.User.get_by('authIDs_p', auth_id)
+    bio = response['bio'][:UserVdr.bio_span[1]] if response['bio'] else ''
+    location = response['location'][:UserVdr.location_span[1]] if response['location'] else ''
     return user_db or auth.create_or_get_user_db(
         auth_id,
         response.get('name', ''),
         response.get('login'),
         response.get('email', ''),
-        verified=True,
+        verified_p=True,
         location=location,
         bio=bio,
         github=response.get('login')
     )
 
 # Todo replace opaque and repeated code such as  
-#   bio = response['bio'][:UserValidator.bio_span[1]] if response['bio'] else ''
+#   bio = response['bio'][:UserVdr.bio_span[1]] if response['bio'] else ''
 # with 
 #   bio = getField(response, 'bio')
 def getField(response, name):
     field = response[name]
     if field:
         span = name + '_span' # depend on validators following this naming convention
-        max = getattr(UserValidator, span)[1]
+        max = getattr(UserVdr, span)[1]
         return field [:max]
     return ''

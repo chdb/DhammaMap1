@@ -28,7 +28,8 @@
         };
 
         $scope.save = function() {
-            $scope.cfg.save().then(function() {
+            var v = $scope.cfg.save();
+				v.then(function() {
                 _.extend(gaAppConfig, $scope.cfg);
                 gaToast.show('Application configuration was successfully saved.');
                 $scope.appConfigForm.$setPristine();

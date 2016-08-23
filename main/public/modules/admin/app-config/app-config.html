@@ -4,9 +4,9 @@
             <md-content class="md-padding">
                 <md-input-container>
                     <label>Brand name</label>
-                    <input ng-model="cfg.brand_name"
+                    <input ng-model="cfg.site_name"
                            tabindex="1"
-                           name="brand_name"
+                           name="site_name"
                            required>
                 </md-input-container>
                 <md-input-container>
@@ -18,11 +18,11 @@
                 </md-input-container>
                 <md-input-container>
                     <label>Feedback email</label>
-                    <input ng-model="cfg.feedback_email"
+                    <input ng-model="cfg.admin_email_p"
                            tabindex="3"
-                           name="feedback_email">
+                           name="admin_email_p">
                 </md-input-container>
-                <md-checkbox ng-model="cfg.notify_on_new_user" tabindex="5">
+                <md-checkbox ng-model="cfg.notify_on_new_user_p" tabindex="5">
                     Send email notification when a user signs up
                 </md-checkbox>
                 <md-checkbox ng-model="cfg.verify_email" tabindex="6">
@@ -51,15 +51,15 @@
                         md-swipe-right="previous()">
                 <md-input-container>
                     <label>Flask Secret Key</label>
-                    <input ng-model="cfg.flask_secret_key"
+                    <input ng-model="cfg.flask_secret"
                            tabindex="1"
-                           name="flask_secret_key">
+                           name="flask_secret">
                 </md-input-container>
                 <md-input-container>
                     <label>Salt</label>
-                    <input ng-model="cfg.salt"
+                    <input ng-model="cfg.salt_p"
                            tabindex="2"
-                           name="salt">
+                           name="salt_p">
                 </md-input-container>
                 <div>Read more about
                     <a target="_blank" href="http://flask.pocoo.org/docs/quickstart/#sessions">Flask secret key</a>
@@ -88,13 +88,13 @@
                         md-swipe-right="previous()">
                 <md-input-container>
                     <label>Public Key</label>
-                    <input ng-model="cfg.recaptcha_public_key"
+                    <input ng-model="cfg.recaptcha_id"
                            tabindex="1"
                            name="analytics_id">
                 </md-input-container>
                 <md-input-container>
                     <label>Private Key</label>
-                    <input ng-model="cfg.recaptcha_private_key"
+                    <input ng-model="cfg.recaptcha_secret"
                            tabindex="2"
                            name="analytics_id">
                 </md-input-container>

@@ -21,11 +21,11 @@
         <div class="mar-bot-5">Created: {{user.created | date:'medium'}}</div>
         <div>Modified: {{user.modified | date:'medium'}}</div>
         <div layout="row" layout-align="center center" class="mar-top-15">
-            <div ng-show="user.verified" class="hpad-15">
+            <div ng-show="user.verified_p" class="hpad-15">
                 <md-icon md-font-icon="fa fa-check"></md-icon>
                 <md-tooltip>Verified</md-tooltip>
             </div>
-            <div ng-hide="user.active" class="hpad-15">
+            <div ng-hide="user.active_p" class="hpad-15">
                 <md-icon md-font-icon="fa fa-ban"></md-icon>
                 <md-tooltip>Blocked</md-tooltip>
             </div>

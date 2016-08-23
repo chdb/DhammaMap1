@@ -5,6 +5,7 @@ Global config variables. Config variables stored in DB are loaded into CONFIG_DB
 import os
 from datetime import datetime
 from google.appengine.api import app_identity #pylint: disable=import-error
+import util
 
 PRODUCTION          = os.environ.get('SERVER_SOFTWARE', '').startswith('Google App Eng')
 DEVELOPMENT         = not PRODUCTION
@@ -20,14 +21,18 @@ else:
 
 CURRENT_VERSION_DATE = datetime.utcfromtimestamp(CURRENT_VERSION_TIMESTAMP)
 
+
+EmailRegEx = util.getEmailRegex()
+
+
 import model        # NB The model module needs to be imported *after* setting CURRENT_VERSION_TIMESTAMP,
-                    # since model.Base uses it as default value for version property
+                    # since model.ndbModel uses it as default value for version property
 CONFIG_DB           = model.Config.get_master_db()
-SECRET_KEY          = CONFIG_DB.flask_secret_key.encode('ascii')
+SECRET_KEY          = CONFIG_DB.flask_secret.encode('ascii')
 
 import logging 
-logging.debug('app id: %r', APPLICATION_ID)
-logging.debug('cur ver id: %r', CURRENT_VERSION_ID)
-logging.debug('cur ver name: %r', CURRENT_VERSION_NAME)
-logging.debug('cur ver timestamp: %r', CURRENT_VERSION_TIMESTAMP)
-logging.debug('cur ver datetime: %r', CURRENT_VERSION_DATE)
+logging.debug('####################################################### app id: %r ', APPLICATION_ID)
+logging.debug('####################################################### cur ver id: %r', CURRENT_VERSION_ID)
+logging.debug('####################################################### cur ver name: %r', CURRENT_VERSION_NAME)
+logging.debug('####################################################### cur ver timestamp: %r', CURRENT_VERSION_TIMESTAMP)
+logging.debug('####################################################### cur ver datetime: %r', CURRENT_VERSION_DATE)

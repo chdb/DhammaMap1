@@ -16,7 +16,7 @@ from main import app
 def user_reset(token=None):
     """Verifies user's token from url, if it's valid redirects user to page, where he can
     set new password"""
-    user_db = model.User.get_by('token', token)
+    user_db = model.User.get_by('token_h', token)
     if not user_db:
         flask.flash('Sorry, password reset link is either invalid or expired.')
         return flask.redirect(flask.url_for('index'))
@@ -36,11 +36,11 @@ def user_verify(token):
         login.logout_user()
         return flask.redirect(flask.request.path)
 
-    user_db = model.User.get_by('token', token)
-    if user_db and not user_db.verified:
+    user_db = model.User.get_by('token_h', token)
+    if user_db and not user_db.verified_p:
         # setting new token is necessary, so this one can't be reused
-        user_db.token = util.uuid()
-        user_db.verified = True
+        user_db.token_h = util.uuid()
+        user_db.verified_p = True
         user_db.put()
         auth.signin_user_db(user_db)
         flask.flash('Welcome on board %s!' % user_db.username)

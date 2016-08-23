@@ -1,6 +1,6 @@
 <footer layout="row" layout-padding class="footer" role="contentinfo">
     <p flex layout="column" layout-align="center center">
-        # if current_user.admin
+        # if current_user.admin_p
         <small>
             Version: {{config.CURRENT_VERSION_NAME}}
             (
@@ -8,6 +8,6 @@
             )
         </small>
         # endif
-        <small>&copy; 2015 - {{config.CONFIG_DB.brand_name}} code is licensed under the MIT License</small>
+        <small>&copy; 2015 - {{config.CONFIG_DB.site_name}} code is licensed under the MIT License</small>
     </p>
 </footer>

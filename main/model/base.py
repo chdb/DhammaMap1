@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Provides implementation of Base model and BaseValidator"""
+"""Provides implementation of ndbModel and Validator"""
 
 from __future__ import absolute_import
 from google.appengine.ext import ndb
@@ -8,16 +8,17 @@ import config
 from datetime import date
 from pydash import _
 import util
+import logging
 
 
-class BaseValidator(object):
+class Validator(object):
     """Base factory class for creating validators for ndb properties
     To create a validator for some property, its model class defines a rule in the form of a class attribute with one of these types:
         list        - with 2 elements, determining min and max length of string
         regex       - which will be validated against string
         function    - custom validation function
     For example:
-        class MySuperValidator (BaseValidator):
+        class MySuperValidator (Validator):
             short_name_rule = [2, 4]
     Now the call 
         MySuperValidator.create('short_name_rule') 
@@ -27,21 +28,23 @@ class BaseValidator(object):
     argument to reqparse.RequestParser, when adding argument via add_argument.
     """
     @classmethod
-    def create(cls, name, required=True):
-        """Creates validation function from given attribute name
+    def fn(cls, name, required=True): # NB  'required' defaults to True  for our base.Validator().fn()
+                                      # but 'required' defaults to False for reqparse.RequestParser().add_argument()
+        """Creates validation function for given attribute name
         Args:		name (string): Name of attribute
-                    required (bool, optional) If false, empty string will be always accepted as valid
+                    required (bool, optional) If false, empty string will be valid
         Returns:	function    : validation function
         """
-        def create_validator(lengths=None, regex='', required=True):
-            """This is factory function, which creates validator functions, which
-            will then validate passed strings according to lengths or regex set at creation time
+        def create_validator(required, lengths=None, regex=None):
+            """Factory function to create a validator function according to lengths or regex
             Args:		lengths (list)  : list of length 2. e.g [3, 7] indicating that 
                                             string should be between 3 and 7 characters
                         regex (string)  : Regular expression
                         required (bool) : Whether empty value '' should be accepted as valid, ignoring other constraints
             Returns:	function        : Function, which will be used for validating input
             """
+            assert (lengths is None) or (regex is None)
+        
             def validator_function(value, prop):
                 """Function validates input against constraints given from closure function
                 These functions are primarily used as ndb.Property validators
@@ -64,9 +67,9 @@ class BaseValidator(object):
 
         attr = getattr(cls, name)
         if _.is_list(attr):
-            return create_validator(lengths=attr, required=required)
+            return create_validator(required, lengths=attr)
         if _.is_string(attr):
-            return create_validator(regex=attr, required=required)
+            return create_validator(required, regex=attr)
         if _.is_function(attr):
             return attr
 
@@ -83,15 +86,15 @@ class BaseValidator(object):
         return result
 
 
-class Base(ndb.Model):
-    """Base model class, it should always be extended
+class ndbModel(ndb.Model):
+    """ndbModel model class, it should always be extended
     Attributes:
         created (ndb.DateTimeProperty)  : DateTime when model instance was created
         modified (ndb.DateTimeProperty) : DateTime when model instance was last time modified
         version (ndb.IntegerProperty)   : Version of app
         PUBLIC_PROPERTIES (list)        : list of properties, which are accessible for public, meaning non-logged users. 
                                             Every extending class should define public properties, if there are some
-        PRIVATE_PROPERTIES (list)       : list of properties accessible by admin or authrorized user
+        PRIVATE_PROPERTIES (list)       : list of properties accessible by admin or other authorized user
     """
     created     = ndb.DateTimeProperty(auto_now_add=True)
     modified    = ndb.DateTimeProperty(auto_now=True)
@@ -100,51 +103,98 @@ class Base(ndb.Model):
     PUBLIC_PROPERTIES = ['key', 'version', 'created', 'modified']
     PRIVATE_PROPERTIES = []
 
-    def to_dict(    self, include=None):
+    def toDict(self, all, nullprops=False):
         """Return a dict containing the entity's property values, so it can be passed to client
         Args:		include (list, optional): Set of property names to include, default all properties
         """
-        repr_dict = {}
+        '''Todo: refactor ndbModel.to_dict() 
+                          ndbModel.PUBLIC_PROPERTIES
+                          ndbModel.PRIVATE_PROPERTIES
+                          ndbModel.get_public_properties
+                          ndbmodel.get_private_properties
+                          Config  .get_all_properties
+                          Config  .get_private_properties
+                          User    .get_public_properties
+                          User    .get_private_properties
+        Some properties are added removed explicitly from eg PUBLIC_PROPERTIES - eg  Config.get_all_properties
+        this is all unecessarily complex. 
+        There are only these 4 call types in the codebase
+            user     .to_dict(include=User  .get_public_properties()) # 2 calls: user_api.py*2
+            user     .to_dict(include=User  .get_private_properties())# 4 calls: auth_api.py*3 index.py
+            CONFIG_DB.to_dict(include=Config.get_public_properties()) # 2 calls: auth_api.py   index.py
+            CONFIG_DB.to_dict(include=Config.get_all_properties())    # 2 call: config_api.py  index.py
+        So we could replace these with these 4
+            user     .public_dict() 
+            user     .private_dict()
+            CONFIG_DB.public_dict() 
+            CONFIG_DB.full_dict()  -where full = public + private ???
+        
+        NB Vdr's have another to_dict() and more manual property lists which is no better
+        '''
+        include = self.all_properties() if all else self.public_properties()
+        logging.debug('to_dict for %r',include)
+        d = {}
         if include is None:
-            return super(Base, self).to_dict(include=include)
+            return super(ndbModel, self).to_dict(include=include)
 
         for name in include:
             attr = getattr(self, name)
+            # if name == 'key':
+                # repr_dict[name] = self.key.urlsafe()
+                # repr_dict['id'] = self.key.id()
+            # el
             if isinstance(attr, date):
-                repr_dict[name] = attr.isoformat()
-            elif isinstance(attr, ndb.Key):
-                repr_dict[name] = self.key.urlsafe()
-                repr_dict['id'] = self.key.id()
-            else:
-                repr_dict[name] = attr
-
-        return repr_dict
+                d[name] = attr.isoformat() # convert date type to string repr
+            elif isinstance(attr, bool):
+                d[name] = attr
+            elif attr:          # include truthy ones but exclude falsy non-boolean items EG '' or None
+                d[name] = attr
+            elif nullprops:
+                d[name] = attr # only admin config needs the props without values for the config setting page
+            #else: dont bother sending empty props
+     
+        #logging.debug('to_dict: %r', d)
+        return d
 
     def populate(self, **kwargs):
         """Extended ndb.Model populate method, so it can ignore properties, which are not defined in model class without throwing error
         """
-        kwargs = _.omit(kwargs, Base.PUBLIC_PROPERTIES + ['key', 'id'])  # We don't want to populate those properties
+        kwargs = _.omit(kwargs, ndbModel.PUBLIC_PROPERTIES + ['key', 'id'])  # We don't want to populate those properties
         kwargs = _.pick(kwargs, _.keys(self._properties))  # We want to populate only real model properties
-        super(Base, self).populate(**kwargs)
+        super(ndbModel, self).populate(**kwargs)
 
     @classmethod
     def get_by(cls, name, value):
         """Gets model instance by given property name and value"""
         return cls.query(getattr(cls, name) == value).get()
 
-    @classmethod
-    def get_public_properties(cls):
-        """Public properties consist of this class public properties plus extending class public properties"""
-        return cls.PUBLIC_PROPERTIES + Base.PUBLIC_PROPERTIES
+    # @classmethod
+    # def get_public_properties(cls):
+        # """Public properties consist of this class public properties plus extending class public properties"""
+        # return cls.PUBLIC_PROPERTIES + ndbModel.PUBLIC_PROPERTIES
 
     @classmethod
-    def get_private_properties(cls):
-        """Gets private properties defined by extending class"""
-        return cls.PRIVATE_PROPERTIES + Base.PRIVATE_PROPERTIES + cls.get_public_properties()
+    def public_properties(cls):
+        return [ n for n in  cls.all_properties() 
+                 if not (  n.endswith('_p') 
+                        or n.endswith('_secret'))
+               ]
 
     @classmethod
-    def get_all_properties(cls):
-        """Gets all model's ndb properties"""
-        return ['key', 'id'] + _.keys(cls._properties)
+    def all_properties(cls):
+        return [ n for n in   cls._properties.keys() 
+                            + util.pyProperties(cls)  # todo review whether we want to include these
+                 if not n.endswith('_h') 
+               ]
+
+    # @classmethod
+    # def get_private_properties(cls):
+        # """Gets private properties defined by extending class"""
+        # return cls.PRIVATE_PROPERTIES + ndbModel.PRIVATE_PROPERTIES + cls.get_public_properties()
+
+    # @classmethod
+    # def get_all_properties(cls):
+        # """Gets all model's ndb properties"""
+        # return ['key'] + _.keys(cls._properties)
 
 

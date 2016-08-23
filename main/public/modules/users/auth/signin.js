@@ -16,13 +16,13 @@
         $scope.signin = function() {
             Restangular.all('auth/signin').post($scope.credentials).then(function(user) {
                 var category;
-                if (!user.verified) {
+                if (!user.verified_p) {
                     gaToast.show('Your email isn\'t verified yet.', {
                         action : 'Resend Email',
                         delay  : 5000
                     }).then(ctrl.resendEmail);
                     category = 'unverified';
-                } else if (!user.active) {
+                } else if (!user.active_p) {
                     gaToast.show('Your account has been blocked. Please contact administrators to find out why.');
                     category = 'blocked';
                 } else {
