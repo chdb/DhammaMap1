@@ -14,7 +14,6 @@
                               show-counter="true"
                               required>
                     </textarea>
-
                     <div ng-if="feedbackForm.feedback.$dirty" ng-messages="feedbackForm.feedback.$error">
                         <div ng-message="md-maxlength">Your message is too long</div>
                         <div ng-message="required">Feedback message is required</div>
@@ -23,12 +22,11 @@
                 <md-input-container>
                     <label>Your email (optional)</label>
                     <input class="form-control"
-                           name="email"
+                           name="fromEma"
                            type="email"
-                           ng-model="feedback.email">
-
-                    <div ng-messages="feedbackForm.email.$error">
-                        <div ng-message="email">Seems like invalid email</div>
+                           ng-model="feedback.fromEma">
+                    <div ng-messages="feedbackForm.fromEma.$error">
+                        <div ng-message="email">Seems like an invalid email</div>
                     </div>
                 </md-input-container>
                 <ga-captcha ng-model="feedback.captcha" ng-required="true" anonymous-only></ga-captcha>
