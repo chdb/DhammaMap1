@@ -59,7 +59,7 @@ def signin_yahoo():
 
 def retrieve_user_from_yahoo(response):
     auth_id = 'yahoo_%s' % response['guid']
-    user_db = model.User.get_by('authIDs_p', auth_id)
+    user_db = model.User.get_by('authIDs_', auth_id)
     if user_db:
         return user_db
 
@@ -74,6 +74,6 @@ def retrieve_user_from_yahoo(response):
         auth_id=auth_id,
         name=' '.join(names).strip() or response['nickname'],
         username=response['nickname'],
-        email_p=email,
-        verified_p=True,
+        email_=email,
+        isVerified_=True,
     )

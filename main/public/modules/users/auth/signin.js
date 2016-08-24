@@ -5,7 +5,7 @@
     module.controller('SigninController', function($scope, Restangular, gaAppConfig, gaAuthentication, gaBrowserHistory,
                                                    gaToast, gaTracking) {
 
-        if (gaAuthentication.isLogged()) {
+        if (gaAuthentication.loggedIn()) {
             gaBrowserHistory.back();
         }
 
@@ -16,13 +16,13 @@
         $scope.signin = function() {
             Restangular.all('auth/signin').post($scope.credentials).then(function(user) {
                 var category;
-                if (!user.verified_p) {
+                if (!user.isVerified_) {
                     gaToast.show('Your email isn\'t verified yet.', {
                         action : 'Resend Email',
                         delay  : 5000
                     }).then(ctrl.resendEmail);
                     category = 'unverified';
-                } else if (!user.active_p) {
+                } else if (!user.isActive_) {
                     gaToast.show('Your account has been blocked. Please contact administrators to find out why.');
                     category = 'blocked';
                 } else {

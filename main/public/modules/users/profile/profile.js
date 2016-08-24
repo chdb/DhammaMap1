@@ -7,7 +7,7 @@
         $scope.cfg = gaAppConfig;
         $scope.auth = gaAuthentication;
         $scope.isMyProfile = function() {
-            return gaAuthentication.isLogged() && $stateParams.username === gaAuthentication.user.username;
+            return gaAuthentication.loggedIn() && $stateParams.username === gaAuthentication.user.username;
         };
 
         if ($scope.isMyProfile()) {

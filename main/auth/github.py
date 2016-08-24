@@ -47,7 +47,7 @@ def signin_github():
 
 def retrieve_user_from_github(response):
     auth_id = 'github_%s' % str(response['id'])
-    user_db = model.User.get_by('authIDs_p', auth_id)
+    user_db = model.User.get_by('authIDs_', auth_id)
     bio = response['bio'][:UserVdr.bio_span[1]] if response['bio'] else ''
     location = response['location'][:UserVdr.location_span[1]] if response['location'] else ''
     return user_db or auth.create_or_get_user_db(
@@ -55,7 +55,7 @@ def retrieve_user_from_github(response):
         response.get('name', ''),
         response.get('login'),
         response.get('email', ''),
-        verified_p=True,
+        isVerified_=True,
         location=location,
         bio=bio,
         github=response.get('login')

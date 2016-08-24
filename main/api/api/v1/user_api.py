@@ -52,10 +52,10 @@ class UserByKeyAPI(Resource):
     @model_by_key
     def put(self, key):
         """Updates user's properties"""
-        update_properties = ['name', 'bio', 'email_p', 'location', 'facebook', 'github',
+        update_properties = ['name', 'bio', 'email_', 'location', 'facebook', 'github',
                              'gplus', 'linkedin', 'twitter', 'instagram']
         if auth.is_admin():
-            update_properties += ['verified_p', 'active_p', 'admin']
+            update_properties += ['isVerified_', 'isActive_', 'admin']
 
         new_data = _.pick(request.json, update_properties)
         g.model_db.populate(**new_data)
@@ -87,9 +87,9 @@ class UserPasswordAPI(Resource):
 
         # Users, who signed up via social networks have empty password_hash, so they have to be allowed
         # to change it as well
-        if g.model_db.pwdhash_h != '' and not g.model_db.has_password(args.current_password):
+        if g.model_db.pwdhash__ != '' and not g.model_db.has_password(args.current_password):
             raise ValueError('Given password is incorrect.')
-        g.model_db.pwdhash_h = util.password_hash(args.new_password)
+        g.model_db.pwdhash__ = util.password_hash(args.new_password)
         g.model_db.put()
         return empty_ok_response()
 

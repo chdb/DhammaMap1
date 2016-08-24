@@ -36,7 +36,7 @@
              */
             back : function() {
                 var state = history.pop();
-                if (!state || (gaAuthentication.isLogged() && state.state.data && state.state.data.signedOutOnly)) {
+                if (!state || (gaAuthentication.loggedIn() && state.state.data && state.state.data.signedOutOnly)) {
                     $state.go('home');
                 } else {
                     $state.go(state.state, state.params);

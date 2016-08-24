@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Provides implementation of ndbModel and Validator"""
+"""Provides implementation of ndbModelBase and Validator"""
 
 from __future__ import absolute_import
 from google.appengine.ext import ndb
@@ -86,8 +86,8 @@ class Validator(object):
         return result
 
 
-class ndbModel(ndb.Model):
-    """ndbModel model class, it should always be extended
+class ndbModelBase(ndb.Model):
+    """ndbModelBase model class, it should always be extended
     Attributes:
         created (ndb.DateTimeProperty)  : DateTime when model instance was created
         modified (ndb.DateTimeProperty) : DateTime when model instance was last time modified
@@ -100,17 +100,17 @@ class ndbModel(ndb.Model):
     modified    = ndb.DateTimeProperty(auto_now=True)
     version     = ndb.IntegerProperty(default=config.CURRENT_VERSION_TIMESTAMP)
 
-    PUBLIC_PROPERTIES = ['key', 'version', 'created', 'modified']
-    PRIVATE_PROPERTIES = []
+    #PUBLIC_PROPERTIES = ['key', 'version', 'created', 'modified']
+   # PRIVATE_PROPERTIES = []
 
     def toDict(self, all, nullprops=False):
         """Return a dict containing the entity's property values, so it can be passed to client
         Args:		include (list, optional): Set of property names to include, default all properties
         """
-        '''Todo: refactor ndbModel.to_dict() 
-                          ndbModel.PUBLIC_PROPERTIES
-                          ndbModel.PRIVATE_PROPERTIES
-                          ndbModel.get_public_properties
+        '''Todo: refactor ndbModelBase.to_dict() 
+                          ndbModelBase.PUBLIC_PROPERTIES
+                          ndbModelBase.PRIVATE_PROPERTIES
+                          ndbModelBase.get_public_properties
                           ndbmodel.get_private_properties
                           Config  .get_all_properties
                           Config  .get_private_properties
@@ -135,7 +135,7 @@ class ndbModel(ndb.Model):
         logging.debug('to_dict for %r',include)
         d = {}
         if include is None:
-            return super(ndbModel, self).to_dict(include=include)
+            return super(ndbModelBase, self).to_dict(include=include)
 
         for name in include:
             attr = getattr(self, name)
@@ -156,12 +156,14 @@ class ndbModel(ndb.Model):
         #logging.debug('to_dict: %r', d)
         return d
 
-    def populate(self, **kwargs):
+    def populate(self, **ka):
         """Extended ndb.Model populate method, so it can ignore properties, which are not defined in model class without throwing error
         """
-        kwargs = _.omit(kwargs, ndbModel.PUBLIC_PROPERTIES + ['key', 'id'])  # We don't want to populate those properties
-        kwargs = _.pick(kwargs, _.keys(self._properties))  # We want to populate only real model properties
-        super(ndbModel, self).populate(**kwargs)
+        ka = _.omit(ka, ndbModelBase.public_properties() )  # We don't want to populate those properties
+        assert 'key' not in ka
+        assert 'id'  not in ka
+        ka = _.pick(ka, _.keys(self._properties))  # We want to populate only real model properties
+        super(ndbModelBase, self).populate(**ka)
 
     @classmethod
     def get_by(cls, name, value):
@@ -171,12 +173,12 @@ class ndbModel(ndb.Model):
     # @classmethod
     # def get_public_properties(cls):
         # """Public properties consist of this class public properties plus extending class public properties"""
-        # return cls.PUBLIC_PROPERTIES + ndbModel.PUBLIC_PROPERTIES
+        # return cls.PUBLIC_PROPERTIES + ndbModelBase.PUBLIC_PROPERTIES
 
     @classmethod
     def public_properties(cls):
         return [ n for n in  cls.all_properties() 
-                 if not (  n.endswith('_p') 
+                 if not (  n.endswith('_') 
                         or n.endswith('_secret'))
                ]
 
@@ -184,13 +186,13 @@ class ndbModel(ndb.Model):
     def all_properties(cls):
         return [ n for n in   cls._properties.keys() 
                             + util.pyProperties(cls)  # todo review whether we want to include these
-                 if not n.endswith('_h') 
+                 if not n.endswith('__') 
                ]
 
     # @classmethod
     # def get_private_properties(cls):
         # """Gets private properties defined by extending class"""
-        # return cls.PRIVATE_PROPERTIES + ndbModel.PRIVATE_PROPERTIES + cls.get_public_properties()
+        # return cls.PRIVATE_PROPERTIES + ndbModelBase.PRIVATE_PROPERTIES + cls.get_public_properties()
 
     # @classmethod
     # def get_all_properties(cls):

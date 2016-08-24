@@ -44,7 +44,7 @@ def signin_instagram():
 
 def retrieve_user_from_instagram(response):
     auth_id = 'instagram_%s' % response['id']
-    user_db = model.User.get_by('authIDs_p', auth_id)
+    user_db = model.User.get_by('authIDs_', auth_id)
     if user_db:
         return user_db
 
@@ -52,5 +52,5 @@ def retrieve_user_from_instagram(response):
         auth_id=auth_id,
         name=response.get('full_name', '').strip() or response.get('username'),
         username=response.get('username'),
-        verified_p=True
+        isVerified_=True
     )

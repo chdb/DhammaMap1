@@ -15,7 +15,7 @@ class FeedbackAPI(Resource):
     @verify_captcha('feedbackForm')
     def post(self):
         """Sends feedback email to admin"""
-        if not config.CONFIG_DB.admin_email_p:
+        if not config.CONFIG_DB.admin_email_:
             return abort(418)
         
         # p = reqparse.RequestParser()
@@ -34,6 +34,7 @@ class FeedbackAPI(Resource):
         
         task.sendEmail( subject
                       , body= '%s\n\nfrom: %s' % (args.message, args.fromEma)
+                      , subjTag='Feedback'
                       , **ka
                       )
         return empty_ok_response()

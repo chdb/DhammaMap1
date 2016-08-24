@@ -47,14 +47,14 @@ def signin_dropbox():
 
 def retrieve_user_from_dropbox(response):
     auth_id = 'dropbox_%s' % response['uid']
-    user_db = model.User.get_by('authIDs_p', auth_id)
+    user_db = model.User.get_by('authIDs_', auth_id)
     if user_db:
         return user_db
 
     return auth.create_or_get_user_db(
         auth_id=auth_id,
-        email_p=response['email'],
+        email_=response['email'],
         name=response['display_name'],
         username=response['display_name'],
-        verified_p=True
+        isVerified_=True
     )

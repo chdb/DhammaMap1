@@ -26,7 +26,7 @@ EmailRegEx = util.getEmailRegex()
 
 
 import model        # NB The model module needs to be imported *after* setting CURRENT_VERSION_TIMESTAMP,
-                    # since model.ndbModel uses it as default value for version property
+                    # since model.ndbModelBase uses it as default value for version property
 CONFIG_DB           = model.Config.get_master_db()
 SECRET_KEY          = CONFIG_DB.flask_secret.encode('ascii')
 

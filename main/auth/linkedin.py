@@ -59,7 +59,7 @@ def signin_linkedin():
 
 def retrieve_user_from_linkedin(response):
     auth_id = 'linkedin_%s' % response['id']
-    user_db = model.User.get_by('authIDs_p', auth_id)
+    user_db = model.User.get_by('authIDs_', auth_id)
     if user_db:
         return user_db
 
@@ -70,6 +70,6 @@ def retrieve_user_from_linkedin(response):
         auth_id=auth_id,
         name=name,
         username=email or name,
-        email_p=email,
-        verified_p=True,
+        email_=email,
+        isVerified_=True,
     )

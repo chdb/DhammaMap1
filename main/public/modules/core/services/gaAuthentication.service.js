@@ -12,11 +12,11 @@
     module.factory('gaAuthentication', function(gaAuthenticatedUser, Restangular) {
         var me = {
             user     : gaAuthenticatedUser,
-            isLogged : function() {
+            loggedIn : function() {
                 return !!me.user;
             },
             isAdmin  : function() {
-                return me.isLogged() && me.user.admin_p;
+                return me.loggedIn() && me.user.isAdmin_;
             },
             setUser  : function(user) {
                 me.user = Restangular.restangularizeElement(null, user, 'users');

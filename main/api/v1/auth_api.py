@@ -63,7 +63,7 @@ class SigninAPI(Resource):
     @parse_signin
     def post(self):
         """Signs in existing user. Note, g.user_db is set by parse_signin decorator"""
-        if g.user_db and g.user_db.verified_p and g.user_db.active_p:
+        if g.user_db and g.user_db.isVerified_ and g.user_db.isActive_:
             auth.signin_user_db(g.user_db, remember=g.args.remember)
 
         if g.user_db is None:
@@ -87,7 +87,7 @@ class ResendActivationAPI(Resource):
     @parse_signin
     def post(self):
         """Resends email verification to user"""
-        if g.user_db and not g.user_db.verified_p and g.user_db.active_p:
+        if g.user_db and not g.user_db.isVerified_ and g.user_db.isActive_:
             task.sendVerifyEmail(g.user_db)
         return empty_ok_response()
 
@@ -97,7 +97,7 @@ class ForgotPasswordAPI(Resource):
     def post(self):
         """Sends email with token for resetting password to an user"""
         args = rqParse( rqArg('email', userVdr='existing_email'))       
-        user_db = User.get_by('email_p', args.email)
+        user_db = User.get_by('email_', args.email)
         task.sendResetEmail(user_db)
         return empty_ok_response()
 
@@ -112,10 +112,10 @@ class ResetPasswordAPI(Resource):
         args = rqParse( rqArg('token'      , userVdr='token_span')
                       , rqArg('newPassword', userVdr='password_span', dest='new_password')
                       )
-        user_db = User.get_by('token_h', args.token)
-        user_db.pwdhash_h = util.password_hash(args.new_password)
-        user_db.token_h = util.uuid()
-        user_db.verified_p = True
+        user_db = User.get_by('token__', args.token)
+        user_db.pwdhash__ = util.password_hash(args.new_password)
+        user_db.token__ = util.uuid()
+        user_db.isVerified_ = True
         user_db.put_async()
         auth.signin_user_db(user_db)
         return user_db.to_dict(all=True)

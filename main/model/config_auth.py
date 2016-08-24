@@ -4,9 +4,9 @@ from __future__ import absolute_import
 
 from google.appengine.ext import ndb
 #from pydash import _
-from model import ndbModel
+from model import ndbModelBase
 
-class ConfigAuth(ndbModel):
+class ConfigAuth(ndbModelBase):
     """A class describing datastore authentication properties."""
     auth_bitbucket_id    = ndb.StringProperty(default='')
     auth_bitbucket_secret= ndb.StringProperty(default='')

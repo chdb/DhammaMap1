@@ -27,7 +27,7 @@
 					// if this directive is in the form
 					var anonOnly = attrs.anonymousOnly !== undefined 
 									&& attrs.anonymousOnly !== 'false';
-					if ((	anonOnly && gaAuthentication.isLogged()) 
+					if ((	anonOnly && gaAuthentication.loggedIn()) 
 						|| ! gaAppConfig.recaptcha_forms[form.$name]
 						) 
 						scope.isEnabled = false;

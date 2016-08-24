@@ -49,7 +49,7 @@ def signin_bitbucket():
 
 def retrieve_user_from_bitbucket(response):
     auth_id = 'bitbucket_%s' % response['username']
-    user_db = model.User.get_by('authIDs_p', auth_id)
+    user_db = model.User.get_by('authIDs_', auth_id)
     if user_db:
         return user_db
     if response['first_name'] or response['last_name']:
@@ -62,6 +62,6 @@ def retrieve_user_from_bitbucket(response):
         auth_id=auth_id,
         name=name,
         username=response['username'],
-        email_p=email,
-        verified_p=True,
+        email_=email,
+        isVerified_=True,
     )

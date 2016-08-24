@@ -87,13 +87,13 @@ def create_name_from_email(email):
 
 def password_hash(password):
     """Hashes given plain text password with sha256 encryption
-    Hashing is salted with salt_p configured by admin, stored in >>> model.Config
+    Hashing is salted with salt_ configured by admin, stored in >>> model.Config
     Args:		password (string)   : Plain text password
     Returns:	string              : hashed password, 64 characters
     """
     sha = hashlib.sha256()
     sha.update(password.encode('utf-8'))
-    sha.update(config.CONFIG_DB.salt_p)
+    sha.update(config.CONFIG_DB.salt_)
     return sha.hexdigest()
 
 
@@ -129,7 +129,7 @@ def limit_string(string, minlen, maxlen):
                 minlen (int)    : Minimal length
                 maxlen (int)    : Maximal length
     Returns:	string          : Returns given string
-    Raises:	    ValueError      : If string doesn't fit into min/max constrains
+    Raises:	    ValueError      : If string len is out of range
     """
     n = len(string) 
     if n < minlen:
@@ -158,3 +158,4 @@ def pyProperties(cls):
     but they can also be created using property() built-in function, and in other arcane ways. 
     '''
     return [k for k, v in vars(cls).items() if isinstance(v, property)]
+    

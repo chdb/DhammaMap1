@@ -5,7 +5,7 @@
     module.controller('ResetController', function($scope, Restangular, gaAuthentication, $stateParams, gaToast,
                                                   $state, gaTracking) {
 
-        if (gaAuthentication.isLogged()) {
+        if (gaAuthentication.loggedIn()) {
             $state.go('home');
         }
 

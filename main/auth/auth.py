@@ -61,7 +61,7 @@ class FlaskUser(AnonymousUser):
     def is_active(self):
         """Returns True if this is an active user - in addition to being authenticated
        , they also have activated their account, not been suspended"""
-        return self.user_db.active_p
+        return self.user_db.isActive_
 
     def is_anonymous(self):
         """Returns True if this is an anonymous user. """
@@ -100,7 +100,7 @@ def is_logged_in():
 
 def is_admin():
     """Convenient method if currently logged user is admin"""
-    return is_logged_in() and login.current_user.user_db.admin_p
+    return is_logged_in() and login.current_user.user_db.isAdmin_
 
 
 def is_authorized(user_key):
@@ -162,16 +162,16 @@ def create_user_db(auth_id, name, username, email='', verified=False, password='
         password = util.password_hash(password)
     email = email.lower()
     user_db = model.User( name=name
-                        , email_p=email
+                        , email_=email
                         , username=username
-                        , authIDs_p=[auth_id] if auth_id else []
-                        , verified_p=verified
-                        , token_h=util.uuid()
-                        , pwdhash_h=password
+                        , authIDs_=[auth_id] if auth_id else []
+                        , isVerified_=verified
+                        , token__=util.uuid()
+                        , pwdhash__=password
                         , **props
                         )
     user_db.put()
-    if config.CONFIG_DB.notify_on_new_user_p:
+    if config.CONFIG_DB.notify_on_new_user_:
         task.sendNewUserEmail(user_db)
     return user_db
 
@@ -181,14 +181,14 @@ def create_or_get_user_db(auth_id, name, username, email='', **kwargs):
     If so, it will append auth_id for his record and saves it.
     If not we construct a unique username for this user (for the case of signing up via social account)
     and then store it into datastore"""
-    user_db = model.User.get_by('email_p', email.lower())
+    user_db = model.User.get_by('email_', email.lower())
     if user_db:
-        user_db.authIDs_p.append(auth_id)
+        user_db.authIDs_.append(auth_id)
         user_db.put()
         return user_db
 
     username = normalise_username (username)
-    return create_user_db(auth_id, name, username, email_p=email, **kwargs)
+    return create_user_db(auth_id, name, username, email_=email, **kwargs)
 
     
 def normalise_username(username):

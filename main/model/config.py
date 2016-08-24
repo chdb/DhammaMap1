@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from google.appengine.ext import ndb
 
 import config
-from model import ndbModel, ConfigAuth
+from model import ndbModelBase, ConfigAuth
 import util
 from pydash import _
 import logging
@@ -16,14 +16,14 @@ class Config(ConfigAuth):
     analytics_id        = ndb.StringProperty(default='')    # Google Analytics ID
     site_name           = ndb.StringProperty(default=config.APPLICATION_ID)  # Webapp name
     description         = ndb.StringProperty(default='')    # Webapp description
-    admin_email_p       = ndb.StringProperty(default='')    # private: Admin's email, where feedback will be sent
+    admin_email_       = ndb.StringProperty(default='')    # private: Admin's email, where feedback will be sent
     flask_secret        = ndb.StringProperty(default=util.uuid())
     recaptcha_forms     = ndb.StringProperty(repeated=True) # List of form names where recaptcha is enabled
     recaptcha_secret    = ndb.StringProperty(default='')
     recaptcha_id        = ndb.StringProperty(default='')
-    salt_p              = ndb.StringProperty(default=util.uuid())
+    salt_              = ndb.StringProperty(default=util.uuid())
     verify_email        = ndb.BooleanProperty(default=True) # Whether to verify emails of newly registered users
-    notify_on_new_user_p= ndb.BooleanProperty(default=True) # Whether to send email to admin if user signs up
+    notify_on_new_user_= ndb.BooleanProperty(default=True) # Whether to send email to admin if user signs up
 
     # PUBLIC_PROPERTIES = ConfigAuth.get_public_properties() + \
                         # [ 'analytics_id'
@@ -34,12 +34,12 @@ class Config(ConfigAuth):
                         # , 'has_feedback_form'
                         # , 'recaptcha_forms'
                         # , 'verify_email'
-                       ## todo if verify_email is public then why isnt this one:  'notify_on_new_user_p' ?
+                       ## todo if verify_email is public then why isnt this one:  'notify_on_new_user_' ?
                         # ]
     @property
     def has_feedback_form(self):
         """If feedback form should be displayed"""
-        return bool(self.admin_email_p)
+        return bool(self.admin_email_)
 
     #@property
     def has_recaptcha(self):  # pylint: disable=missing-docstring
@@ -66,12 +66,12 @@ class Config(ConfigAuth):
             
         #repr_dict = super(Config, self).to_dict(*args, **kwargs)
         d = self.toDict(all, all)
-        d['development'] = config.DEVELOPMENT
+        #d['development'] = config.DEVELOPMENT
         
         #d['key'] = self.key.urlsafe() # todo why does client need these? 
-        d['id']  = self.key.id()      # todo why does client need these?
+        #d['id']  = self.key.id()      # todo why does client need these?
         #logging.debug('key = %r',d['key'])
-        logging.debug('id = %r',d['id'])
+        #logging.debug('id = %r',d['id'])
         
         # On clicking save at config page, get a 404 becasue <key> is somehow getting appended to url 
         # like this:       api/v1/config/<key> 
@@ -92,12 +92,12 @@ class Config(ConfigAuth):
     @classmethod
     def public_properties(cls):
         return  [ n for n in  cls.all_properties() 
-                 if not (n.endswith('_p') or n.endswith('_secret'))
+                 if not (n.endswith('_') or n.endswith('_secret'))
                 ]
     
     @classmethod
     def all_properties(cls):
-        """Include the private ones but exclude the ndbModel properties('version', 'modified', 'created') before sending to client"""
+        """Include the private ones but exclude the ndbModelBase properties('version', 'modified', 'created') before sending to client"""
         # all_properties = super(Config, cls).get_all_properties()
         # all_properties += cls.PUBLIC_PROPERTIES
         # return _.pull(_.uniq(all_properties), 'version', 'modified', 'created', 'key', 'id')
@@ -110,8 +110,8 @@ class Config(ConfigAuth):
         # for i in p2:
             # logging.debug('=== %r', i)
             
-       ## p1 = [n for n in p1 if not n.endswith('_h')]
-        # p3 = ndbModel._properties
+       ## p1 = [n for n in p1 if not n.endswith('__')]
+        # p3 = ndbModelBase._properties
         # for i in p3:
             # logging.debug('+++ %r', i)
             
@@ -123,7 +123,7 @@ class Config(ConfigAuth):
 
         return [ n for n in  cls._properties.keys() 
                            + util.pyProperties(cls)
-                 if n not in ndbModel._properties.keys()
+                 if n not in ndbModelBase._properties.keys()
                ]
         # for i in p:
             # logging.debug('xxx %r', i)

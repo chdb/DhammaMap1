@@ -52,7 +52,7 @@ def signin_vk():
 
 def retrieve_user_from_vk(response):
     auth_id = 'vk_%s' % response['uid']
-    user_db = model.User.get_by('authIDs_p', auth_id)
+    user_db = model.User.get_by('authIDs_', auth_id)
     if user_db:
         return user_db
 
@@ -61,5 +61,5 @@ def retrieve_user_from_vk(response):
         auth_id=auth_id,
         name=name,
         username=name,
-        verified_p=True
+        isVerified_=True
     )

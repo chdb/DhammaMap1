@@ -27,7 +27,7 @@
             $rootScope.isLoading = false;
         };
 
-        if (gaAuthentication.isLogged()) {
+        if (gaAuthentication.loggedIn()) {
             gaAuthentication.user = Restangular.restangularizeElement(null, gaAuthentication.user, 'users');
         }
 

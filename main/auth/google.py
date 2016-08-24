@@ -33,10 +33,10 @@ def google_authorized():
 
 def retrieve_user_from_google(google_user):
     auth_id = 'federated_%s' % google_user.user_id()
-    user_db = model.User.get_by('authIDs_p', auth_id)
+    user_db = model.User.get_by('authIDs_', auth_id)
     if user_db:
-        if not user_db.admin_p and users.is_current_user_admin():
-            user_db.admin_p = True
+        if not user_db.isAdmin_ and users.is_current_user_admin():
+            user_db.isAdmin_ = True
             user_db.put()
         return user_db
 
@@ -45,6 +45,6 @@ def retrieve_user_from_google(google_user):
         name=util.create_name_from_email(google_user.email()),
         username=google_user.email(),
         email=google_user.email(),
-        verified_p=True,
-        admin_p=users.is_current_user_admin(),
+        isVerified_=True,
+        isAdmin_=users.is_current_user_admin(),
     )

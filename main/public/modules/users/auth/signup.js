@@ -4,7 +4,7 @@
 
     module.controller('SignupController', function($scope, Restangular, gaAppConfig, gaToast, gaBrowserHistory,
                                                    gaAuthentication, _, gaTracking, $state, gaValidators) {
-        if (gaAuthentication.isLogged()) {
+        if (gaAuthentication.loggedIn()) {
             gaBrowserHistory.back();
         }
 

@@ -12,7 +12,7 @@ from api.helpers import empty_ok_response
 class GenerateDatabaseAPI(Resource):
     @ndb.toplevel
     def post(self):
-        """Generates mock data for development purposes"""
+        """Generates mock data for testing"""
         if not DEVELOPMENT:
             abort(404)
         UserFactory.create_batch(5)

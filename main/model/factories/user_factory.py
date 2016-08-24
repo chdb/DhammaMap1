@@ -13,11 +13,11 @@ class UserFactory(BaseFactory):
     class Meta: # pylint: disable=missing-docstring
         model = User
 
-    name     = FuzzyChoice(['John Doe', 'Machete', 'Bobby Tables'])
-    username = factory.Sequence(lambda n: 'bobby%d' % n)
-    email_p    = factory.LazyAttribute(lambda user: '%s@example.com' % user.username)
-    verified_p = FuzzyChoice([True, False])
-    active_p   = FuzzyChoice([True, False])
+    name     = FuzzyChoice(['Gloria Bloggs', 'Ebenezer Dingbat', 'Algernon Usher'])
+    username = factory.Sequence(lambda n: 'tutshka%d' % n)
+    email_    = factory.LazyAttribute(lambda user: '%s@example.com' % user.username)
+    isVerified_ = FuzzyChoice([True, False])
+    isActive_   = FuzzyChoice([True, False])
     bio      = FuzzyChoice(['All component things\'', 'are impermanent.',' work out your',' own salvation ','with diligence.'])
     facebook = FuzzyText()
     twitter  = FuzzyText()
@@ -25,11 +25,11 @@ class UserFactory(BaseFactory):
     instagram= FuzzyText()
     linkedin = FuzzyText()
     github   = FuzzyText()
+    pwdhash__=util.password_hash('654321')
 
     @classmethod
     def create_batch(cls, size, **kwargs):
-        """When creating batch, we create one less than requested size and then add admin user
-        at the end"""
+        """When creating a batch, we create one less than requested and add admin user at the end"""
         super(UserFactory, cls).create_batch(size - 1, **kwargs)
         cls.create_admin()
 
@@ -37,8 +37,8 @@ class UserFactory(BaseFactory):
     def create_admin(cls):
         """Creates mock admin user"""
         cls ( username='admin'
-            , pwdhash_h=util.password_hash('123456')
-            , admin_p=True
-            , verified_p=True
-            , active_p=True
+            , pwdhash__=util.password_hash('123456')
+            , isAdmin_=True
+            , isVerified_=True
+            , isActive_=True
             )

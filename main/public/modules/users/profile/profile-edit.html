@@ -45,13 +45,13 @@
         </md-input-container>
     </div>
     <div ng-if="auth.isAdmin()">
-        <md-checkbox ng-model="editedUser.verified_p">
+        <md-checkbox ng-model="editedUser.isVerified_">
             Verified
         </md-checkbox>
-        <md-checkbox ng-model="editedUser.active_p">
+        <md-checkbox ng-model="editedUser.isActive_">
             Active
         </md-checkbox>
-        <md-checkbox ng-model="editedUser.admin_p">
+        <md-checkbox ng-model="editedUser.isAdmin_">
             Admin
         </md-checkbox>
     </div>
