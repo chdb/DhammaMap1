@@ -14,7 +14,7 @@
 		  //console.log($scope.cfg);
 		  //console.log(gaValidators);
 		  //
-		  var v = gaValidators.user.username_span;
+		  var v = gaValidators.userVdr.username_span;
 		  //console.log(v)
         $scope.usernameMinLen = v ? v[0] : 0;
         $scope.usernameMaxLen = v ? v[1] : 0;

@@ -74,7 +74,7 @@ class Validator(object):
             return attr
 
     @classmethod
-    def to_dict(cls):
+    def toDict(cls):
         """Creates dict out of list and regex attributes, so it can be passed to angular for frontend validation
             Returns:		dict:
         """
@@ -103,11 +103,11 @@ class ndbModelBase(ndb.Model):
     #PUBLIC_PROPERTIES = ['key', 'version', 'created', 'modified']
    # PRIVATE_PROPERTIES = []
 
-    def toDict(self, all, nullprops=False):
+    def toDict_(self, all, nullprops=False):
         """Return a dict containing the entity's property values, so it can be passed to client
         Args:		include (list, optional): Set of property names to include, default all properties
         """
-        '''Todo: refactor ndbModelBase.to_dict() 
+        '''Todo: refactor ndbModelBase.toDict() 
                           ndbModelBase.PUBLIC_PROPERTIES
                           ndbModelBase.PRIVATE_PROPERTIES
                           ndbModelBase.get_public_properties
@@ -119,23 +119,23 @@ class ndbModelBase(ndb.Model):
         Some properties are added removed explicitly from eg PUBLIC_PROPERTIES - eg  Config.get_all_properties
         this is all unecessarily complex. 
         There are only these 4 call types in the codebase
-            user     .to_dict(include=User  .get_public_properties()) # 2 calls: user_api.py*2
-            user     .to_dict(include=User  .get_private_properties())# 4 calls: auth_api.py*3 index.py
-            CONFIG_DB.to_dict(include=Config.get_public_properties()) # 2 calls: auth_api.py   index.py
-            CONFIG_DB.to_dict(include=Config.get_all_properties())    # 2 call: config_api.py  index.py
+            user     .toDict(include=User  .get_public_properties()) # 2 calls: user_api.py*2
+            user     .toDict(include=User  .get_private_properties())# 4 calls: auth_api.py*3 index.py
+            CONFIG_DB.toDict(include=Config.get_public_properties()) # 2 calls: auth_api.py   index.py
+            CONFIG_DB.toDict(include=Config.get_all_properties())    # 2 call: config_api.py  index.py
         So we could replace these with these 4
             user     .public_dict() 
             user     .private_dict()
             CONFIG_DB.public_dict() 
             CONFIG_DB.full_dict()  -where full = public + private ???
         
-        NB Vdr's have another to_dict() and more manual property lists which is no better
+        NB ArgVdr's have another toDict() and more manual property lists which is no better
         '''
         include = self.all_properties() if all else self.public_properties()
-        logging.debug('to_dict for %r',include)
+        logging.debug('toDict for %r',include)
         d = {}
         if include is None:
-            return super(ndbModelBase, self).to_dict(include=include)
+            return super(ndbModelBase, self).toDict(include=include)
 
         for name in include:
             attr = getattr(self, name)
@@ -153,7 +153,7 @@ class ndbModelBase(ndb.Model):
                 d[name] = attr # only admin config needs the props without values for the config setting page
             #else: dont bother sending empty props
      
-        #logging.debug('to_dict: %r', d)
+        #logging.debug('toDict: %r', d)
         return d
 
     def populate(self, **ka):

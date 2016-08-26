@@ -82,12 +82,12 @@ def list_response(response_list, cursor=None, more=False, total_count=None):
                       , 'totalCount': total_count
            }          }
 
-class Vdr(model.Validator):
+class ArgVdr(model.Validator):
     """This validator class contains attributes and methods for validating user's input
    , which is not associated with any particular datastore model, but still needs to be validated
     Attributes: feedback (list): determining min and max lengths of feedback message sent to admin
     """
-    feedback = [1, 2000]
+    feedback_span = [1, 2000]
 
     @classmethod
     def captcha(cls, captchaStr):
@@ -126,11 +126,11 @@ class Vdr(model.Validator):
 
 def rqArg(name, **ka):
     '''provides syntax sugar to simplify calling RequestParser functions
-    EG  rqArg('name', vdr='myVdr')               ->   ('name', {'type' : Vdr.fn('myVdr')})
+    EG  rqArg('name', argVdr='myVdr')             ->   ('name', {'type' : ArgVdr.fn('myVdr')})
         rqArg('name', userVdr='myUserVdr')        ->   ('name', {'type' : UserVdr.fn('myUserVdr')})
         rqArg('name', userVdr=('myUserVdr',True)  ->   ('name', {'type' : UserVdr.fn('myUserVdr', required=True)})
     rqParse then further expands these:
-                        ->   requestParser.add_argument('name', type=Vdr.fn('myVdr'))
+                        ->   requestParser.add_argument('name', type=ArgVdr.fn('myVdr'))
                         ->   requestParser.add_argument('name', type=UserVdr.fn('myUserVdr'))
                         ->   requestParser.add_argument('name', type=UserVdr.fn('myUserVdr', required=True))
     '''
@@ -143,7 +143,7 @@ def rqArg(name, **ka):
             else:
                 ka['type'] = vdr(vargs)
          
-    expandArgArgs('vdr'    , Vdr    , ka)
+    expandArgArgs('argVdr' , ArgVdr    , ka)
     expandArgArgs('userVdr', UserVdr, ka)
     return name, ka
     

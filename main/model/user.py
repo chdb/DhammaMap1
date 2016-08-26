@@ -117,10 +117,10 @@ class User(model.ndbModelBase):
             return user_db
         return None
 
-    def to_dict(self, all=False):
-        d = self.toDict(all)
- #       d['key'] = self.key.urlsafe()
- #       d['id']  = self.key.id()
+    def toDict(self, all=False):
+        d = self.toDict_(all)
+        d['key'] = self.key.urlsafe()
+        # d['id']  = self.key.id()
         return d
 
 

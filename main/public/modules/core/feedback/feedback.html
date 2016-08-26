@@ -9,8 +9,8 @@
                     <label>Your message</label>
                     <textarea ng-model="feedback.message"
                               name="feedback"
-                              ga-input-validator
-                              validator-category="arg"
+                              validator="feedback_span"
+                              validator-class="argVdr"
                               show-counter="true"
                               required>
                     </textarea>

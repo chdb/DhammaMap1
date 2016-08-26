@@ -3,7 +3,7 @@
     var module = angular.module('core');
 
     /**
-     * @name gaInputValidator
+     * @name ValidatorType
      * @memberOf angularModule.core
      * @description
      * This directive automatically adds following directives to element:
@@ -12,32 +12,36 @@
      * Values for these directives are from python model validator factories (see BaseValidator in model/base.py)
      * Let's take for example user validator class:
      *
-     * class UserValidator(model.BaseValidator):
+     * class UserVdr (model.BaseValidator):
      *      name = [3, 100]
      *
-     * This min/max value for name is then passed to client as gaValidators.user.name === [3, 100]
+     * This min/max value for name is then passed to client as gaValidators.userVdr.name_span === [3, 100]
      * Now, when we use directive:
-     * <input name="name" ga-input-validator validator-category="user">
+     * <input name="name" validator validator-class="userVdr">
      * It will automatically add ng-minlength and ng-maxlength like this:
-     * <input name="name" ga-input-validator ng-minlength="3" ng-maxlength="100" validator-category="user">
+     * <input name="name" validator ng-minlength="3" ng-maxlength="100" validator-class="userVdr">
      *
      * If you want to use md-maxlength to show character counter pass show-counter="true"
      */
-    module.directive('gaInputValidator', function($compile, gaValidators, _) {
+    module.directive('validator', function($compile, gaValidators, _) {
         var compile = function(el, attrs) {
-            var type = attrs.gaInputValidator || attrs.name;
-            var values = gaValidators[attrs.validatorCategory][type];
-            if (_.isArray(values)) {
-                if (values[0] > 0) {
-                    attrs.$set('ng-minlength', values[0]);
+				
+            //var type = attrs.name + attrs.validator;
+            var vdr = gaValidators[attrs.validatorClass][attrs.validator];
+            if (_.isArray(vdr)) {
+					 if (vdr.length != 2)
+							throw 'unexpected validator array length'
+                if (vdr[0] > 0) {
+                    attrs.$set('ng-minlength', vdr[0]);
                 }
-                if (values[1] > 0) {
+                if (vdr[1] > 0) {
                     var maxType = attrs.showCounter === 'true' ? 'md-maxlength' : 'ng-maxlength';
-                    attrs.$set(maxType, values[1]);
+                    attrs.$set(maxType, vdr[1]);
                 }
-            } else {
-                attrs.$set('ng-pattern', '/' + values + '/');
+            } else if (_.isString(vdr)){
+                attrs.$set('ng-pattern', '/' + vdr + '/');
             }
+				else throw 'unknown validator type'
 
             //Now that we added new directives to the element, proceed with compilation
             //but skip directives with priority 5000 or above to avoid infinite

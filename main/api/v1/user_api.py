@@ -11,8 +11,8 @@ from model  import User, UserVdr
 from flask  import request, g
 from pydash import _
 from api.decorators import model_by_key, user_by_username, authorization_required, admin_required
-from api.helpers    import Vdr, list_response, empty_ok_response, rqArg, rqParse
-
+from api.helpers    import ArgVdr, list_response, empty_ok_response, rqArg, rqParse
+import logging
 
 @API.resource('/api/v1/users')
 class UsersAPI(Resource):
@@ -21,16 +21,16 @@ class UsersAPI(Resource):
     """
     def get(self):
         # p = reqparse.RequestParser()
-        # p.add_argument('cursor', type=Vdr.fn('cursor'))
+        # p.add_argument('cursor', type=ArgVdr.fn('cursor'))
         # args = p.parse_args()
-        args = rqParse(rqArg('cursor', vdr='cursor')) 
+        args = rqParse(rqArg('cursor', argVdr='cursor')) 
         users_future = User.query() \
             .order(-User.created) \
             .fetch_page_async(10, start_cursor=args.cursor)
 
         total_count_future = User.query().count_async(keys_only=True)
         users, next_cursor, more = users_future.get_result()
-        users = [u.to_dict() for u in users]
+        users = [u.toDict() for u in users]
         return list_response(users, next_cursor, more, total_count_future.get_result())
 
 
@@ -43,7 +43,7 @@ class UserByUsernameAPI(Resource):
             # properties = User.get_private_properties()
         # else:
             # properties = User.get_public_properties()
-        return g.user_db.to_dict(all=auth.is_admin())
+        return g.user_db.toDict(all=auth.is_admin())
 
 
 @API.resource('/api/v1/users/<string:key>')
@@ -76,6 +76,7 @@ class UserPasswordAPI(Resource):
     @model_by_key
     def post(self, key):
         """Changes user's password"""
+        logging.debug('zzzzzzzzzzzzzzzzzzzzzzzzzzz')
         # p = reqparse.RequestParser()
         # p.add_argument('currentPassword', type=UserVdr.fn('password_span', required=False), dest='current_password')
         # p.add_argument('newPassword', type=UserVdr.fn('password_span')   , dest='new_password')

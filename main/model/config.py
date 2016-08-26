@@ -51,8 +51,8 @@ class Config(ConfigAuth):
         There's need only for one config - master"""
         return cls.get_or_insert('master')
 
-    #def to_dict(self, *args, **kwargs):
-    def to_dict(self, all=False):
+    #def toDict(self, *args, **kwargs):
+    def toDict(self, all=False):
         """Creates dict representaion of config, recaptcha_forms are converted so angular models can
         easily use it"""
         # p = self._properties.keys()
@@ -64,9 +64,9 @@ class Config(ConfigAuth):
         # for i in  inc:
             # logging.debug('%r', i)
             
-        #repr_dict = super(Config, self).to_dict(*args, **kwargs)
-        d = self.toDict(all, all)
-        #d['development'] = config.DEVELOPMENT
+        #repr_dict = super(Config, self).toDict(*args, **kwargs)
+        d = self.toDict_(all, all)
+        d['development'] = config.DEVELOPMENT
         
         #d['key'] = self.key.urlsafe() # todo why does client need these? 
         #d['id']  = self.key.id()      # todo why does client need these?

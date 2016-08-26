@@ -11,7 +11,8 @@
         RestangularProvider
             .setBaseUrl('/api/v1')
             .setRestangularFields({
-                id : 'key'
+              id : 'key'
+                //  id : 'idx'
             });
 
         $mdThemingProvider.theme('default')

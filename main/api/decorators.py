@@ -5,12 +5,12 @@ Provides decorator functions for api methods, which are used as middleware for p
 import functools
 from google.appengine.ext import ndb #pylint: disable=import-error
 from flask import g, abort
-from helpers import Vdr, rqArg, rqParse
+from helpers import ArgVdr, rqArg, rqParse
 from main import config, auth
 from flask_restful import inputs
 import model
 from werkzeug import exceptions
-
+import logging
 
 def model_by_key(func):
     """This decorator gets model by ndb.Key, which is passed in URL
@@ -19,6 +19,7 @@ def model_by_key(func):
     @functools.wraps(func)
     def decorated_function(*args, **kwargs): # pylint: disable=missing-docstring
         g.model_key = ndb.Key(urlsafe=kwargs['key'])
+        logging.debug('xxxxxxxxxxxxxxxxxxx key = %r' , g.model_key)
         g.model_db = g.model_key.get()
         if g.model_db:
             return func(*args, **kwargs)
@@ -38,9 +39,9 @@ def verify_captcha(form_name):
         def decorated_function(*args, **kwargs):  # pylint: disable=missing-docstring
             if form_name in config.CONFIG_DB.recaptcha_forms:
                 # p = reqparse.RequestParser()
-                # p.add_argument('captcha', type=Vdr.fn('captcha'), required=True)
+                # p.add_argument('captcha', type=ArgVdr.fn('captcha'), required=True)
                 # p.parse_args()
-                rqParse(rqArg('email', vdr='captcha'), required=True) 
+                rqParse(rqArg('email', argVdr='captcha'), required=True) 
             return func(*args, **kwargs)
 
         return decorated_function

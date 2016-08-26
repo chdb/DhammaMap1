@@ -8,7 +8,7 @@ from main import app
 import auth
 import config
 from model import User, UserVdr, Config
-from api.helpers import Vdr
+from api.helpers import ArgVdr
 
 @app.route('/')
 def index():
@@ -21,7 +21,7 @@ def inject_user():
     """Injects 'user' variable into jinja template, so it can be passed into angular. See base.html"""
     user = False
     if auth.is_logged_in():
-        user = auth.current_user_db().to_dict(all=True)
+        user = auth.current_user_db().toDict(all=True)
     return { 'user': user }
 
 
@@ -29,7 +29,7 @@ def inject_user():
 def inject_config():
     """Injects 'app_config' variable into jinja template, so it can be passed into angular. See base.html"""
     #config_properties = Config.get_all_properties() if auth.is_admin() else Config.get_public_properties()
-    app_config = config.CONFIG_DB.to_dict(all=auth.is_admin())
+    app_config = config.CONFIG_DB.toDict(all=auth.is_admin())
     return { 'app_config': app_config }
 
 
@@ -41,8 +41,8 @@ def inject_validators():
     and the same validation of user's name (length between 5-20 characters) will be performed in frontend
     as well as in backend
     """
-    return { 'validators': { 'arg' : Vdr.to_dict()
-                           , 'user': UserVdr.to_dict()
+    return { 'validators': { 'argVdr' : ArgVdr.toDict()
+                           , 'userVdr': UserVdr.toDict()
            }               }
 
 

@@ -3,8 +3,8 @@
         <label>Name</label>
         <input ng-model="editedUser.name"
                type="text"
-               ga-input-validator
-               validator-category="user"
+               validator="name_span"
+               validator-class="userVdr"
                tabindex="1"
                name="name">
 
@@ -17,8 +17,8 @@
         <label>Bio</label>
         <input ng-model="editedUser.bio"
                name="bio"
-               ga-input-validator
-               validator-category="user"
+               validator="bio_span"
+               validator-class="userVdr"
                show-counter="true"
                tabindex="3">
     </md-input-container>
@@ -26,8 +26,8 @@
         <label>Location</label>
         <input ng-model="editedUser.location"
                name="location"
-               ga-input-validator
-               validator-category="user"
+               validator="location_span"
+               validator-class="userVdr"
                tabindex="4">
     </md-input-container>
     <div ng-repeat="(socKey, soc) in socialAccounts" layout="row" layout-align="start center">

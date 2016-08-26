@@ -15,7 +15,7 @@ import logging
 class AdminConfigAPI(Resource):
     @admin_required
     def get(self):
-        return CONFIG_DB.to_dict(all=True)
+        return CONFIG_DB.toDict(all=True)
 
     @admin_required
     #@model_by_key

@@ -11,7 +11,7 @@ from google.appengine.ext import ndb  # pylint: disable=import-error
 import flask
 import unidecode
 from flask_restful import inputs
-from api.helpers   import Vdr, rqArg, rqParse
+from api.helpers   import ArgVdr, rqArg, rqParse
 import model
 import task
 import util

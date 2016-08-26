@@ -13,6 +13,8 @@
         if ($scope.isMyProfile()) {
             $scope.user = gaAuthentication.user;
         } else {
+			   console.log('@@@@@@@@@@@')
+			   console.log($stateParams.username)
             Restangular.one('users', $stateParams.username).get().then(function(user) {
                 $scope.user = user;
             });

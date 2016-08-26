@@ -54,7 +54,7 @@ class SignupAPI(Resource):
 
         # if users don't need to verify email, we automaticaly signin newly registered user
         auth.signin_user_db(user_db, remember=args.remember)
-        return user_db.to_dict(all=True)
+        return user_db.toDict(all=True)
 
 
 @API.resource('/api/v1/auth/signin')
@@ -69,7 +69,7 @@ class SigninAPI(Resource):
         if g.user_db is None:
             raise exceptions.BadRequest('Seems like these credentials are invalid')
 
-        return g.user_db.to_dict(all=True)
+        return g.user_db.toDict(all=True)
 
 
 @API.resource('/api/v1/auth/signout')
@@ -78,7 +78,7 @@ class SignoutAPI(Resource):
         """Signs out user. Also it sends back a public config object to update client in case
         previous user was admin and so client config object included private data"""
         auth.signout_user()
-        app_config = config.CONFIG_DB.to_dict()
+        app_config = config.CONFIG_DB.toDict()
         return app_config
 
 
@@ -118,4 +118,4 @@ class ResetPasswordAPI(Resource):
         user_db.isVerified_ = True
         user_db.put_async()
         auth.signin_user_db(user_db)
-        return user_db.to_dict(all=True)
+        return user_db.toDict(all=True)
