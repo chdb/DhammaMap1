@@ -48,21 +48,6 @@ class GenerateDatabaseAPI(Resource):
         for n in xrange(45):
             create_user(n)
         
-
-        # create_admin()
-
-        ## import pdb; pdb.set_trace();
-        
-        # UserFactory.create_batch(45)
-        
-        # logging.debug('XXXXXX')
-        # logging.debug('XXXXXX')
-        # logging.debug('XXXXXX')
-        # logging.debug('XXXXXX               created all users')
-        # logging.debug('XXXXXX')
-        # logging.debug('XXXXXX')
-        # logging.debug('XXXXXX')
-
         return empty_ok_response()
 
         

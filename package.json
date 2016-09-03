@@ -1,6 +1,6 @@
 {
-  "name": "gae-angular-material-starter",
-  "author": "Matus Lestan",
+  "name": "dhamma-map",
+  "author": "Colin Barnett",
   "licenses": [
     {
       "type": "MIT",
@@ -9,7 +9,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "http://github.com/madvas/gae-angular-material-starter"
+    "url": "http://github.com/chdb/DhammaMap1"
   },
   "devDependencies": {
     "bower": "~1",

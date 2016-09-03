@@ -19,12 +19,12 @@
 							nextCursor 	 = userList.meta.nextCursor;
 							more 		 = userList.meta.more;
 							
-							$timeout( function() //make sure enough users are loaded to need a scroll bar. (lrInfiniteScroll doen't do this job.)
+							$timeout( function() //make sure enough users are loaded to need a scroll bar. (lrInfiniteScroll doesn't seem to do this job.)
 								{ 	var el = angular.element(document.querySelector('#mainBox'));
 									var sh = el.prop('scrollHeight');
 									var ch = el.prop('clientHeight');
-									if (sh > 0 && sh === ch) 
-										ctrl.getUsers(); //recursive
+									if (sh > 0 && sh === ch)//if no vertical scroll bar
+										ctrl.getUsers(); 	//recursive
 								}		
 								, 250
 							);
@@ -36,7 +36,7 @@
 		};
 		ctrl.getUsers();
         
-        $scope.$on('mainContentScrolled', function() // This is fired when user scrolls to bottom
+        $scope.$on('mainContentScrolled', function() // fired when user scrolls to bottom
 			{	ctrl.getUsers();
 			});
     });	

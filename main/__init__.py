@@ -1,14 +1,12 @@
 # coding: utf-8
 """
-gae-angular-material-starter
-~~~~~~~~
+based on gae-angular-material-starter
 
-Fastest way to start Google App Engine Angular Material project on Earth & Mars!
+    https://github.com/gae-angular-material-starter
+    http://gae-angular-material-starter.appspot.com
 
-https://github.com/gae-angular-material-starter
-http://gae-angular-material-starter.appspot.com
-
-by Matus Lestan.
+    by Matus Lestan.
+    
 License MIT, see LICENSE for more details.
 
 """
