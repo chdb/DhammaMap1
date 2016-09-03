@@ -6,7 +6,7 @@
 var AppConfig = (function() {
     'use strict';
     // Init module configuration options
-    var applicationModuleName = 'gae-angular-material-starter';
+    var applicationModuleName = 'Dhamma Map';
     var applicationModuleVendorDependencies = [
         'ngAnimate',
         'ngMessages',
@@ -14,7 +14,7 @@ var AppConfig = (function() {
         'ui.router',
         'noCAPTCHA',
         'ngMaterial',
-        'lrInfiniteScroll',
+        'lrInfiniteScroll', 
         'angulartics',
         'angulartics.google.analytics'
     ];

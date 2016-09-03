@@ -14,6 +14,12 @@
                 url         : '/config',
                 controller  : 'AdminAppConfigController',
                 templateUrl : '/p/modules/admin/app-config/app-config.html'
-            });
+            })
+            .state('admin.users', {
+                url         : '/users',
+                controller  : 'UsersController',
+ //               controllerAs: 'UserLister',
+                templateUrl : '/p/modules/users/users-list/users.html'
+			});
     });
 }());

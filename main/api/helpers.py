@@ -69,7 +69,7 @@ def empty_ok_response():
 
 
 def list_response(response_list, cursor=None, more=False, total_count=None):
-    """Creates response with list of items and also meta data useful for pagination
+    """Creates response with list of items and also meta data used for pagination
     Args    : response_list (list)      : list of items to be in response
               cursor (Cursor, optional) : ndb query cursor
               more (bool, optional)     : whether there's more items in terms of pagination
@@ -85,9 +85,8 @@ def list_response(response_list, cursor=None, more=False, total_count=None):
 class ArgVdr(model.Validator):
     """This validator class contains attributes and methods for validating user's input
    , which is not associated with any particular datastore model, but still needs to be validated
-    Attributes: feedback (list): determining min and max lengths of feedback message sent to admin
     """
-    feedback_span = [1, 2000]
+    feedback_span = [1, 2000] #determining min and max lengths of feedback message sent to admin
 
     @classmethod
     def captcha(cls, captchaStr):

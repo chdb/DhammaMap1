@@ -4,7 +4,7 @@
 
     module.controller('AdminController', function(gaAuthentication, gaToast, gaBrowserHistory) {
         if (!gaAuthentication.isAdmin()) {
-            gaToast.show('Sorry, you don\'t have permissions to access those pages');
+            gaToast.show('No, you cannot access that page');
             gaBrowserHistory.back();
         }
     });

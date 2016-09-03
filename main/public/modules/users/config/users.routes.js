@@ -8,17 +8,13 @@
                 url         : '/signin',
                 controller  : 'SigninController',
                 templateUrl : '/p/modules/users/auth/signin.html',
-                data        : {
-                    signedOutOnly : true
-                }
+                data        : { signedOutOnly : true }
             })
             .state('signup', {
                 url         : '/signup',
                 controller  : 'SignupController',
                 templateUrl : '/p/modules/users/auth/signup.html',
-                data        : {
-                    signedOutOnly : true
-                }
+                data        : { signedOutOnly : true }
             })
             .state('signout', {
                 url        : '/signout',
@@ -34,27 +30,21 @@
                 url         : '/password/forgot',
                 controller  : 'ForgotController',
                 templateUrl : '/p/modules/users/auth/password/forgot.html',
-                data        : {
-                    signedOutOnly : true
-                }
+                data        : { signedOutOnly : true }
             })
             .state('reset', {
                 url         : '/password/reset/:token',
                 controller  : 'ResetController',
                 templateUrl : '/p/modules/users/auth/password/reset.html',
-                data        : {
-                    signedOutOnly : true
-                }
+                data        : { signedOutOnly : true }
             })
             .state('profile', {
-                abstract : true,
-                url      : '/user/:username',
-                views    : {
-                    '' : {
-                        templateUrl : '/p/modules/users/profile/profile.html',
-                        controller  : 'ProfileController'
-                    }
-                }
+                abstract 	: true,
+                url      	: '/user/:username',
+                views    	: { '': { templateUrl : '/p/modules/users/profile/profile.html'
+									, controller  : 'ProfileController'
+									}
+							  }
             })
             .state('profile.view', {
                 url         : '',
@@ -69,11 +59,6 @@
                 url         : '/password',
                 controller  : 'ProfilePasswordController',
                 templateUrl : '/p/modules/users/profile/profile-password.html'
-            })
-            .state('users', {
-                url         : '/users',
-                controller  : 'UsersController',
-                templateUrl : '/p/modules/users/users-list/users.html'
             });
     });
 }());

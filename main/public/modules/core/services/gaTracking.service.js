@@ -3,7 +3,7 @@
     var module = angular.module('core');
 
     /**
-     * @name gaToast
+     * @name gaTracking
      * @memberOf angularModule.core
      * @description
      * Service responsible tracking user's activity on page

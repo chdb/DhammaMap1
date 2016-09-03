@@ -38,7 +38,7 @@
 
         ctrl.resendEmail = function() {
             Restangular.all('auth/resend-verification').post($scope.credentials).then(function() {
-                gaToast.show('Activation email was sent to you again.');
+                gaToast.show('Another activation email has been sent to you. Please open the email and click the link');
             });
         };
 

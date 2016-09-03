@@ -12,6 +12,7 @@ from model import UserVdr
 
 @API.resource('/api/v1/feedback')
 class FeedbackAPI(Resource):
+    
     @verify_captcha('feedbackForm')
     def post(self):
         """Sends feedback email to admin"""

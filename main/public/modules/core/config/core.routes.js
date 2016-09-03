@@ -3,7 +3,20 @@
 
     var module = angular.module('core');
     module.config(function($stateProvider, $urlRouterProvider) {
-        $urlRouterProvider.otherwise('/');
+        
+		//$urlRouterProvider.otherwise('/');
+		// $urlRouterProvider.otherwise(function($injector, $location){
+			// $injector.invoke(['$state', function($state) {
+				// $state.go('home');
+			// }]);
+		// }); 
+			// var $state = $injector.get('$state');
+			// $state.go('app.main');
+			
+		$urlRouterProvider.otherwise(function($injector) {
+			var $state = $injector.get('$state');
+			$state.go('home');
+		});
 
         $stateProvider
             .state('home', {

@@ -10,20 +10,13 @@
      */
 
     module.factory('gaAuthentication', function(gaAuthenticatedUser, Restangular) {
-        var me = {
-            user     : gaAuthenticatedUser,
-            loggedIn : function() {
-                return !!me.user;
-            },
-            isAdmin  : function() {
-                return me.loggedIn() && me.user.isAdmin_;
-            },
-            setUser  : function(user) {
-                me.user = Restangular.restangularizeElement(null, user, 'users');
-            }
-        };
+		var u =	{ user     : gaAuthenticatedUser
+				, loggedIn : function() 	{ return !! u.user; }
+				, isAdmin  : function() 	{ return u.loggedIn() && u.user.isAdmin_; }
+				, setUser  : function(user) { u.user = Restangular.restangularizeElement(null, user, 'users'); }
+				};
 
-        return me;
+		return u;
     });
 
 }());
