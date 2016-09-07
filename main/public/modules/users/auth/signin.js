@@ -2,10 +2,10 @@
     'use strict';
     var module = angular.module('users');
 
-    module.controller('SigninController', function($scope, Restangular, gaAppConfig, gaAuthentication, gaBrowserHistory,
+    module.controller('SigninController', function($scope, Restangular, gaAppConfig, gaAuth, gaBrowserHistory,
                                                    gaToast, gaTracking) {
 
-        if (gaAuthentication.loggedIn()) {
+        if (gaAuth.loggedIn()) {
             gaBrowserHistory.back();
         }
 
@@ -26,7 +26,7 @@
                     gaToast.show('Your account has been blocked. Please contact administrators to find out why.');
                     category = 'blocked';
                 } else {
-                    gaAuthentication.setUser(user);
+                    gaAuth.setUser(user);
                     gaBrowserHistory.back();
                     category = 'success';
                 }

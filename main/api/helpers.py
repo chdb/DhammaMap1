@@ -63,7 +63,7 @@ def handle_error(err):
     # raise exceptions.BadRequest(message)
 
 
-def empty_ok_response():
+def ok():
     """Returns OK response with empty body"""
     return '', 204
 

@@ -50,11 +50,11 @@ def verify_captcha(form_name):
 
 
 def user_by_username(func):
-    """Gets User model by username in URL and assigns it into g.user_db"""
+    """Gets User model by username in URL and assigns it into g.usr"""
     @functools.wraps(func)
     def decorated_function(*args, **kwargs): # pylint: disable=missing-docstring
-        g.user_db = model.User.get_by('username', kwargs['username'])
-        if g.user_db:
+        g.usr = model.User.get_by('username', kwargs['username'])
+        if g.usr:
             return func(*args, **kwargs)
         raise exceptions.NotFound() #return make_not_found_exception()
 
@@ -117,7 +117,7 @@ def parse_signin(func):
                         , rqArg('remember', type=inputs.boolean     , default=False)
                         ) 
         
-        g.user_db = model.User.get_by_credentials(g.args.login, g.args.password)
+        g.usr = model.User.get_by_credentials(g.args.login, g.args.password)
         return func(*args, **kwargs)
 
     return decorated_function

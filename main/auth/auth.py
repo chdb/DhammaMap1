@@ -15,6 +15,7 @@ from api.helpers   import ArgVdr, rqArg, rqParse
 import model
 import task
 import util
+import config
 import logging
 
 from main import app, config
@@ -30,7 +31,7 @@ class AnonymousUser(login.AnonymousUserMixin):  # pylint: disable=no-init, too-f
         is_anonymous is True
         get_id() returns None
     """
-    user_db = None
+    usr = None
 
 
 login_manager.anonymous_user = AnonymousUser
@@ -45,14 +46,14 @@ class FlaskUser(AnonymousUser):
         is_anonymous
     """
 
-    def __init__(self, user_db):
-        """Assigns user_db to Flask user"""
-        self.user_db = user_db
+    def __init__(self, usr):
+        """Assigns usr to Flask user"""
+        self.usr = usr
 
     def get_id(self):
         """Returns a unicode that uniquely identifies this user, and can be used to load
          the user from the user_loader callback."""
-        return self.user_db.key.urlsafe()
+        return self.usr.key.urlsafe()
 
     def is_authenticated(self):
         """Returns True if the user is authenticated, i.e. they have provided valid credentials"""
@@ -61,7 +62,7 @@ class FlaskUser(AnonymousUser):
     def is_active(self):
         """Returns True if this is an active user - in addition to being authenticated
        , they also have activated their account, not been suspended"""
-        return self.user_db.isActive_
+        return self.usr.isActive_
 
     def is_anonymous(self):
         """Returns True if this is an anonymous user. """
@@ -74,9 +75,9 @@ def load_user(key):
     Args    : ndb.Key: Url safe format of ndb.Key of user
     Returns : FlaskUser: if found, returns loaded user as FlaskUser, otherwise None
     """
-    user_db = ndb.Key(urlsafe=key).get()
-    if user_db:
-        return FlaskUser(user_db)
+    usr = ndb.Key(urlsafe=key).get()
+    if usr:
+        return FlaskUser(usr)
     return None
 
 
@@ -85,22 +86,22 @@ login_manager.init_app(app)
 
 def current_user_key():
     """Convenient method to get ndb.Key of currently logged user"""
-    return login.current_user.user_db.key if login.current_user.user_db else None
+    return login.current_user.usr.key if login.current_user.usr else None
 
 
-def current_user_db():
+def currentUser():
     """Convenient method to get ndb.Model instance of currently logged user"""
-    return login.current_user.user_db
+    return login.current_user.usr
 
 
 def is_logged_in():
     """Convenient method if user is logged in"""
-    return bool(login.current_user.user_db)
+    return bool(login.current_user.usr)
 
 
 def is_admin():
     """Convenient method if currently logged user is admin"""
-    return is_logged_in() and login.current_user.user_db.isAdmin_
+    return is_logged_in() and login.current_user.usr.isAdmin_
 
 
 def is_authorized(user_key):
@@ -116,6 +117,12 @@ def create_oauth_app(service_config, name):
         service_config (dict): config required for creating oauth app
         name (string): name of the service, e.g github
     """
+    for i in config.CONFIG_DB.authProviders:
+        if i.name == name:
+            service_config['consumer_key'] = i.id
+            service_config['consumer_secret'] = i.secret_
+            break
+    
     upper_name = name.upper()
     app.config[upper_name] = service_config
     service_oauth = oauth.OAuth()
@@ -161,7 +168,7 @@ def create_user_db(auth_id, name, username, email='', verified=False, password='
     if password:
         password = util.password_hash(password)
     email = email.lower()
-    user_db = model.User( name=name
+    usr = model.User( name=name
                         , email_=email
                         , username=username
                         , authIDs_=[auth_id] if auth_id else []
@@ -170,10 +177,10 @@ def create_user_db(auth_id, name, username, email='', verified=False, password='
                         , pwdhash__=password
                         , **props
                         )
-    user_db.put()
+    usr.put()
     if config.CONFIG_DB.notify_on_new_user_:
-        task.sendNewUserEmail(user_db)
-    return user_db
+        task.sendNewUserEmail(usr)
+    return usr
 
 
 def create_or_get_user_db(auth_id, name, username, email='', **kwargs):
@@ -181,11 +188,11 @@ def create_or_get_user_db(auth_id, name, username, email='', **kwargs):
     If so, it will append auth_id for his record and saves it.
     If not we construct a unique username for this user (for the case of signing up via social account)
     and then store it into datastore"""
-    user_db = model.User.get_by('email_', email.lower())
-    if user_db:
-        user_db.authIDs_.append(auth_id)
-        user_db.put()
-        return user_db
+    usr = model.User.get_by('email_', email.lower())
+    if usr:
+        usr.authIDs_.append(auth_id)
+        usr.put()
+        return usr
 
     username = normalise_username (username)
     return create_user_db(auth_id, name, username, email_=email, **kwargs)
@@ -216,9 +223,9 @@ def normalise_username(username):
     return new_username
 
     
-def signin_user_db(user_db, remember=False):
+def signin_user_db(usr, remember=False):
     """Signs in given user"""
-    flask_user_db = FlaskUser(user_db)
+    flask_user_db = FlaskUser(usr)
     auth_params = flask.session.get ('auth-params'
                                     , { 'remember': remember
                                     } )

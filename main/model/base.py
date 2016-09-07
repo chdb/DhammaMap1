@@ -145,13 +145,8 @@ class ndbModelBase(ndb.Model):
             # el
             if isinstance(attr, date):
                 d[name] = attr.isoformat() # convert date type to string repr
-            elif isinstance(attr, bool):
-                d[name] = attr
-            elif attr:          # include truthy ones but exclude falsy non-boolean items EG '' or None
-                d[name] = attr
-            elif nullprops:
-                d[name] = attr # only admin config needs the props without values for the config setting page
-            #else: dont bother sending empty props
+            elif attr or nullprops or isinstance(attr, bool):
+                d[name] = attr  # unless nullprops or boolean, exclude items with 'null' ie falsy values EG '' or None
      
         #logging.debug('toDict: %r', d)
         return d

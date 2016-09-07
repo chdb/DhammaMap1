@@ -13,8 +13,8 @@ bitbucket_config = dict(
     access_token_url='https://bitbucket.org/api/1.0/oauth/access_token',
     authorize_url='https://bitbucket.org/api/1.0/oauth/authenticate',
     base_url='https://api.bitbucket.org/1.0/',
-    consumer_key=config.CONFIG_DB.auth_bitbucket_id,
-    consumer_secret=config.CONFIG_DB.auth_bitbucket_secret,
+    # consumer_key=config.CONFIG_DB.auth_bitbucket_id,
+    # consumer_secret=config.CONFIG_DB.auth_bitbucket_secret,
     request_token_url='https://bitbucket.org/api/1.0/oauth/request_token',
 )
 
@@ -33,8 +33,8 @@ def bitbucket_authorized():
         response['oauth_token_secret'],
     )
     me = bitbucket.get('user')
-    user_db = retrieve_user_from_bitbucket(me.data['user'])
-    return auth.signin_via_social(user_db)
+    usr = retrieve_user_from_bitbucket(me.data['user'])
+    return auth.signin_via_social(usr)
 
 
 @bitbucket.tokengetter
@@ -49,9 +49,9 @@ def signin_bitbucket():
 
 def retrieve_user_from_bitbucket(response):
     auth_id = 'bitbucket_%s' % response['username']
-    user_db = model.User.get_by('authIDs_', auth_id)
-    if user_db:
-        return user_db
+    usr = model.User.get_by('authIDs_', auth_id)
+    if usr:
+        return usr
     if response['first_name'] or response['last_name']:
         name = ' '.join((response['first_name'], response['last_name'])).strip()
     else:

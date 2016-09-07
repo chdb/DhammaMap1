@@ -14,8 +14,8 @@ facebook_config = dict(
     access_token_url='/oauth/access_token',
     authorize_url='https://www.facebook.com/dialog/oauth',
     base_url='https://graph.facebook.com/',
-    consumer_key=config.CONFIG_DB.auth_facebook_id,
-    consumer_secret=config.CONFIG_DB.auth_facebook_secret,
+    # consumer_key=config.CONFIG_DB.auth_facebook_id,
+    # consumer_secret=config.CONFIG_DB.auth_facebook_secret,
     request_token_params={'scope': 'email'},
 )
 
@@ -31,8 +31,8 @@ def facebook_authorized():
 
     flask.session['oauth_token'] = (response['access_token'], '')
     me = facebook.get('/me')
-    user_db = retrieve_user_from_facebook(me.data)
-    return auth.signin_via_social(user_db)
+    usr = retrieve_user_from_facebook(me.data)
+    return auth.signin_via_social(usr)
 
 
 @facebook.tokengetter
@@ -47,8 +47,8 @@ def signin_facebook():
 
 def retrieve_user_from_facebook(response):
     auth_id = 'facebook_%s' % response['id']
-    user_db = model.User.get_by('authIDs_', auth_id)
-    return user_db or auth.create_or_get_user_db(
+    usr = model.User.get_by('authIDs_', auth_id)
+    return usr or auth.create_or_get_user_db(
         auth_id=auth_id,
         name=response['name'],
         username=response.get('username', response['name']),

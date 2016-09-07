@@ -17,15 +17,15 @@
     });
 
     module.run(function(Restangular, gaToast, $state, $rootScope, $timeout, gaFlashMessages, _,
-                        gaAuthentication, gaBrowserHistory) 
+                        gaAuth, gaBrowserHistory) 
     {	var loadingPromise;
         var endLoading = function() 
         {	$timeout.cancel(loadingPromise);
             $rootScope.isLoading = false;
         };
 
-        if (gaAuthentication.loggedIn()) 
-        	gaAuthentication.user = Restangular.restangularizeElement(null, gaAuthentication.user, 'users');
+        if (gaAuth.loggedIn()) 
+        	gaAuth.user = Restangular.restangularizeElement(null, gaAuth.user, 'users');
 
         gaBrowserHistory.init();
 

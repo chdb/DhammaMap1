@@ -9,7 +9,7 @@
      * Keeps track of states user navigates
      */
 
-    module.factory('gaBrowserHistory', function($state, $rootScope, _, gaAuthentication) {
+    module.factory('gaBrowserHistory', function($state, $rootScope, _, gaAuth) {
         var history = [];
         var ignoredStates = ['signout'];
 
@@ -36,7 +36,7 @@
              */
             back : function() {
                 var state = history.pop();
-                if (!state || (gaAuthentication.loggedIn() && state.state.data && state.state.data.signedOutOnly)) {
+                if (!state || (gaAuth.loggedIn() && state.state.data && state.state.data.signedOutOnly)) {
                     $state.go('home');
                 } else {
                     $state.go(state.state, state.params);

@@ -1,4 +1,16 @@
-#GAE Angular Material Starter
+#Dhamma Map
+
+##TODO
+* throttling
+* simplify clientside folders
+* check data leakage to non admin etc / finish property code 
+* separate validation module from model.Base and ArgVdr class 
+* convert from Angular Material to Bootstrap
+# add map content
+
+----
+
+GAE Angular Material Starter
 #####Easiest way to start Google App Engine Angular Material project on Earth & Mars!
 As a base for this I've used starter projects [gae-init] and [MEANJS], so big thanks to them!
 

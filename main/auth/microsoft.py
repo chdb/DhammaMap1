@@ -14,8 +14,8 @@ microsoft_config = dict(
     access_token_url='https://login.live.com/oauth20_token.srf',
     authorize_url='https://login.live.com/oauth20_authorize.srf',
     base_url='https://apis.live.net/v5.0/',
-    consumer_key=config.CONFIG_DB.auth_microsoft_id,
-    consumer_secret=config.CONFIG_DB.auth_microsoft_secret,
+    # consumer_key=config.CONFIG_DB.auth_microsoft_id,
+    # consumer_secret=config.CONFIG_DB.auth_microsoft_secret,
     request_token_params={'scope': 'wl.emails'},
 )
 
@@ -35,8 +35,8 @@ def microsoft_authorized():
             me['error']['code'],
             me['error']['message'],
         )
-    user_db = retrieve_user_from_microsoft(me.data)
-    return auth.signin_via_social(user_db)
+    usr = retrieve_user_from_microsoft(me.data)
+    return auth.signin_via_social(usr)
 
 
 @microsoft.tokengetter
@@ -51,9 +51,9 @@ def signin_microsoft():
 
 def retrieve_user_from_microsoft(response):
     auth_id = 'microsoft_%s' % response['id']
-    user_db = model.User.get_by('authIDs_', auth_id)
-    if user_db:
-        return user_db
+    usr = model.User.get_by('authIDs_', auth_id)
+    if usr:
+        return usr
     email = response['emails']['preferred'] or response['emails']['account']
     return auth.create_or_get_user_db(
         auth_id=auth_id,

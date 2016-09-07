@@ -3,8 +3,8 @@
     var module = angular.module('users');
 
     module.controller('SignupController', function($scope, Restangular, gaAppConfig, gaToast, gaBrowserHistory,
-                                                   gaAuthentication, _, gaTracking, $state, gaValidators) {
-        if (gaAuthentication.loggedIn()) {
+                                                   gaAuth, _, gaTracking, $state, gaValidators) {
+        if (gaAuth.loggedIn()) {
             gaBrowserHistory.back();
         }
 
@@ -27,7 +27,7 @@
                     gaToast.show('Your account has been created! Please verify your email');
                     $state.go('home');
                 } else {
-                    gaAuthentication.setUser(user);
+                    gaAuth.setUser(user);
                     gaBrowserHistory.back();
                 }
                 gaTracking.eventTrack('Signup', $scope.credentials.email);

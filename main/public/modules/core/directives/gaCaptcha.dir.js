@@ -15,7 +15,7 @@
 					Also we have that functionality already in 'isEnabled' - see below
 					NB 'anonymousOnly' only appears in this directive defn - so what is *really* for and how is it used? 
      */
-    module.directive('gaCaptcha', function(gaAppConfig, gaAuthentication) {
+    module.directive('gaCaptcha', function(gaAppConfig, gaAuth) {
         /*jslint unparam:true*/
         var prelink = function(scope, el, attrs, form) {
             //jscs:disable requireCamelCaseOrUpperCaseIdentifiers
@@ -27,7 +27,7 @@
 					// if this directive is in the form
 					var anonOnly = attrs.anonymousOnly !== undefined 
 									&& attrs.anonymousOnly !== 'false';
-					if ((	anonOnly && gaAuthentication.loggedIn()) 
+					if ((	anonOnly && gaAuth.loggedIn()) 
 						|| ! gaAppConfig.recaptcha_forms[form.$name]
 						) 
 						scope.isEnabled = false;

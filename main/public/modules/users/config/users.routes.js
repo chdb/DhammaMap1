@@ -18,9 +18,9 @@
             })
             .state('signout', {
                 url        : '/signout',
-                controller : function(Restangular, gaAuthentication, $state, gaAppConfig) {
+                controller : function(Restangular, gaAuth, $state, gaAppConfig) {
                     Restangular.all('auth/signout').post().then(function(appConfig) {
-                        gaAuthentication.user = false;
+                        gaAuth.user = false;
                         _.assignDelete(gaAppConfig, appConfig);
                         $state.go('home');
                     });

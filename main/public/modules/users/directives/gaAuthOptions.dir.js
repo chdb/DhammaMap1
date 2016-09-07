@@ -1,5 +1,5 @@
-(function() {
-    'use strict';
+(function() 
+{	'use strict';
     var module = angular.module('users');
 
     /**
@@ -11,27 +11,24 @@
      * Also inserts 'remember me' checkbox, which can be binded by remember="myModel"
      */
 
-    module.directive('gaAuthOptions', function(gaAppConfig) {
-        var link = function(scope) {
-            scope.authOptions = _.keys(_.pick(gaAppConfig, function(cfg, cfgName) {
-                return _.startsWith(cfgName, 'auth_') && cfg;
+    module.directive('gaAuthOptions', function(gaAppConfig) 
+    {	var link = function(scope) 
+        {	scope.authOptions = _.keys(_.pick(gaAppConfig, function(cfg, cfgName) 
+            {	return _.startsWith(cfgName, 'auth_') && cfg;
             }));
-            scope.authOptions = _.map(scope.authOptions, function(optName) {
-                return optName.replace('auth_', '').replace('_id', '');
+            scope.authOptions = _.map(scope.authOptions, function(optName) 
+            {	return optName.replace('auth_', '').replace('_id', '');
             });
-            scope.authOptions.unshift('google');
-            scope.remember = true;
+            scope.authOptions.unshift('google'); //todo why always add google?
+            
+			scope.remember = true;
         };
 
-        return {
-            link        : link,
-            restrict    : 'EA',
-            scope       : {
-                remember : '='
-            },
-            templateUrl : '/p/modules/users/directives/gaAuthOptions.dir.html'
-        };
-
+        return 	{ link        : link
+				, restrict    : 'EA'
+				, scope       : { remember : '=' }
+				, templateUrl : '/p/modules/users/directives/gaAuthOptions.dir.html'
+				};
     });
 
 }());

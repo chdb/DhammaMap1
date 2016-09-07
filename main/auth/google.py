@@ -27,18 +27,18 @@ def google_authorized():
         flask.flash('You denied the request to sign in.')
         return flask.redirect(flask.url_for('index'))
 
-    user_db = retrieve_user_from_google(google_user)
-    return auth.signin_via_social(user_db)
+    usr = retrieve_user_from_google(google_user)
+    return auth.signin_via_social(usr)
 
 
 def retrieve_user_from_google(google_user):
     auth_id = 'federated_%s' % google_user.user_id()
-    user_db = model.User.get_by('authIDs_', auth_id)
-    if user_db:
-        if not user_db.isAdmin_ and users.is_current_user_admin():
-            user_db.isAdmin_ = True
-            user_db.put()
-        return user_db
+    usr = model.User.get_by('authIDs_', auth_id)
+    if usr:
+        if not usr.isAdmin_ and users.is_current_user_admin():
+            usr.isAdmin_ = True
+            usr.put()
+        return usr
 
     return auth.create_or_get_user_db(
         auth_id=auth_id,

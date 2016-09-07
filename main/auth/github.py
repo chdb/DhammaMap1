@@ -15,8 +15,8 @@ github_config = dict(
     access_token_url='https://github.com/login/oauth/access_token',
     authorize_url='https://github.com/login/oauth/authorize',
     base_url='https://api.github.com/',
-    consumer_key=config.CONFIG_DB.auth_github_id,
-    consumer_secret=config.CONFIG_DB.auth_github_secret,
+    # consumer_key=config.CONFIG_DB.auth_github_id,
+    # consumer_secret=config.CONFIG_DB.auth_github_secret,
     request_token_params={'scope': 'user:email'},
 )
 
@@ -31,8 +31,8 @@ def github_authorized():
         return flask.redirect(flask.url_for('index'))
     flask.session['oauth_token'] = (response['access_token'], '')
     me = github.get('user')
-    user_db = retrieve_user_from_github(me.data)
-    return auth.signin_via_social(user_db)
+    usr = retrieve_user_from_github(me.data)
+    return auth.signin_via_social(usr)
 
 
 @github.tokengetter
@@ -47,10 +47,10 @@ def signin_github():
 
 def retrieve_user_from_github(response):
     auth_id = 'github_%s' % str(response['id'])
-    user_db = model.User.get_by('authIDs_', auth_id)
+    usr = model.User.get_by('authIDs_', auth_id)
     bio = response['bio'][:UserVdr.bio_span[1]] if response['bio'] else ''
     location = response['location'][:UserVdr.location_span[1]] if response['location'] else ''
-    return user_db or auth.create_or_get_user_db(
+    return usr or auth.create_or_get_user_db(
         auth_id,
         response.get('name', ''),
         response.get('login'),

@@ -13,8 +13,8 @@ instagram_config = dict(
     access_token_url='https://api.instagram.com/oauth/access_token',
     authorize_url='https://instagram.com/oauth/authorize/',
     base_url='https://api.instagram.com/v1',
-    consumer_key=config.CONFIG_DB.auth_instagram_id,
-    consumer_secret=config.CONFIG_DB.auth_instagram_secret,
+    # consumer_key=config.CONFIG_DB.auth_instagram_id,
+    # consumer_secret=config.CONFIG_DB.auth_instagram_secret,
 )
 
 instagram = auth.create_oauth_app(instagram_config, 'instagram')
@@ -28,8 +28,8 @@ def instagram_authorized():
         return flask.redirect(flask.url_for('index'))
 
     flask.session['oauth_token'] = (response['access_token'], '')
-    user_db = retrieve_user_from_instagram(response['user'])
-    return auth.signin_via_social(user_db)
+    usr = retrieve_user_from_instagram(response['user'])
+    return auth.signin_via_social(usr)
 
 
 @instagram.tokengetter
@@ -44,9 +44,9 @@ def signin_instagram():
 
 def retrieve_user_from_instagram(response):
     auth_id = 'instagram_%s' % response['id']
-    user_db = model.User.get_by('authIDs_', auth_id)
-    if user_db:
-        return user_db
+    usr = model.User.get_by('authIDs_', auth_id)
+    if usr:
+        return usr
 
     return auth.create_or_get_user_db(
         auth_id=auth_id,

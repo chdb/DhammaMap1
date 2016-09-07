@@ -11,7 +11,7 @@ from model  import User, UserVdr
 from flask  import request, g
 from pydash import _
 from api.decorators import model_by_key, user_by_username, authorization_required, admin_required
-from api.helpers    import ArgVdr, list_response, empty_ok_response, rqArg, rqParse
+from api.helpers    import ArgVdr, list_response, ok, rqArg, rqParse
 from config import DEVELOPMENT
 import logging
 
@@ -54,7 +54,7 @@ class UserByUsernameAPI(Resource):
             # properties = User.get_private_properties()
         # else:
             # properties = User.get_public_properties()
-        return g.user_db.toDict(all=auth.is_admin())
+        return g.usr.toDict(all=auth.is_admin())
 
 
 @API.resource('/api/v1/users/<string:key>')
@@ -72,14 +72,14 @@ class UserByKeyAPI(Resource):
         new_data = _.pick(request.json, update_properties)
         g.model_db.populate(**new_data)
         g.model_db.put()
-        return empty_ok_response()
+        return ok()
 
     @admin_required
     @model_by_key
     def delete(self, key):
         """Deletes user"""
         g.model_key.delete()
-        return empty_ok_response()
+        return ok()
 
 
 @API.resource('/api/v1/users/<string:key>/password')
@@ -104,6 +104,6 @@ class UserPasswordAPI(Resource):
             raise ValueError('Given password is incorrect.')
         g.model_db.pwdhash__ = util.password_hash(args.new_password)
         g.model_db.put()
-        return empty_ok_response()
+        return ok()
 
 

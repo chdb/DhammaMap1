@@ -11,7 +11,7 @@ import config
 from model import User, UserVdr, Config
 import task
 from main import API
-from api.helpers import empty_ok_response, rqArg, rqParse
+from api.helpers import ok, rqArg, rqParse
 from api.decorators import verify_captcha, parse_signin
 from google.appengine.ext import ndb  # pylint: disable=import-error
 from werkzeug import exceptions
@@ -39,22 +39,22 @@ class SignupAPI(Resource):
 
         logging.debug('args2 = %r', args)
         
-        user_db = auth.create_user_db  ( auth_id=None
+        usr = auth.create_user_db  ( auth_id=None
                                        , name=''
                                        , username=args.username
                                        , email=args.email
                                        , verified= not config.CONFIG_DB.verify_email
                                        , password=args.password
                                        )
-        user_db.put()
+        usr.put()
 
         if config.CONFIG_DB.verify_email:
-            task.sendVerifyEmail(user_db)
-            return empty_ok_response()
+            task.sendVerifyEmail(usr)
+            return ok()
 
         # if users don't need to verify email, we automaticaly signin newly registered user
-        auth.signin_user_db(user_db, remember=args.remember)
-        return user_db.toDict(all=True)
+        auth.signin_user_db(usr, remember=args.remember)
+        return usr.toDict(all=True)
 
 
 @API.resource('/api/v1/auth/signin')
@@ -62,14 +62,14 @@ class SigninAPI(Resource):
     @verify_captcha('signinForm')
     @parse_signin
     def post(self):
-        """Signs in existing user. Note, g.user_db is set by parse_signin decorator"""
-        if g.user_db and g.user_db.isVerified_ and g.user_db.isActive_:
-            auth.signin_user_db(g.user_db, remember=g.args.remember)
+        """Signs in existing user. Note, g.usr is set by parse_signin decorator"""
+        if g.usr and g.usr.isVerified_ and g.usr.isActive_:
+            auth.signin_user_db(g.usr, remember=g.args.remember)
 
-        if g.user_db is None:
+        if g.usr is None:
             raise exceptions.BadRequest('Seems like these credentials are invalid')
 
-        return g.user_db.toDict(all=True)
+        return g.usr.toDict(all=True)
 
 
 @API.resource('/api/v1/auth/signout')
@@ -87,9 +87,9 @@ class ResendActivationAPI(Resource):
     @parse_signin
     def post(self):
         """Resends email verification to user"""
-        if g.user_db and not g.user_db.isVerified_ and g.user_db.isActive_:
-            task.sendVerifyEmail(g.user_db)
-        return empty_ok_response()
+        if g.usr and not g.usr.isVerified_ and g.usr.isActive_:
+            task.sendVerifyEmail(g.usr)
+        return ok()
 
 
 @API.resource('/api/v1/auth/forgot')
@@ -97,9 +97,9 @@ class ForgotPasswordAPI(Resource):
     def post(self):
         """Sends email with token for resetting password to an user"""
         args = rqParse( rqArg('email', userVdr='existing_email'))       
-        user_db = User.get_by('email_', args.email)
-        task.sendResetEmail(user_db)
-        return empty_ok_response()
+        usr = User.get_by('email_', args.email)
+        task.sendResetEmail(usr)
+        return ok()
 
 
 @API.resource('/api/v1/auth/reset')
@@ -112,10 +112,10 @@ class ResetPasswordAPI(Resource):
         args = rqParse( rqArg('token'      , userVdr='token_span')
                       , rqArg('newPassword', userVdr='password_span', dest='new_password')
                       )
-        user_db = User.get_by('token__', args.token)
-        user_db.pwdhash__ = util.password_hash(args.new_password)
-        user_db.token__ = util.uuid()
-        user_db.isVerified_ = True
-        user_db.put_async()
-        auth.signin_user_db(user_db)
-        return user_db.toDict(all=True)
+        usr = User.get_by('token__', args.token)
+        usr.pwdhash__ = util.password_hash(args.new_password)
+        usr.token__ = util.uuid()
+        usr.isVerified_ = True
+        usr.put_async()
+        auth.signin_user_db(usr)
+        return usr.toDict(all=True)

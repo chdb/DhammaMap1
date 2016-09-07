@@ -15,8 +15,8 @@ linkedin_config = dict(
     access_token_url='https://www.linkedin.com/uas/oauth2/accessToken',
     authorize_url='https://www.linkedin.com/uas/oauth2/authorization',
     base_url='https://api.linkedin.com/v1/',
-    consumer_key=config.CONFIG_DB.auth_linkedin_id,
-    consumer_secret=config.CONFIG_DB.auth_linkedin_secret,
+    # consumer_key=config.CONFIG_DB.auth_linkedin_id,
+    # consumer_secret=config.CONFIG_DB.auth_linkedin_secret,
     request_token_params={
         'scope': 'r_basicprofile r_emailaddress',
         'state': util.uuid(),
@@ -43,8 +43,8 @@ def linkedin_authorized():
 
     flask.session['access_token'] = (response['access_token'], '')
     me = linkedin.get('people/~:(id,first-name,last-name,email-address)')
-    user_db = retrieve_user_from_linkedin(me.data)
-    return auth.signin_via_social(user_db)
+    usr = retrieve_user_from_linkedin(me.data)
+    return auth.signin_via_social(usr)
 
 
 @linkedin.tokengetter
@@ -59,9 +59,9 @@ def signin_linkedin():
 
 def retrieve_user_from_linkedin(response):
     auth_id = 'linkedin_%s' % response['id']
-    user_db = model.User.get_by('authIDs_', auth_id)
-    if user_db:
-        return user_db
+    usr = model.User.get_by('authIDs_', auth_id)
+    if usr:
+        return usr
 
     names = [response.get('firstName', ''), response.get('lastName', '')]
     name = ' '.join(names).strip()

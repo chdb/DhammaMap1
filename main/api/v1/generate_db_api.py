@@ -6,12 +6,12 @@ from flask import abort
 from config import DEVELOPMENT
 #from model.factories import UserFactory
 #from factory.fuzzy import FuzzyText, FuzzyChoice
-from random import randint
+import random
 #import factory
 import util
 from model import User
 from google.appengine.ext import ndb #pylint: disable=import-error
-from api.helpers import empty_ok_response
+from api.helpers import ok
 import logging
 
 @API.resource('/api/v1/generate_database')
@@ -35,11 +35,22 @@ class GenerateDatabaseAPI(Resource):
             User.put(admin)
 
         def create_user(n):
+            
+            def optRandB64():
+                return util.randomB64() if random.choice((True, False)) else None
+                
             user = User ( username   ='tutshka%d' % n 
                         , pwdhash__  =util.password_hash('123456')
-                        , isAdmin_   =[True, False][randint(0,1)]
-                        , isVerified_=[True, False][randint(0,1)]
-                        , isActive_  =[True, False][randint(0,1)]
+                        , isAdmin_   =random.choice((True, False))
+                        , isVerified_=random.choice((True, False))
+                        , isActive_  =random.choice((True, False))
+                        , bio        =random.choice(('All component', 'things are', 'impernanent: work', 'out your', 'own salvation', 'with diligence.'))
+                        , facebook   =optRandB64()
+                        , twitter    =optRandB64()
+                        , gplus      =optRandB64()
+                        , instagram  =optRandB64()
+                        , linkedin   =optRandB64()
+                        , github     =optRandB64()
                         )
             User.put(user)
         
@@ -48,7 +59,7 @@ class GenerateDatabaseAPI(Resource):
         for n in xrange(45):
             create_user(n)
         
-        return empty_ok_response()
+        return ok()
 
         
     

@@ -13,8 +13,8 @@ vk_config = dict(
     access_token_url='https://oauth.vk.com/access_token',
     authorize_url='https://oauth.vk.com/authorize',
     base_url='https://api.vk.com/',
-    consumer_key=config.CONFIG_DB.auth_vk_id,
-    consumer_secret=config.CONFIG_DB.auth_vk_secret,
+    # consumer_key=config.CONFIG_DB.auth_vk_id,
+    # consumer_secret=config.CONFIG_DB.auth_vk_secret,
 )
 
 vk = auth.create_oauth_app(vk_config, 'vk')
@@ -36,8 +36,8 @@ def vk_authorized():
             'format': 'json',
         },
     )
-    user_db = retrieve_user_from_vk(me.data['response'][0])
-    return auth.signin_via_social(user_db)
+    usr = retrieve_user_from_vk(me.data['response'][0])
+    return auth.signin_via_social(usr)
 
 
 @vk.tokengetter
@@ -52,9 +52,9 @@ def signin_vk():
 
 def retrieve_user_from_vk(response):
     auth_id = 'vk_%s' % response['uid']
-    user_db = model.User.get_by('authIDs_', auth_id)
-    if user_db:
-        return user_db
+    usr = model.User.get_by('authIDs_', auth_id)
+    if usr:
+        return usr
 
     name = ' '.join((response['first_name'], response['last_name'])).strip()
     return auth.create_or_get_user_db(

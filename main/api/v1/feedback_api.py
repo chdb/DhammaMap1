@@ -5,7 +5,7 @@ from flask import abort
 from main import API
 import task
 import config
-from api.helpers import ArgVdr, empty_ok_response, rqArg, rqParse
+from api.helpers import ArgVdr, ok, rqArg, rqParse
 from api.decorators import verify_captcha
 from model import UserVdr
 
@@ -38,4 +38,4 @@ class FeedbackAPI(Resource):
                       , subjTag='Feedback'
                       , **ka
                       )
-        return empty_ok_response()
+        return ok()

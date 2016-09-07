@@ -14,8 +14,8 @@ yahoo_config = dict(
     access_token_url='https://api.login.yahoo.com/oauth/v2/get_token',
     authorize_url='https://api.login.yahoo.com/oauth/v2/request_auth',
     base_url='https://query.yahooapis.com/',
-    consumer_key=config.CONFIG_DB.auth_yahoo_id,
-    consumer_secret=config.CONFIG_DB.auth_yahoo_secret,
+    # consumer_key=config.CONFIG_DB.auth_yahoo_id,
+    # consumer_secret=config.CONFIG_DB.auth_yahoo_secret,
     request_token_url='https://api.login.yahoo.com/oauth/v2/get_request_token',
 )
 
@@ -43,8 +43,8 @@ def yahoo_authorized():
             'realm': 'yahooapis.com',
         },
     )
-    user_db = retrieve_user_from_yahoo(me.data['query']['results']['profile'])
-    return auth.signin_via_social(user_db)
+    usr = retrieve_user_from_yahoo(me.data['query']['results']['profile'])
+    return auth.signin_via_social(usr)
 
 
 @yahoo.tokengetter
@@ -59,9 +59,9 @@ def signin_yahoo():
 
 def retrieve_user_from_yahoo(response):
     auth_id = 'yahoo_%s' % response['guid']
-    user_db = model.User.get_by('authIDs_', auth_id)
-    if user_db:
-        return user_db
+    usr = model.User.get_by('authIDs_', auth_id)
+    if usr:
+        return usr
 
     names = [response.get('givenName', ''), response.get('familyName', '')]
     emails = response.get('emails', {})

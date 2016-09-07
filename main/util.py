@@ -9,6 +9,7 @@ from google.appengine.ext import ndb #pylint: disable=import-error
 import config
 from pydash import _
 import os
+import base64
 import logging
 
 
@@ -72,6 +73,17 @@ def uuid():
     """
     return uuid4().hex
 
+#todo provide a raw token - they will be b64-encoded again 
+#because the token is part of the Kryptoken 
+def randomB64(n=9):
+    '''a base64 string representing n random bytes (so string has length = ceil(n/3)*4 )
+       Is 9 enough to create a good nonce?  - should be plenty eg if we just want to avoid a clash on same machine '''
+    #n = config('NonceBytes')
+    r = os.urandom(n) 
+    #return os.urandom(8) 
+    #todo Do we need to base64-encode? Surely the token will be wrappped in a crytoken which will do it?
+    return base64.b64encode(r)
+
 
 def create_name_from_email(email):
     """Function tries to recreate real name from email address
@@ -133,10 +145,10 @@ def limit_string(string, minlen, maxlen):
     """
     n = len(string) 
     if n < minlen:
-        raise ValueError('Input need to be at least %s characters long' % minlen)
+        raise ValueError('At least %s characters long' % minlen)
     if maxlen > 0:
         if n > maxlen:
-            raise ValueError('Input need to be maximum %s characters long' % maxlen)
+            raise ValueError('Maximum of %s characters long' % maxlen)
     return string
 
 
@@ -152,10 +164,10 @@ def match_regex(string, regex):
         raise ValueError('Incorrect regex format')
     return string
 
+    
 def pyProperties(cls):
     '''return a list of names of all the python properties in cls
     NB Normally properties are created with the @property decorator, 
     but they can also be created using property() built-in function, and in other arcane ways. 
     '''
     return [k for k, v in vars(cls).items() if isinstance(v, property)]
-    

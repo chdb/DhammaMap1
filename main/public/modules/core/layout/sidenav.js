@@ -2,9 +2,9 @@
     'use strict';
     var module = angular.module('core');
 
-    module.controller('SidenavController', function($scope, $mdSidenav, gaAuthentication, gaAppConfig, Restangular,
+    module.controller('SidenavController', function($scope, $mdSidenav, gaAuth, gaAppConfig, Restangular,
                                                     gaToast, $mdDialog, $timeout) {
-        $scope.auth = gaAuthentication;
+        $scope.auth = gaAuth;
         $scope.cfg = gaAppConfig;
 		  //console.log(gaAppConfig);
         $scope.closeSidenav = function() {

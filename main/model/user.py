@@ -21,24 +21,24 @@ class UserVdr(model.Validator):
     @classmethod
     def existing_token(cls, token):
         """Validates if given token is in datastore"""
-        user_db = User.get_by('token', token)
-        if not user_db:
+        usr = User.get_by('token', token)
+        if not usr:
             raise ValueError('Sorry, your token is either invalid or expired.')
         return token
 
     @classmethod
     def existing_email(cls, email):
         """Validates if given email is in datastore"""
-        user_db = User.get_by('email_', email)
-        if not user_db:
+        usr = User.get_by('email_', email)
+        if not usr:
             raise ValueError('This email is not in our database.')
         return email
 
     @classmethod
     def unique_email(cls, email):
         """Validates if given email is not in datastore"""
-        user_db = User.get_by('email_', email)
-        if user_db:
+        usr = User.get_by('email_', email)
+        if usr:
             raise ValueError('Sorry, this email is already taken.')
         return email
 
@@ -111,10 +111,10 @@ class User(model.ndbModelBase):
             cond = email_or_username == User.username
         else:
             cond = email_or_username == User.email_
-        user_db = User.query(cond).get()
+        usr = User.query(cond).get()
 
-        if user_db and user_db.pwdhash__ == util.password_hash(password):
-            return user_db
+        if usr and usr.pwdhash__ == util.password_hash(password):
+            return usr
         return None
 
     def toDict(self, all=False):

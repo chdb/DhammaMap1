@@ -5,26 +5,44 @@ from __future__ import absolute_import
 from google.appengine.ext import ndb
 
 import config
-from model import ndbModelBase, ConfigAuth
+from model import ndbModelBase #, ConfigAuth
 import util
 from pydash import _
 import logging
 
 
-class Config(ConfigAuth):
-    """A class describing datastore config."""
-    analytics_id        = ndb.StringProperty(default='')    # Google Analytics ID
-    site_name           = ndb.StringProperty(default=config.APPLICATION_ID)  # Webapp name
-    description         = ndb.StringProperty(default='')    # Webapp description
-    admin_email_       = ndb.StringProperty(default='')    # private: Admin's email, where feedback will be sent
-    flask_secret        = ndb.StringProperty(default=util.uuid())
-    recaptcha_forms     = ndb.StringProperty(repeated=True) # List of form names where recaptcha is enabled
-    recaptcha_secret    = ndb.StringProperty(default='')
-    recaptcha_id        = ndb.StringProperty(default='')
-    salt_              = ndb.StringProperty(default=util.uuid())
-    verify_email        = ndb.BooleanProperty(default=True) # Whether to verify emails of newly registered users
-    notify_on_new_user_= ndb.BooleanProperty(default=True) # Whether to send email to admin if user signs up
+class AuthProvider (ndb.Model):
+    name   = ndb.StringProperty()
+    id     = ndb.StringProperty()
+    secret_= ndb.StringProperty()
+    
+    @staticmethod
+    def init():
+        if config.DEVELOPMENT:
+            testList = ['facebook','twitter','gplus','instagram','linkedin','github']
+            if AuthProvider.query().count(keys_only=True) == 0:
+                for i in testList:
+                    ap = AuthProvider( name   =i
+                                     , id     =util.randomB64() 
+                                     , secret_=util.randomB64() 
+                                     )     
+                    AuthProvider.put (ap)
 
+class Config(ndbModelBase):
+    """A class describing datastore config."""
+    analytics_id       = ndb.StringProperty(default='')    # Google Analytics ID
+    site_name          = ndb.StringProperty(default=config.APPLICATION_ID)  # Webapp name
+    description        = ndb.StringProperty(default='')    # Webapp description
+    admin_email_       = ndb.StringProperty(default='')    # private: Admin's email, where feedback will be sent
+    flask_secret       = ndb.StringProperty(default=util.uuid())
+    recaptcha_forms    = ndb.StringProperty(repeated=True) # List of form names where recaptcha is enabled
+    recaptcha_secret   = ndb.StringProperty(default='')
+    recaptcha_id       = ndb.StringProperty(default='')
+    salt_              = ndb.StringProperty(default=util.uuid()) # todo Arent we stuffed if old value gets overwritten ? protest from overwriting or Instead keep old vals as entities Model:Salt (val, date )
+    verify_email       = ndb.BooleanProperty(default=True) # Whether to verify emails of newly registered users
+    notify_on_new_user_= ndb.BooleanProperty(default=True) # Whether to send email to admin if user signs up
+    
+    authProviders   = ndb.StructuredProperty( AuthProvider, repeated=True) 
     # PUBLIC_PROPERTIES = ConfigAuth.get_public_properties() + \
                         # [ 'analytics_id'
                         # , 'site_name'
@@ -47,9 +65,19 @@ class Config(ConfigAuth):
 
     @classmethod
     def get_master_db(cls):
-        """Get config entity doesn't exist, it creates new one.
+        """Get config - if entity doesn't exist, it creates new one.
         There's need only for one config - master"""
-        return cls.get_or_insert('master')
+        apList = []
+        if config.DEVELOPMENT:
+            testList = ['facebook','twitter','google','instagram','linkedin','github']
+            if cls.query().count(keys_only=True) == 0:
+                for i in testList:
+                    apList.append( AuthProvider ( name   =i
+                                                , id     =util.randomB64() 
+                                                , secret_=util.randomB64() 
+                                                ))  
+
+        return cls.get_or_insert('master', authProviders=apList)
 
     #def toDict(self, *args, **kwargs):
     def toDict(self, all=False):
@@ -60,11 +88,11 @@ class Config(ConfigAuth):
         # for i in  p:
             # logging.debug('%r', i)
             
-        # logging.debug('all = %r', all)
         # for i in  inc:
             # logging.debug('%r', i)
             
         #repr_dict = super(Config, self).toDict(*args, **kwargs)
+        
         d = self.toDict_(all, all)
         d['development'] = config.DEVELOPMENT
         
@@ -87,6 +115,19 @@ class Config(ConfigAuth):
         
         if 'recaptcha_forms' in d:
             d['recaptcha_forms'] = util.list_to_dict(d['recaptcha_forms'])
+        
+        
+        logging.debug('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+        logging.debug('all = %r', all)
+        
+        d2 = self.to_dict()
+        for i in  map(None, d.keys(), d2.keys()):
+            logging.debug('%s\t\t%s', i[0], i[1])
+        logging.debug('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+        
+         for k,v in  d2.iteritems():
+            logging.debug('%r\t\t%s', k,v)
+        logging.debug('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
         return d
 
     @classmethod

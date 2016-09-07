@@ -13,8 +13,8 @@ twitter_config = dict(
     access_token_url='https://api.twitter.com/oauth/access_token',
     authorize_url='https://api.twitter.com/oauth/authorize',
     base_url='https://api.twitter.com/1.1/',
-    consumer_key=config.CONFIG_DB.auth_twitter_id,
-    consumer_secret=config.CONFIG_DB.auth_twitter_secret,
+    # consumer_key=config.CONFIG_DB.auth_twitter_id,
+    # consumer_secret=config.CONFIG_DB.auth_twitter_secret,
     request_token_url='https://api.twitter.com/oauth/request_token',
 )
 
@@ -32,8 +32,8 @@ def twitter_authorized():
         response['oauth_token'],
         response['oauth_token_secret'],
     )
-    user_db = retrieve_user_from_twitter(response)
-    return auth.signin_via_social(user_db)
+    usr = retrieve_user_from_twitter(response)
+    return auth.signin_via_social(usr)
 
 
 @twitter.tokengetter
@@ -48,8 +48,8 @@ def signin_twitter():
 
 def retrieve_user_from_twitter(response):
     auth_id = 'twitter_%s' % response['user_id']
-    user_db = model.User.get_by('authIDs_', auth_id)
-    return user_db or auth.create_or_get_user_db(
+    usr = model.User.get_by('authIDs_', auth_id)
+    return usr or auth.create_or_get_user_db(
         auth_id=auth_id,
         name=response['screen_name'],
         username=response['screen_name'],

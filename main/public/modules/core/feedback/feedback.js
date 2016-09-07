@@ -2,7 +2,7 @@
     'use strict';
     var module = angular.module('core');
 
-    module.controller('FeedbackController', function($scope, Restangular, gaToast, gaAppConfig, gaAuthentication,
+    module.controller('FeedbackController', function($scope, Restangular, gaToast, gaAppConfig, gaAuth,
                                                      gaBrowserHistory) {
         var ctrl = this;
         $scope.cfg = gaAppConfig;
@@ -13,7 +13,7 @@
 
         ctrl.resetForm = function() {
             $scope.feedback = {
-                email : gaAuthentication.user.email || ''
+                email : gaAuth.user.email || ''
             };
         };
 

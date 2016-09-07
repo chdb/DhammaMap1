@@ -7,7 +7,7 @@ from flask import request
 from config import CONFIG_DB
 from model import Config
 import util
-from api.helpers import empty_ok_response
+from api.helpers import ok
 from api.decorators import admin_required#, model_by_key
 import logging
 
@@ -25,4 +25,4 @@ class AdminConfigAPI(Resource):
             request.json['recaptcha_forms'] = util.dict_to_list(request.json['recaptcha_forms'])
         CONFIG_DB.populate(**request.json)
         CONFIG_DB.put()
-        return empty_ok_response()
+        return ok()

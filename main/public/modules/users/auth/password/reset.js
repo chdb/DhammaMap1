@@ -2,10 +2,10 @@
     'use strict';
     var module = angular.module('users');
 
-    module.controller('ResetController', function($scope, Restangular, gaAuthentication, $stateParams, gaToast,
+    module.controller('ResetController', function($scope, Restangular, gaAuth, $stateParams, gaToast,
                                                   $state, gaTracking) {
 
-        if (gaAuthentication.loggedIn()) {
+        if (gaAuth.loggedIn()) {
             $state.go('home');
         }
 
@@ -15,7 +15,7 @@
 
         $scope.resetPassword = function() {
             Restangular.all('auth/reset').post($scope.credentials).then(function(user) {
-                gaAuthentication.user = gaAuthentication.setUser(user);
+                gaAuth.user = gaAuth.setUser(user);
                 gaToast.show('Your password has been successfully updated, you are now logged in');
                 gaTracking.eventTrack('Password reset', $scope.credentials.email);
                 $state.go('home');

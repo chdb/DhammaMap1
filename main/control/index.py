@@ -21,7 +21,7 @@ def inject_user():
     """Injects 'user' variable into jinja template, so it can be passed into angular. See base.html"""
     user = False
     if auth.is_logged_in():
-        user = auth.current_user_db().toDict(all=True)
+        user = auth.currentUser().toDict(all=True)
     return { 'user': user }
 
 

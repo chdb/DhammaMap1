@@ -2,16 +2,16 @@
 {	'use strict';
     var module = angular.module('users');
 
-    module.controller('ProfileController', function($scope, Restangular, gaAppConfig, gaAuthentication
+    module.controller('ProfileController', function($scope, Restangular, gaAppConfig, gaAuth
                                                     , $stateParams, _, $mdDialog, gaToast, $state) 
     {	$scope.cfg = gaAppConfig;
-        $scope.auth = gaAuthentication;
+        $scope.auth = gaAuth;
         $scope.isMyProfile = function() 
-        {	return gaAuthentication.loggedIn() && $stateParams.username === gaAuthentication.user.username;
+        {	return gaAuth.loggedIn() && $stateParams.username === gaAuth.user.username;
         };
 
         if ($scope.isMyProfile()) 
-        	$scope.user = gaAuthentication.user;
+        	$scope.user = gaAuth.user;
         else 
         	Restangular.one('users', $stateParams.username).get()
 				.then(function(user) 
@@ -46,7 +46,7 @@
             });
         };
 
-        $scope.socialAccounts = 
+        $scope.socialAccounts = //todo shouldnt this be moved into gaConfig ?
 			{ facebook: { domain : 'facebook.com'
 						, name   : 'Facebook'
 						}
