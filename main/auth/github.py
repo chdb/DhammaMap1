@@ -2,13 +2,10 @@
 # pylint: disable=missing-docstring, invalid-name
 
 import flask
-
 import auth
 import config
-import model
-
 from main import app
-from model import UserVdr
+import model.user as user #import User#, UserVdr
 
 github_config = dict(
     access_token_method='POST',
@@ -47,9 +44,9 @@ def signin_github():
 
 def retrieve_user_from_github(response):
     auth_id = 'github_%s' % str(response['id'])
-    usr = model.User.get_by('authIDs_', auth_id)
-    bio = response['bio'][:UserVdr.bio_span[1]] if response['bio'] else ''
-    location = response['location'][:UserVdr.location_span[1]] if response['location'] else ''
+    usr = User.get_by('authIDs_', auth_id)
+    bio = response['bio'][:user.bio_span[1]] if response['bio'] else ''
+    location = response['location'][:user.location_span[1]] if response['location'] else ''
     return usr or auth.create_or_get_user_db(
         auth_id,
         response.get('name', ''),
@@ -69,6 +66,6 @@ def getField(response, name):
     field = response[name]
     if field:
         span = name + '_span' # depend on validators following this naming convention
-        max = getattr(UserVdr, span)[1]
+        max = getattr(user, span)[1]
         return field [:max]
     return ''

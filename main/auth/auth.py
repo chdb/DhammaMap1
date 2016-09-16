@@ -11,8 +11,8 @@ from google.appengine.ext import ndb  # pylint: disable=import-error
 import flask
 import unidecode
 from flask_restful import inputs
-from api.helpers   import ArgVdr, rqArg, rqParse
-import model
+from api.helpers   import rqArg, rqParse
+from model.user    import User
 import task
 import util
 import config
@@ -158,6 +158,7 @@ def signin_oauth(oauth_app, scheme=None):
                            )
         return oauth_app.authorize(callback=cb)
     except oauth.OAuthException:
+        logging.exception('oauth exception')
         flask.flash('Something went wrong with sign in. Please try again.')
         return flask.redirect(flask.url_for('index'))
 
@@ -168,15 +169,15 @@ def create_user_db(auth_id, name, username, email='', verified=False, password='
     if password:
         password = util.password_hash(password)
     email = email.lower()
-    usr = model.User( name=name
-                        , email_=email
-                        , username=username
-                        , authIDs_=[auth_id] if auth_id else []
-                        , isVerified_=verified
-                        , token__=util.uuid()
-                        , pwdhash__=password
-                        , **props
-                        )
+    usr = User( name=name
+              , email_=email
+              , username=username
+              , authIDs_=[auth_id] if auth_id else []
+              , isVerified_=verified
+              , token__=util.uuid()
+              , pwdhash__=password
+              , **props
+              )
     usr.put()
     if config.CONFIG_DB.notify_on_new_user_:
         task.sendNewUserEmail(usr)
@@ -188,7 +189,7 @@ def create_or_get_user_db(auth_id, name, username, email='', **kwargs):
     If so, it will append auth_id for his record and saves it.
     If not we construct a unique username for this user (for the case of signing up via social account)
     and then store it into datastore"""
-    usr = model.User.get_by('email_', email.lower())
+    usr = User.get_by('email_', email.lower())
     if usr:
         usr.authIDs_.append(auth_id)
         usr.put()
@@ -217,7 +218,7 @@ def normalise_username(username):
     # make username unique by appending a number suffix - the lowest number necesssary.
     new_username = username
     suffix = 1
-    while not model.User.is_username_available(new_username):
+    while not User.is_username_available(new_username):
         new_username = '%s%d' % (username, suffix)
         suffix += 1
     return new_username

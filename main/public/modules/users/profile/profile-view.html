@@ -18,8 +18,8 @@
     </div>
 
     <div class="vmar-10" ng-if="auth.isAdmin()">
-        <div class="mar-bot-5">Created: {{user.created | date:'medium'}}</div>
-        <div>Modified: {{user.modified | date:'medium'}}</div>
+        <div class="mar-bot-5">Created:  {{user.created_r  | date:'medium'}}</div>
+        <div						>Modified: {{user.modified_r | date:'medium'}}</div>
         <div layout="row" layout-align="center center" class="mar-top-15">
             <div ng-show="user.isVerified_" class="hpad-15">
                 <md-icon md-font-icon="fa fa-check"></md-icon>

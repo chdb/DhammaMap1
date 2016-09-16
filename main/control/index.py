@@ -6,9 +6,12 @@ import flask
 
 from main import app
 import auth
+#import config
+import model.user as users
 import config
-from model import User, UserVdr, Config
-from api.helpers import ArgVdr
+import validators
+import logging
+#from api.helpers import ArgVdr
 
 @app.route('/')
 def index():
@@ -21,7 +24,7 @@ def inject_user():
     """Injects 'user' variable into jinja template, so it can be passed into angular. See base.html"""
     user = False
     if auth.is_logged_in():
-        user = auth.currentUser().toDict(all=True)
+        user = auth.currentUser().toDict(publicOnly=False)
     return { 'user': user }
 
 
@@ -29,7 +32,7 @@ def inject_user():
 def inject_config():
     """Injects 'app_config' variable into jinja template, so it can be passed into angular. See base.html"""
     #config_properties = Config.get_all_properties() if auth.is_admin() else Config.get_public_properties()
-    app_config = config.CONFIG_DB.toDict(all=auth.is_admin())
+    app_config = config.CONFIG_DB.toDict(not auth.is_admin())
     return { 'app_config': app_config }
 
 
@@ -41,11 +44,29 @@ def inject_validators():
     and the same validation of user's name (length between 5-20 characters) will be performed in frontend
     as well as in backend
     """
-    return { 'validators': { 'argVdr' : ArgVdr.toDict()
-                           , 'userVdr': UserVdr.toDict()
+    avdrs = { k : getattr(validators, k) for k in dir(validators) 
+                if k.endswith('_span')
+                or k.endswith('_rx')
+            }    
+    uvdrs = { k : getattr(users, k) for k in dir(users) 
+                if k.endswith('_span')
+                or k.endswith('_rx')
+            }    
+    logging.debug('aldr dict() +++++++++++++++++++++++++++++++++++')
+    for k,v in avdrs.iteritems():
+        logging.debug('%r : %r', k,v)
+    logging.debug('+++++++++++++++++++++++++++++++++++++++++++')
+
+    logging.debug('uldr dict() +++++++++++++++++++++++++++++++++++')
+    for k,v in uvdrs.iteritems():
+        logging.debug('%r : %r', k,v)
+    logging.debug('+++++++++++++++++++++++++++++++++++++++++++')
+
+    return { 'validators': { 'argVdr' : avdrs
+                           , 'userVdr': uvdrs
            }               }
 
-
+           
 @app.route('/_ah/warmup')
 def warmup():
     """Warmup requests load application code into a new instance before any live requests reach that instance.

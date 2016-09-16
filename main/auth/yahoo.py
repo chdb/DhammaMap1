@@ -5,8 +5,7 @@ import flask
 
 import auth
 import config
-import model
-
+from model import User
 from main import app
 
 
@@ -59,7 +58,7 @@ def signin_yahoo():
 
 def retrieve_user_from_yahoo(response):
     auth_id = 'yahoo_%s' % response['guid']
-    usr = model.User.get_by('authIDs_', auth_id)
+    usr = User.get_by('authIDs_', auth_id)
     if usr:
         return usr
 

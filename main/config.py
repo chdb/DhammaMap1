@@ -24,9 +24,9 @@ CURRENT_VERSION_DATE = datetime.utcfromtimestamp(CURRENT_VERSION_TIMESTAMP)
 
 EmailRegEx = util.getEmailRegex()
 
-import model# NB The model module needs to be imported *after* setting CURRENT_VERSION_TIMESTAMP,
-            # since model.ndbModelBase uses it as default value for version property
-CONFIG_DB   = model.Config.get_master_db()
+from model.config import Config # NB The model module needs to be imported *after* setting CURRENT_VERSION_TIMESTAMP,
+            # since model.ndbModelBase uses it as default value for version_r property
+CONFIG_DB   = Config.get_master_db()
 SECRET_KEY  = CONFIG_DB.flask_secret.encode('ascii')
 #model.AuthProvider.init()
 
@@ -36,3 +36,4 @@ logging.debug('####################################################### cur ver i
 logging.debug('####################################################### cur ver name: %r', CURRENT_VERSION_NAME)
 logging.debug('####################################################### cur ver timestamp: %r', CURRENT_VERSION_TIMESTAMP)
 logging.debug('####################################################### cur ver datetime: %r', CURRENT_VERSION_DATE)
+

@@ -7,9 +7,8 @@ from google.appengine.api import users
 import flask
 
 import auth
-import model
+from model import User
 import util
-
 from main import app
 
 
@@ -33,7 +32,7 @@ def google_authorized():
 
 def retrieve_user_from_google(google_user):
     auth_id = 'federated_%s' % google_user.user_id()
-    usr = model.User.get_by('authIDs_', auth_id)
+    usr = User.get_by('authIDs_', auth_id)
     if usr:
         if not usr.isAdmin_ and users.is_current_user_admin():
             usr.isAdmin_ = True

@@ -9,7 +9,7 @@ from config import DEVELOPMENT
 import random
 #import factory
 import util
-from model import User
+from model.user import User
 from google.appengine.ext import ndb #pylint: disable=import-error
 from api.helpers import ok
 import logging
@@ -41,7 +41,7 @@ class GenerateDatabaseAPI(Resource):
                 
             user = User ( username   ='tutshka%d' % n 
                         , pwdhash__  =util.password_hash('123456')
-                        , isAdmin_   =random.choice((True, False))
+                        , isAdmin_   =False
                         , isVerified_=random.choice((True, False))
                         , isActive_  =random.choice((True, False))
                         , bio        =random.choice(('All component', 'things are', 'impernanent: work', 'out your', 'own salvation', 'with diligence.'))
@@ -55,9 +55,9 @@ class GenerateDatabaseAPI(Resource):
             User.put(user)
         
         delete_all()
-        create_admin()
         for n in xrange(45):
             create_user(n)
+        create_admin()
         
         return ok()
 

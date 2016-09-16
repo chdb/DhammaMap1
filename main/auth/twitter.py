@@ -4,8 +4,7 @@ import flask
 
 import auth
 import config
-import model
-
+from model import User
 from main import app
 
 
@@ -48,7 +47,7 @@ def signin_twitter():
 
 def retrieve_user_from_twitter(response):
     auth_id = 'twitter_%s' % response['user_id']
-    usr = model.User.get_by('authIDs_', auth_id)
+    usr = User.get_by('authIDs_', auth_id)
     return usr or auth.create_or_get_user_db(
         auth_id=auth_id,
         name=response['screen_name'],

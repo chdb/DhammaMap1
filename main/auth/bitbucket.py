@@ -5,7 +5,7 @@ import flask
 
 import auth
 import config
-import model
+from model import User
 from main import app
 
 
@@ -49,7 +49,7 @@ def signin_bitbucket():
 
 def retrieve_user_from_bitbucket(response):
     auth_id = 'bitbucket_%s' % response['username']
-    usr = model.User.get_by('authIDs_', auth_id)
+    usr = User.get_by('authIDs_', auth_id)
     if usr:
         return usr
     if response['first_name'] or response['last_name']:

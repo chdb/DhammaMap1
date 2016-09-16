@@ -4,39 +4,33 @@ Set of utility function used throughout the app
 """
 from uuid import uuid4
 import hashlib
-import re
-from google.appengine.ext import ndb #pylint: disable=import-error
+#import re
+#from google.appengine.ext import ndb #pylint: disable=import-error
 import config
-from pydash import _
+#from pydash import _
 import os
 import base64
 import logging
 
-
+# The conde in index.py sends this serverside email regex to clientside along with other validators 
+# Note that currently, email fields on clientside forms dont use it.  Instead they will use the regex provided by AngularJS
+#var EMAIL_REGEXP = /^[a-z0-9!#$%&'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
+#  python str =    r'^[a-z0-9!#$%&\'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$'
+# This is broadly similar except for allowing the domain-part to be just a single TLD   eg joebloggs@com    
+# it is also lowercase only for use with a case-insensitive search
+#and does not allow domain part to start with '-'
 def getEmailRegex():   
-    #todo: this is both too strict and too lenient. Replace it with a good but lenient rx.  Use as a pre-validator, to be followed by proper live validation by mailgun service 
-    #  
-    EMAIL_REGEX      =  r'^[a-z0-9-!#$%&\'*+\/=?^_`{|}~.]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$'
-    #EMAIL_REGEX      = r'^[a-z0-9-!#$%&\'*+\.\/=?^_`{|}~]+@([-0-9a-z]+\.)+([0-9a-z]){2,}$'
-    #email address  :=                          <local-part>  @  <domain-part>
-    #domain-part    :=                                           <d-labels>      <top-level-domain>
-    #local-part     :=                     <local-part-char> +
-    #local-part-char:=    [-!#$%& '*+ \. /   =?      ^_`{|}~]                                       ## literals
-    #                     [               0-9  A-Za-z       ]                                       ## ranges   NB! excludes i18n addresses
-    #d-labels       :=                                         ( <d-label>    .)+
-    #d-label        :=                                          [  dl-char ]+                        
-    #dl-char        :=                                           -                                  ## literal
-    #dl-char        :=                                            0-9A-Za-z                         ## ranges 
-    #top-level-d    :=                                                           ([0-9A-Za-z]){2,4} ##          NB! max of 4 is too strict
-
-    # Note that by default, email fields on  clientside forms dont use the above.  Instead they will use the regex provided by AngularJS
-    #var EMAIL_REGEXP = /^[a-z0-9!#$%&'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
-    #  python str =    r'^[a-z0-9!#$%&\'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$'
-    # This is broadly similar except for allowing the domain-part to be just a TLD   eg joebloggs@com    
-    # it is also lowercase only for use with a case-insensitive search
-    #and does not allow domain part to start with '-'
+    #Use as a pre-validator, to be followed by proper live validation by mailgun service 
+    #Note that it is currently too strict a) does not allow new forms i18n email addresses. And b) weird and outdated forms that are permissed by the RFC and possibly by some mail servers  
+    EMAIL_REGEX =  r'^[a-z0-9-!#$%&\'*+\/=?^_`{|}~.]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$'
     
     def findNgEMAIL_REGEXP():
+        '''Find and return the email regex in AngularJS code. If not found return None
+        Of course both sides need to follow the same rules so index.py sends our regex email validator to clientside with .
+        But this is the wrong round because as new versions get installed, AngularJs is likely to be more up to date
+        Therefore we use this function to get the regex from AngularJS, assuming it has the same name in the same file in the code
+        And clientside does not even use the one we send. It uses the one provided by AngularJS.)
+        '''
         curdir = os.path.dirname(__file__)
         logging.debug('cur dir: %s',curdir)
         ngpath = os.path.join(curdir, r'public\lib\angular\angular.js')
@@ -50,11 +44,6 @@ def getEmailRegex():
                 if  line.startswith(start)\
                 and line.endswith(end):
                     logging.debug('line: %s',line)
-                    #x = line[-1:]
-                    #logging.debug('line end1: %r %d',x, ord(x))
-                    # for i in range(4):
-                        # x = line[-(i+1):-i]
-                        # logging.debug('line end2: %r %d',x, ord(x))
                     found = line
                     break
         if found:
@@ -62,9 +51,10 @@ def getEmailRegex():
             logging.debug('regex: %s', ngEMAIL_REGEXP)
             return ngEMAIL_REGEXP
         
-        logging.debug('line not found')
+        logging.warning ('email regex line not found in AngularJS code')
         return None
         
+    # return AngularJS email regex, or our own one, if not found.    
     return findNgEMAIL_REGEXP() or EMAIL_REGEX
 
 def uuid():
@@ -109,61 +99,76 @@ def password_hash(password):
     return sha.hexdigest()
 
 
-def list_to_dict(input_list):
-    """Creates dictionary with keys from list values
-    This function is primarily useful for converting passed data from Angular checkboxes,
-     since angular ng-model can't return list of checked group of checkboxes, instead
-     it returns something like {'a': True, 'b': True} for each checkbox
-    Example:        >>> list_to_dict(['a', 'b'])
-                    {'a': True, 'b': True}
-    Args:		input_list (list)   : List of any type
-    Returns:	dict                : Dict with 'True' values
-    """
-    return _.zip_object(input_list, _.map(input_list, _.constant(True)))
+# def list_to_dict(input_list):
+    # """Creates dictionary with keys from list values
+    # This function is useful for converting passed data from Angular group of checkboxes  eg named (a, b, c, d),
+    # since angular ng-model doesn't deliver a list of just the checked ones in the group, eg (b,d) instead
+    # it returns something like {'a': False, 'b': True, 'c': False, 'd': True} for the group
+    # Example:        >>> list_to_dict(['a', 'b'])
+                    # {'a': True, 'b': True}
+    # Args:		input_list (list)   : List of any type
+    # Returns:	dict                : Dict with 'True' values
+    # """
+    # return _.zip_object(input_list, _.map(input_list, _.constant(True)))
 
 
-def dict_to_list(input_dict):
-    """Creates list from dictionary with true booloean values
-    This function is primarily useful for converting passed data from Angular checkboxes,
-     since angular ng-model can't return list of checked group of checkboxes, instead
-     it returns something like {'a': True, 'b': True} for each checkbox
-    Example:        >>> dict_to_list({'a': True, 'b': True, 'c': False})
-                    ['a', 'b']
-    Args:		input_dict (dict): Dict with boolean values
-    Returns:	list: list of truthful values
-    """
-    return _.keys(_.pick(input_dict, _.identity))
+# def dict_to_list(input_dict):
+    # """Creates list from dictionary with true booloean values
+    # This function is primarily useful for converting passed data from Angular checkboxes,
+     # since angular ng-model can't return list of checked group of checkboxes, instead
+     # it returns something like {'a': True, 'b': True} for each checkbox
+    # Example:        >>> dict_to_list({'a': True, 'b': True, 'c': False})
+                    # ['a', 'b']
+    # Args:		input_dict (dict): Dict with boolean values
+    # Returns:	list: list of truthful values
+    # """
+    # return _.keys(_.pick(input_dict, _.identity))
+
+        
+# def filterDictListDict(d, filter):
+    # ''' For a dict d and string s,  return a dict having removed all items with key ending with s 
+        # If a value of d is a list of dicts, this will also filter those subkeys ending with s.
+        # This uses a dictionary comprehension            { k1:v1 for ... }
+             # with optional nested list comprehension    [ i for ... ]
+        # with optional nested dictionary comprehension   { k2:v2 for ...}
+    # '''
+    # return { k1:[   {   k2:v2
+                        # for k2,v2 in i.iteritems() 
+                        # if filter(k2,v2) #not k2.endswith(s)
+                    # } if isinstance(i, dict) else i
+                    # for i in v1
+                # ] if isinstance(v1, list) else v1             
+             # for k1,v1 in d.iteritems() 
+             # if filter(k1,v1) #not k1.endswith(s)
+           # }
+# todo replace with full recursion on all iterables  - use hasattr('__iter__') and filter by function param
 
 
-def limit_string(string, minlen, maxlen):
-    """Validation function constrains minimal and maximal lengths of string.
-    Args:		string (string) : String to be checked
-                minlen (int)    : Minimal length
-                maxlen (int)    : Maximal length
-    Returns:	string          : Returns given string
-    Raises:	    ValueError      : If string len is out of range
-    """
-    n = len(string) 
-    if n < minlen:
-        raise ValueError('At least %s characters long' % minlen)
-    if maxlen > 0:
-        if n > maxlen:
-            raise ValueError('Maximum of %s characters long' % maxlen)
-    return string
-
-
-def match_regex(string, regex):
-    """Validation function checks validity of string for given regex.
-    Args:		string (string) : String to be checked
-                regex (string)  : Regular expression
-    Returns:	string          : Returns given string
-    Raises:		ValueError      : If string doesn't match regex
-    """
-    h = re.compile(regex, re.IGNORECASE)        # todo store h in app.registry ?
-    if not h.match(string):
-        raise ValueError('Incorrect regex format')
-    return string
-
+# def deepFilter (c, filterFn):
+    # if isinstance (c, dict):
+        # return {k: deepFilter(v, filterFn) for k,v in c.iteritems() if filterFn(k,v) }
+    # if isinstance (c, list):
+        # return [deepFilter(i, filterFn) for i in c]
+    # return c
+    
+def deepFilter (c, filterFn, updateFn=lambda k,v: v):#=None):
+    '''c is a json object - ie consisting of elements of type string, number, bool or None in nested lists and dicts.
+    deepFilter() returns the result of recursively applying the filter and update functions to all dicts in c, 
+    to remove or update dict members.
+    filterFn(k,v) is a predicate (ie boolean function) returning True to include (k:v)   It must not modify k or v.
+    updateFn(k,v) is a modifying function for dict values. It returns updated or same v.  
+    '''
+    # if updateFn is None:
+        # updateFn = lambda k,v: v
+    
+    def deepFilter_ (c):
+        if isinstance (c, dict):
+            return { k : deepFilter_(updateFn(k,v)) for k,v in c.iteritems() if filterFn(k,v) }
+        if isinstance (c, list):
+            return [ deepFilter_(i) for i in c ]
+        return c
+        
+    return deepFilter_ (c)
     
 def pyProperties(cls):
     '''return a list of names of all the python properties in cls

@@ -5,7 +5,7 @@ import flask
 
 import auth
 import config
-import model
+from model import User#import model
 
 from main import app
 
@@ -47,7 +47,7 @@ def signin_dropbox():
 
 def retrieve_user_from_dropbox(response):
     auth_id = 'dropbox_%s' % response['uid']
-    usr = model.User.get_by('authIDs_', auth_id)
+    usr = User.get_by('authIDs_', auth_id)
     if usr:
         return usr
 

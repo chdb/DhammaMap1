@@ -5,8 +5,7 @@ import flask
 
 import auth
 import config
-import model
-
+from model import User
 from main import app
 
 
@@ -47,7 +46,7 @@ def signin_facebook():
 
 def retrieve_user_from_facebook(response):
     auth_id = 'facebook_%s' % response['id']
-    usr = model.User.get_by('authIDs_', auth_id)
+    usr = User.get_by('authIDs_', auth_id)
     return usr or auth.create_or_get_user_db(
         auth_id=auth_id,
         name=response['name'],

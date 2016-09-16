@@ -4,7 +4,7 @@ import flask
 
 import auth
 import config
-import model
+from model import User
 import util
 
 from main import app
@@ -59,7 +59,7 @@ def signin_linkedin():
 
 def retrieve_user_from_linkedin(response):
     auth_id = 'linkedin_%s' % response['id']
-    usr = model.User.get_by('authIDs_', auth_id)
+    usr = User.get_by('authIDs_', auth_id)
     if usr:
         return usr
 

@@ -7,9 +7,8 @@ from google.appengine.ext import ndb
 import config
 from model import ndbModelBase #, ConfigAuth
 import util
-from pydash import _
+#from pydash import _
 import logging
-
 
 class AuthProvider (ndb.Model):
     name   = ndb.StringProperty()
@@ -54,12 +53,12 @@ class Config(ndbModelBase):
                         # , 'verify_email'
                        ## todo if verify_email is public then why isnt this one:  'notify_on_new_user_' ?
                         # ]
-    @property
-    def has_feedback_form(self):
-        """If feedback form should be displayed"""
-        return bool(self.admin_email_)
+    # @property
+    # def has_feedback_form(self):
+        # """If feedback form should be displayed - Note: this is public although admin_email_ is private"""
+        # return bool(self.admin_email_)
 
-    #@property
+    @property
     def has_recaptcha(self):  # pylint: disable=missing-docstring
         return bool(self.recaptcha_secret) and bool(self.recaptcha_id)
 
@@ -67,20 +66,29 @@ class Config(ndbModelBase):
     def get_master_db(cls):
         """Get config - if entity doesn't exist, it creates new one.
         There's need only for one config - master"""
-        apList = []
-        if config.DEVELOPMENT:
-            testList = ['facebook','twitter','google','instagram','linkedin','github']
-            if cls.query().count(keys_only=True) == 0:
-                for i in testList:
-                    apList.append( AuthProvider ( name   =i
-                                                , id     =util.randomB64() 
-                                                , secret_=util.randomB64() 
-                                                ))  
+        
+        key = ndb.Key(cls, 'master')
+        ent = key.get()
+        if ent is not None \
+          and (not config.DEVELOPMENT or ent.authProviders): # if we are in dev then we must have some test authProviders
+            return ent
+            
+        apTestList = []
+        for i in ['facebook','twitter','google','instagram','linkedin','github']:
+            apTestList.append( AuthProvider ( name   =i
+                                            , id     =util.randomB64() 
+                                            , secret_=util.randomB64() 
+                                            ))  
+        ent = cls (authProviders=apTestList)
+        ent.key = key
+        ent.put()
+        return ent
+        
 
-        return cls.get_or_insert('master', authProviders=apList)
+        #return cls.get_or_insert('master', authProviders=apList)
 
     #def toDict(self, *args, **kwargs):
-    def toDict(self, all=False):
+    def toDict(self, nullVals=False):
         """Creates dict representaion of config, recaptcha_forms are converted so angular models can
         easily use it"""
         # p = self._properties.keys()
@@ -93,8 +101,9 @@ class Config(ndbModelBase):
             
         #repr_dict = super(Config, self).toDict(*args, **kwargs)
         
-        d = self.toDict_(all, all)
+        d = self.toDict_(publicOnly=False, nullprops=nullVals)
         d['development'] = config.DEVELOPMENT
+        d['has_feedback']= bool(self.admin_email_)
         
         #d['key'] = self.key.urlsafe() # todo why does client need these? 
         #d['id']  = self.key.id()      # todo why does client need these?
@@ -113,35 +122,26 @@ class Config(ndbModelBase):
             # 6) finish converting old code
         
         
-        if 'recaptcha_forms' in d:
-            d['recaptcha_forms'] = util.list_to_dict(d['recaptcha_forms'])
-        
-        
-        logging.debug('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
-        logging.debug('all = %r', all)
-        
-        d2 = self.to_dict()
-        for i in  map(None, d.keys(), d2.keys()):
-            logging.debug('%s\t\t%s', i[0], i[1])
-        logging.debug('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
-        
-         for k,v in  d2.iteritems():
-            logging.debug('%r\t\t%s', k,v)
-        logging.debug('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+        # if 'recaptcha_forms' in d:
+            # d['recaptcha_forms'] = util.list_to_dict(d['recaptcha_forms'])
+    
         return d
 
-    @classmethod
-    def public_properties(cls):
-        return  [ n for n in  cls.all_properties() 
-                 if not (n.endswith('_') or n.endswith('_secret'))
-                ]
+
     
-    @classmethod
-    def all_properties(cls):
-        """Include the private ones but exclude the ndbModelBase properties('version', 'modified', 'created') before sending to client"""
+    
+    # @classmethod
+    # def public_properties(cls):
+        # return  [ n for n in  cls.all_properties() 
+                 # if not (n.endswith('_') or n.endswith('_secret'))
+                # ]
+    
+    # @classmethod
+    # def all_properties(cls):
+        """Include the private ones but exclude the ndbModelBase properties('version_r', 'modified_r', 'created') before sending to client"""
         # all_properties = super(Config, cls).get_all_properties()
         # all_properties += cls.PUBLIC_PROPERTIES
-        # return _.pull(_.uniq(all_properties), 'version', 'modified', 'created', 'key', 'id')
+        # return _.pull(_.uniq(all_properties), 'version_r', 'modified_r', 'created', 'key', 'id')
         
         # p1 = cls._properties
         # for i in p1:
@@ -162,10 +162,10 @@ class Config(ndbModelBase):
             
        # p1 += p2
 
-        return [ n for n in  cls._properties.keys() 
-                           + util.pyProperties(cls)
-                 if n not in ndbModelBase._properties.keys()
-               ]
+        # return [ n for n in  cls._properties.keys() 
+                           # + util.pyProperties(cls)
+                 # if n not in ndbModelBase._properties.keys()
+               # ]
         # for i in p:
             # logging.debug('xxx %r', i)
         # assert set(p1) == set(p)

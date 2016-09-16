@@ -4,11 +4,9 @@ Provides logic for non-api routes related to user
 """
 import flask_login as login
 import flask
-
 import auth
-import model
+from model import User
 import util
-
 from main import app
 
 
@@ -16,7 +14,7 @@ from main import app
 def user_reset(token=None):
     """Verifies user's token from url, if it's valid redirects user to page, where he can
     set new password"""
-    usr = model.User.get_by('token__', token)
+    usr = User.get_by('token__', token)
     if not usr:
         flask.flash('Sorry, password reset link is either invalid or expired.')
         return flask.redirect(flask.url_for('index'))
@@ -36,7 +34,7 @@ def user_verify(token):
         login.logout_user()
         return flask.redirect(flask.request.path)
 
-    usr = model.User.get_by('token__', token)
+    usr = User.get_by('token__', token)
     if usr and not usr.isVerified_:
         # setting new token is necessary, so this one can't be reused
         usr.token__ = util.uuid()

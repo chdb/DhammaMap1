@@ -4,8 +4,7 @@ import flask
 
 import auth
 import config
-import model
-
+from model import User
 from main import app
 
 
@@ -51,7 +50,7 @@ def signin_microsoft():
 
 def retrieve_user_from_microsoft(response):
     auth_id = 'microsoft_%s' % response['id']
-    usr = model.User.get_by('authIDs_', auth_id)
+    usr = User.get_by('authIDs_', auth_id)
     if usr:
         return usr
     email = response['emails']['preferred'] or response['emails']['account']

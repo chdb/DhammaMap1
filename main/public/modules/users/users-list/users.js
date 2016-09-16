@@ -23,8 +23,8 @@
 								{ 	var el = angular.element(document.querySelector('#mainBox'));
 									var sh = el.prop('scrollHeight');
 									var ch = el.prop('clientHeight');
-									if (sh > 0 && sh === ch)//if no vertical scroll bar
-										ctrl.getUsers(); 	//recursive
+									if (sh > 0 && sh === ch)//if no vertical scroll bar ...
+										ctrl.getUsers(); 	//...  call recursively
 								}		
 								, 250
 							);

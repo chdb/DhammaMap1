@@ -5,9 +5,9 @@ from flask import abort
 from main import API
 import task
 import config
-from api.helpers import ArgVdr, ok, rqArg, rqParse
+from api.helpers import ok, rqArg, rqParse
 from api.decorators import verify_captcha
-from model import UserVdr
+#from model.user import UserVdr
 
 
 @API.resource('/api/v1/feedback')
@@ -23,14 +23,16 @@ class FeedbackAPI(Resource):
         # p.add_argument('message', type=ArgVdr.fn('feedback'), required=True)     #this 'required' is for add_argument()
         # p.add_argument('email', type=UserVdr.fn('email_rx', required=False))  #this 'required' is for fn()
         # args = p.parse_args()
-        args = rqParse( rqArg('message', argVdr='feedback_span', required=True)
-                      , rqArg('fromEma', userVdr=('email_rx', False))
+        args = rqParse( rqArg('message', vdr='feedback_span', required=True)
+                      , rqArg('fromEma', vdr='email_rx')
+                    # , rqArg('fromEma', vdr=('email_rx', False))
                       )
-        MaxSubjLen = 50              
+        MaxSubjLen = 50  # Construct Subject from first MaxSubjLen chars of message. Adjust this if you want.            
         if len(args.message) > MaxSubjLen:
             subject ='%s...' % args.message[:(MaxSubjLen-3)].strip()
         else:
             subject = args.message.strip()
+        
         ka = {'reply_to': args.fromEma} if args.fromEma else {}
         
         task.sendEmail( subject

@@ -3,7 +3,7 @@
 import flask
 
 import auth
-import model
+from model import User
 import config
 from main import app
 
@@ -44,7 +44,7 @@ def signin_instagram():
 
 def retrieve_user_from_instagram(response):
     auth_id = 'instagram_%s' % response['id']
-    usr = model.User.get_by('authIDs_', auth_id)
+    usr = User.get_by('authIDs_', auth_id)
     if usr:
         return usr
 

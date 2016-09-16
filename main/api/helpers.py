@@ -9,12 +9,14 @@ import logging
 import flask_restful as restful
 from werkzeug import exceptions
 import flask
-import model
+#import model
 from main import config
 import urllib
 from flask import request
 import json
-from model import UserVdr
+import model.user as users
+import validators as vdr
+
 
 class Api(restful.Api): # pylint: disable=too-few-public-methods
     """By extending restful.Api class we can make custom implementation of some of its methods"""
@@ -82,74 +84,44 @@ def list_response(response_list, cursor=None, more=False, total_count=None):
                       , 'totalCount': total_count
            }          }
 
-class ArgVdr(model.Validator):
-    """This validator class contains attributes and methods for validating user's input
-   , which is not associated with any particular datastore model, but still needs to be validated
-    """
-    feedback_span = [1, 2000] #determining min and max lengths of feedback message sent to admin
-
-    @classmethod
-    def captcha(cls, captchaStr):
-        """Verifies captcha by sending it to google servers
-        Args    : captchaStr (string): captcha string received from client.
-        Raises  : ValueError: If captcha is incorrect
-        """
-        # todo: this code does not seem right - register to get keys, test and rewrite?
-        if config.CONFIG_DB.has_recaptcha():
-            params = { 'secret'  : config.CONFIG_DB.recaptcha_secret
-                     , 'remoteip': request.remote_addr
-                     , 'response': captchaStr
-                     }
-            params = urllib.urlencode(params)
-            result = urlfetch.fetch( url='https://www.google.com/recaptcha/api/siteverify'
-                                   , payload=params
-                                   , method=urlfetch.POST
-                                   , headers={'Content-Type': 'application/x-www-form-urlencoded'}
-                                   )
-            success = json.loads(result.content)['success']
-            if not success:
-                raise ValueError('Sorry, invalid captcha')
-
-
-    @classmethod
-    def cursor(cls, cursor):
-        """Verifies if given string is valid ndb query cursor, if so returns instance of it
-        Args    : cursor (string): Url encoded ndb query cursor
-        Returns : google.appengine.datastore.datastore_query.Cursor: ndb query cursor
-        Raises  : ValueError: If cursor fails
-        """
-        if not cursor:
-            return None
-        return Cursor(urlsafe=cursor)
-
-
-def rqArg(name, **ka):
-    '''provides syntax sugar to simplify calling RequestParser functions
-    EG  rqArg('name', argVdr='myVdr')             ->   ('name', {'type' : ArgVdr.fn('myVdr')})
-        rqArg('name', userVdr='myUserVdr')        ->   ('name', {'type' : UserVdr.fn('myUserVdr')})
-        rqArg('name', userVdr=('myUserVdr',True)  ->   ('name', {'type' : UserVdr.fn('myUserVdr', required=True)})
+def rqArg(argName, **ka):
+    '''syntax sugar to simplify calling RequestParser functions
+    EG  rqArg('name', vdr='myVdr')             ->   ('name', {'type' : ArgVdr.f('myVdr')})
+        rqArg('name', vdr='myUserVdr')        ->   ('name', {'type' : UserVdr.fn('myUserVdr')})
+        rqArg('name', vdr=('myUserVdr',True)  ->   ('name', {'type' : UserVdr.fn('myUserVdr', required=True)})
+    '''
+   # def expandArgArgs(vdrName, vdrClass, ka):
+            #vdr = getattr(vdrClass,'fn')
+            # if isinstance(vdrArg, tuple) and len(vdrArg)==2:      #todo do we need this tuple? -  surely 'required' is redundant on vdr
+                # ka['type'] = vdr(vdrArg[0], required=vdrArg[1])
+            # else:
+                # ka['type'] = vdr(vdrArg) # eg SomeVdr.fn('myVdr')
+         
+   # expandArgArgs('vdr' , ArgVdr , ka)
+   # expandArgArgs('vdr', UserVdr, ka)
+    if 'vdr' in ka:
+        vdrName = ka.pop('vdr')
+        try:
+            v = getattr(vdr, vdrName)
+        except AttributeError:
+            v = getattr(users, vdrName)
+        ka['type'] = vdr.fn(v) # eg SomeVdr.fn('myVdr')
+    return argName, ka
+    
+def rqParse(*pa):
+    '''syntax sugar to simplify calling RequestParser functions    
+    Continuing rqArg example ...
     rqParse then further expands these:
                         ->   requestParser.add_argument('name', type=ArgVdr.fn('myVdr'))
                         ->   requestParser.add_argument('name', type=UserVdr.fn('myUserVdr'))
                         ->   requestParser.add_argument('name', type=UserVdr.fn('myUserVdr', required=True))
     '''
-    def expandArgArgs(argname, vdrClass, ka):
-        if argname in ka:
-            vargs = ka.pop(argname)
-            vdr = getattr(vdrClass,'fn')
-            if isinstance(vargs, tuple) and len(vargs)==2:
-                ka['type'] = vdr(vargs[0], required=vargs[1])
-            else:
-                ka['type'] = vdr(vargs)
-         
-    expandArgArgs('argVdr' , ArgVdr    , ka)
-    expandArgArgs('userVdr', UserVdr, ka)
-    return name, ka
-    
-def rqParse(*pa):
-    '''provides syntax sugar to simplify calling RequestParser functions'''
     p = restful.reqparse.RequestParser()
-    for a in pa: # a is a 2-tuple
-        p.add_argument( a[0], **a[1])
-    return p.parse_args()
+    for a in pa:
+        #logging.debug('+++++++++++++++++++++ add arg %r ++++++++',a)
+        p.add_argument( a[0], **a[1]) # a is a 2-tuple (argName, kwargs)
+        #logging.debug('+++++++++++++++++++++ added arg here ++++++++')
+    r = p.parse_args()
+    #logging.debug('+++++++++++++++++++++ result %r ++++++++',r)
+    return r
 

@@ -7,11 +7,11 @@ from flask_restful import Resource
 import auth
 import util
 from main   import API
-from model  import User, UserVdr
+from model.user import User#, UserVdr
 from flask  import request, g
-from pydash import _
+#from pydash import _
 from api.decorators import model_by_key, user_by_username, authorization_required, admin_required
-from api.helpers    import ArgVdr, list_response, ok, rqArg, rqParse
+from api.helpers    import list_response, ok, rqArg, rqParse
 from config import DEVELOPMENT
 import logging
 
@@ -25,14 +25,17 @@ class UsersAPI(Resource):
         # p = reqparse.RequestParser()
         # p.add_argument('cursor', type=ArgVdr.fn('cursor'))
         # args = p.parse_args()
-        args = rqParse(rqArg('cursor', argVdr='cursor')) 
+        args = rqParse(rqArg('cursor', vdr='cursorVdr')) 
         usersQuery = User.query() \
-            .order(-User.created) \
+            .order(-User.created_r) \
             .fetch_page_async(page_size=10, start_cursor=args.cursor)
         
         totalQuery = User.query().count_async(keys_only=True)
         users, next_cursor, more = usersQuery.get_result()
+        # logging.debug('qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq')
         users = [u.toDict() for u in users]
+        # for i in users:
+            # logging.debug('q = %r',i)
         return list_response(users, next_cursor, more, totalQuery.get_result())
 
 @API.resource('/api/v1/num_users')
@@ -54,7 +57,7 @@ class UserByUsernameAPI(Resource):
             # properties = User.get_private_properties()
         # else:
             # properties = User.get_public_properties()
-        return g.usr.toDict(all=auth.is_admin())
+        return g.usr.toDict(publicOnly=not auth.is_admin())
 
 
 @API.resource('/api/v1/users/<string:key>')
@@ -64,13 +67,14 @@ class UserByKeyAPI(Resource):
     @model_by_key
     def put(self, key):
         """Updates user's properties"""
-        update_properties = ['name', 'bio', 'email_', 'location'
-                             , 'facebook', 'github','gplus', 'linkedin', 'twitter', 'instagram']
-        if auth.is_admin():
-            update_properties += ['isVerified_', 'isActive_', 'isAdmin_']
+        # update_properties = ['name', 'bio', 'email_', 'location'
+                             # , 'facebook', 'github','gplus', 'linkedin', 'twitter', 'instagram']
+        # if auth.is_admin():
+            # update_properties += ['isVerified_', 'isActive_', 'isAdmin_']
 
-        new_data = _.pick(request.json, update_properties)
-        g.model_db.populate(**new_data)
+        # new_data = _.pick(request.json, update_properties)
+        # g.model_db.populate(**new_data)
+        g.model_db.populate(request.json)
         g.model_db.put()
         return ok()
 
@@ -94,8 +98,8 @@ class UserPasswordAPI(Resource):
         # p.add_argument('newPassword', type=UserVdr.fn('password_span')   , dest='new_password')
         # args = p.parse_args()
         # NB we removed:  required=False
-        args = rqParse( rqArg('currentPassword', userVdr='password_span', dest='current_password')
-                      , rqArg('newPassword'    , userVdr='password_span', dest='new_password')
+        args = rqParse( rqArg('currentPassword', vdr='password_span', dest='current_password')
+                      , rqArg('newPassword'    , vdr='password_span', dest='new_password')
                       )
 
         # Users, who signed up via social networks have empty password_hash, so they have to be allowed
