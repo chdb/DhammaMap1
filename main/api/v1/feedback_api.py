@@ -7,7 +7,7 @@ import task
 import config
 from api.helpers import ok, rqArg, rqParse
 from api.decorators import verify_captcha
-#from model.user import UserVdr
+import validators as vdr
 
 
 @API.resource('/api/v1/feedback')
@@ -19,13 +19,8 @@ class FeedbackAPI(Resource):
         if not config.CONFIG_DB.admin_email_:
             return abort(418)
         
-        # p = reqparse.RequestParser()
-        # p.add_argument('message', type=ArgVdr.fn('feedback'), required=True)     #this 'required' is for add_argument()
-        # p.add_argument('email', type=UserVdr.fn('email_rx', required=False))  #this 'required' is for fn()
-        # args = p.parse_args()
-        args = rqParse( rqArg('message', vdr='feedback_span', required=True)
-                      , rqArg('fromEma', vdr='email_rx')
-                    # , rqArg('fromEma', vdr=('email_rx', False))
+        args = rqParse( rqArg('message', vdr=vdr.feedback_span, required=True)
+                      , rqArg('fromEma', vdr=vdr.email_rx)
                       )
         MaxSubjLen = 50  # Construct Subject from first MaxSubjLen chars of message. Adjust this if you want.            
         if len(args.message) > MaxSubjLen:
@@ -34,7 +29,6 @@ class FeedbackAPI(Resource):
             subject = args.message.strip()
         
         ka = {'reply_to': args.fromEma} if args.fromEma else {}
-        
         task.sendEmail( subject
                       , body= '%s\n\nfrom: %s' % (args.message, args.fromEma)
                       , subjTag='Feedback'

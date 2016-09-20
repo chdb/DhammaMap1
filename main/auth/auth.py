@@ -15,6 +15,7 @@ from api.helpers   import rqArg, rqParse
 from model.user    import User
 import task
 import util
+from security import pwd
 import config
 import logging
 
@@ -167,14 +168,14 @@ def create_user_db(auth_id, name, username, email='', verified=False, password='
     """Saves new user into datastore"""
     logging.debug('verified = %r', verified)
     if password:
-        password = util.password_hash(password)
+        password = pwd.encrypt(password)
     email = email.lower()
     usr = User( name=name
               , email_=email
               , username=username
               , authIDs_=[auth_id] if auth_id else []
               , isVerified_=verified
-              , token__=util.uuid()
+              , token__=util.randomB64()
               , pwdhash__=password
               , **props
               )

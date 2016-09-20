@@ -5,72 +5,19 @@ import logging
 from google.appengine.ext import ndb #pylint: disable=import-error
 from google.appengine.datastore import datastore_query#.Cursor #pylint: disable=import-error
 import re
+import config
         
-def fn(vp, required=True): # vp :- validator parameter
 
-    def validator(required, lengths=None, regex=None):
-        assert (lengths is None) or (regex is None)
-    
-        def validator_function(value, prop):
-            if isinstance(value, ndb.Property): # ...But ndb.validator args are the other way round IE (name,value)
-                value = prop                    # ...so if the "value" is a ndb.Property, then the "prop" is really the value 
-            
-            if not required and value == '':
-                return ''
-            if regex:
-                return match_regex(value, regex)
-            return limit_string(value, lengths[0], lengths[1])
-
-        return validator_function
-
-    #attr = getattr(cls, name)
-    if isinstance(vp, list):
-        return validator(required, lengths=vp)
-    if isinstance(vp, basestring):
-        return validator(required, regex=vp)
- #   assert vp.__name__.endswith('Vdr'), 'Names of all custom Validators must have "Vdr" suffix.'
-    assert callable(vp)
-    return vp # custom validator
-
-
-    @classmethod
-    def toDict(cls):
-        """Creates dict out of list and regex attributes, so it can be passed to angular for frontend validation
-            Returns:		dict:
-        """
-        # result = {}
-        # for attr_name in _.reject(set(dir(cls)), lambda x: x.startswith('_')):
-            # attr = getattr(cls, attr_name)
-            # if _.is_list(attr) or _.is_string(attr):
-                # result[attr_name] = attr
-        
-        # logging.debug('vdrs toDict xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
-        # for k,v in  result.iteritems():
-            # logging.debug('%r\t\t%r', k,v)
-        # logging.debug(' v xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
-                
-        result = { k:v for k,v in cls.__dict__.iteritems() 
-                   if not(k.startswith('_') or k.endswith('Vdr')) }
-        
-        # logging.debug('vdrs2 toDict xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
-        # for k,v in  result.iteritems():
-            # logging.debug('%r\t\t%r', k,v)
-        # logging.debug(' v2 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
-        return result
-
-#@staticmethod
-def limit_string(string, minlen, maxlen):
-    """Validation function constrains minimal and maximal lengths of string.
-    Args:		string (string) : String to be checked
-                minlen (int)    : Minimal length
-                maxlen (int)    : Maximal length
-    Returns:	string          : Returns given string
-    Raises:	    ValueError      : If string len is out of range
+def limit_string(string, ls2):
+    """impose minimal and maximal lengths of string.
+    NB maxlen = 0 indicate there is no max length  (not that the max is zero)
     """
+    assert len(ls2) == 2 ,'specifier v should be a 2 member list'
+    minlen = ls2[0]
+    maxlen = ls2[1]
     assert minlen >= 0
     assert maxlen >= 0
     assert maxlen == 0 or maxlen > minlen
-    
     n = len(string) 
     if n < minlen:
         raise ValueError('At least %s characters long' % minlen)
@@ -79,26 +26,62 @@ def limit_string(string, minlen, maxlen):
             raise ValueError('Maximum of %s characters long' % maxlen)
     return string
 
-#@staticmethod
+
 def match_regex(string, regex):
-    """Validation function checks validity of string for given regex.
-    Args:		string (string) : String to be checked
-                regex (string)  : Regular expression
-    Returns:	string          : Returns given string
-    Raises:		ValueError      : If string doesn't match regex
+    """checks validity of string for given regex.
     """
     h = re.compile(regex, re.IGNORECASE)        # todo store h in g or app.registry ?
     if not h.match(string):
         raise ValueError('Incorrect regex format')
     return string
 
-##################################################################################
-######## Validators ##############################################################
-#class ArgVdr(Validator):
-    # """This validator class contains validators in the form of attributes and methods, for user input which
-    # is not associated with any particular datastore model, but still needs to be validated
-    # """
-feedback_span = [1, 2000] #determining min and max lengths of feedback message sent to admin
+    
+class Vdr(object):     
+
+    def init (_s, spec, fn):
+        def validator (arg1, arg2):                   
+            # For ndb property the validator signature is:  value = validator (property, value)   but in requestParser.add_argument() 
+            # the 'type' param expects this signature:      value = typeFn    (value [, otherArgs] )  This is the other way round for value arg (we dont use the other args
+            value = arg2 if isinstance(arg1, ndb.Property) else arg1  
+            
+            # if not required and value == '':  #todo delete - We dont need required param do we?
+                # return ''
+            return fn(value, spec)
+        
+        _s.fn = validator
+        _s.specifier = spec
+     
+class regexVdr(Vdr):   
+    def __init__(_s, spec):  _s.init(spec, match_regex)
+        
+class lengthVdr(Vdr):   
+    def __init__(_s, spec):  _s.init(spec, limit_string)
+    
+    
+def to_dict(module):
+    # return dict of validator-specifiers in given module 
+    # IE all module level items wit the suffixes as below
+    return  { k : getattr(module, k).specifier for k in dir(module) 
+                if k.endswith('_span')  # lengthVdr.specifier
+                or k.endswith('_rx')    # regexVdr.specifier
+            }    
+
+
+######## Specified Validators ##############################################################
+
+feedback_span = lengthVdr([1,2000]) #determining min and max lengths of feedback message sent to admin
+
+# User ####################
+name_span     = lengthVdr([0,100])
+username_span = lengthVdr([3, 40])
+password_span = lengthVdr([6, 70])
+bio_span      = lengthVdr([0,140])
+location_span = lengthVdr([0, 70])
+social_span   = lengthVdr([0, 50])
+
+email_rx  = regexVdr(config.EmailRegEx)
+
+######## Custom Validators ##############################################################
 
 def captchaVdr (captchaStr):
     """Verifies captcha by sending it to google servers
@@ -139,3 +122,4 @@ def cursorVdr (cursor):
         raise ValueError('Sorry, invalid cursor.')
     return cursorObj
 
+##################################################################################

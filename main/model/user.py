@@ -1,5 +1,5 @@
 # coding: utf-8
-"""Provides implementation of User model and User"""
+"""implementation of User model"""
 from __future__ import absolute_import
 
 import hashlib
@@ -8,16 +8,12 @@ import model
 import util
 import config
 import logging
-import validators as vdrs
+import validators as vdr
+import random
+from security import pwd
+
 ##############################################################################
-"""Defines validators for user properties. For detailed description see Validator"""
-name_span     = [0, 100]
-username_span = [3, 40]
-password_span = [6, 70]
-bio_span      = [0, 140]
-location_span = [0, 70]
-social_span   = [0, 50]
-email_rx  = config.EmailRegEx
+"""Defines CUSTOM validators for user properties. For SPECIFIED user validators see Validator"""
 
 def _userExists (name, val, errmsg, flip=False): 
     """Validates that at least one User entity exists with given value for given property-name """
@@ -34,37 +30,48 @@ def emailUniqueVdr (email)   : return _noUserExists('email_', email, 'Sorry, thi
 def usrnameUniqueVdr(username):return _noUserExists('username', username, 'Sorry, this username is already taken.')
 
 ############################################################################
+
+class AuthProvider (ndb.Model):
+    name   = ndb.StringProperty ()
+    id     = ndb.StringProperty (validator=vdr.social_span.fn)
     
+   
 class User(model.ndbModelBase):
     """A class describing datastore user."""
-    name        = ndb.StringProperty (default=''   , validator=vdrs.fn(name_span))
-    username    = ndb.StringProperty (required=True, validator=vdrs.fn(username_span))
-    email_      = ndb.StringProperty (default=''   , validator=vdrs.fn(email_rx, required=False)) #private
+    name        = ndb.StringProperty (validator=vdr.name_span.fn)
+    username    = ndb.StringProperty (validator=vdr.username_span.fn, required=True)
+    email_      = ndb.StringProperty (validator=vdr.email_rx.fn) #private
     authIDs_    = ndb.StringProperty (repeated=True)                                                   #private
     permissions_= ndb.StringProperty (repeated=True)                                                   #private
     isActive_   = ndb.BooleanProperty(default= True)                                                   #private
     isAdmin_    = ndb.BooleanProperty(default=False)   #todo: replace with a permissions_ property?   #private
     isVerified_ = ndb.BooleanProperty(default=False)                                                   #private
-    token__     = ndb.StringProperty (default='')                                                       #hidden
-    pwdhash__   = ndb.StringProperty (default='')                                                       #hidden
-    bio         = ndb.StringProperty (default='', validator=vdrs.fn(bio_span))
-    location    = ndb.StringProperty (default='', validator=vdrs.fn(location_span))
+    token__     = ndb.StringProperty ()                                                       #hidden
+    pwdhash__   = ndb.StringProperty ()                                                       #hidden
+    bio         = ndb.StringProperty (validator=vdr.bio_span.fn)
+    location    = ndb.StringProperty (validator=vdr.location_span.fn)
     
-    #todo use StructuredProperty
-    facebook    = ndb.StringProperty (default='', validator=vdrs.fn(social_span))
-    twitter     = ndb.StringProperty (default='', validator=vdrs.fn(social_span))
-    gplus       = ndb.StringProperty (default='', validator=vdrs.fn(social_span))
-    instagram   = ndb.StringProperty (default='', validator=vdrs.fn(social_span))
-    linkedin    = ndb.StringProperty (default='', validator=vdrs.fn(social_span))
-    github      = ndb.StringProperty (default='', validator=vdrs.fn(social_span))
-    # todo: do we really need default='' on every StringProperty ? If so creat a custom StringProperty ?
-    # But whats so wrong with the default behavior IE default=None?
+    authProviders = ndb.StructuredProperty( AuthProvider, repeated=True) 
     
-    #@property
+    @staticmethod
+    def randomAuthProvs():
+        aps = []
+        for ap in config.CONFIG_DB.authProviders:
+            if random.choice((True, False)):
+                aps.append( AuthProvider(name=ap.name, id=util.randomB64()))
+        util.debugList(aps, 'random Auth Providers')
+        return aps
+        
     def has_password(self, password):
-        """Tests if user has given password"""
-        return self.pwdhash__ == util.password_hash(password)
-
+        """Test if user has the correct password"""
+        valid, new_hash = pwd.verify_and_update(password, self.pwdhash__)
+        if valid:
+            if new_hash:
+                # update user password hash
+                self.pwdhash__ = new_hash
+                self.put()
+        return valid
+                
     @classmethod
     def is_username_available(cls, username):
         """Tests if user has username is available"""
@@ -75,7 +82,8 @@ class User(model.ndbModelBase):
         """Gets user model instance by email or username with given password"""
         #todo - this code looks a bit crazy!
         try:        
-            email_or_username == User.email_ # what is this for?
+            email_or_username == User.email_ # what is this for? 
+            #its either True or False but how can it possibly throw?If theres no value for email_ then User.email_ evaluates to None or '' and the expression its False
         except ValueError: # how can this exception ever come here? 
             cond = email_or_username == User.username
             logging.debug('@@@@@@@@@@@@@@ cond 1 = %r', cond)
@@ -84,15 +92,14 @@ class User(model.ndbModelBase):
             logging.debug('@@@@@@@@@@@@@@ cond 2 = %r', cond)
         usr = User.query(cond).get()
 
-        if usr and usr.pwdhash__ == util.password_hash(password): # todo timer attack vuln
+        if usr and usr.has_password(password):
             return usr
         return None
 
     def toDict(self, publicOnly=True):
-        
-        #todo why not 1) just pass the hash to client
-        #             2) store the hash in user model ? and put the url template code in the client
         def avatar_url(self):
+            #todo why not 1) just pass the hash to client? and put the url template code in the client
+            #     and/or  2) store the hash in user model 
             """Returns gravatar url, created from user's email or username"""
             return '//gravatar.com/avatar/%(hash)s?d=identicon&r=x' % {
                 'hash': hashlib.md5((self.email_ or self.username).encode('utf-8')).hexdigest()
@@ -101,27 +108,5 @@ class User(model.ndbModelBase):
         d = self.toDict_(publicOnly)
         d['key']        = self.key.urlsafe()
         d['avatar_url'] = avatar_url(self)
-                # ka = _.pick(ka, update_properties)
-        # logging.debug('User.toDict() +++++++++++++++++++++++++++++++++++')
-        # for k,v in d.iteritems():
-            # logging.debug('%r : %r', k,v)
-        # logging.debug('+++++++++++++++++++++++++++++++++++++++++++')
-
         return d
 
-    # def populate_(s_, ka):
-        # update_properties = [ 'name', 'bio', 'email_', 'location'
-                            # , 'facebook', 'github','gplus', 'linkedin', 'twitter', 'instagram']
-        # if auth.is_admin():
-            # update_properties += ['isVerified_', 'isActive_', 'isAdmin_']
-
-        # ka = _.pick(ka, update_properties)
-        # logging.debug('exclude +++++++++++++++++++++++++++++++++++')
-        # for k,v in ka.iteritems():
-            # if k.endswith('_'):
-                # logging.debug('%r', k)
-        # logging.debug('+++++++++++++++++++++++++++++++++++++++++++')
-         
-        # ka = {k:v for k,v in ka.iteritems() if k.endswith('_')} # also excludes user changing own email
-        
-        # s_.populate(**ka)

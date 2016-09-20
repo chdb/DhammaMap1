@@ -2,12 +2,7 @@
 """
 Set of utility function used throughout the app
 """
-from uuid import uuid4
-import hashlib
-#import re
-#from google.appengine.ext import ndb #pylint: disable=import-error
 import config
-#from pydash import _
 import os
 import base64
 import logging
@@ -57,17 +52,17 @@ def getEmailRegex():
     # return AngularJS email regex, or our own one, if not found.    
     return findNgEMAIL_REGEXP() or EMAIL_REGEX
 
-def uuid():
-    """Generates random UUID used as user token for verification, reseting password etc.
-    Returns:	string:     32 characters long 
-    """
-    return uuid4().hex
+#def uuid():
+    # """Generates random UUID used as user token for verification, reseting password etc.
+    # Returns:	string:     32 characters long 
+    # """
+    #return uuid4().hex
 
 #todo provide a raw token - they will be b64-encoded again 
 #because the token is part of the Kryptoken 
-def randomB64(n=9):
+def randomB64(n=15):
     '''a base64 string representing n random bytes (so string has length = ceil(n/3)*4 )
-       Is 9 enough to create a good nonce?  - should be plenty eg if we just want to avoid a clash on same machine '''
+       Is 15 enough to create a good nonce?  - should be plenty eg if we just want to avoid a clash on same machine '''
     #n = config('NonceBytes')
     r = os.urandom(n) 
     #return os.urandom(8) 
@@ -84,19 +79,11 @@ def create_name_from_email(email):
     Args:		email (string)  : Email address
     Returns:	string          : Hopefully user's real name
     """
-    return re.sub(r'_+|-+|\.+|\++', ' ', email.split('@')[0]).title()
+    local_part =  email.split('@')[0]
+    separator = r'_+|-+|\.+|\++' # regex for one of these 4 chars _ - . + (optionally repeated)  
+    return re.sub(separator, ' ', local_part).title()
 
 
-def password_hash(password):
-    """Hashes given plain text password with sha256 encryption
-    Hashing is salted with salt_ configured by admin, stored in >>> model.Config
-    Args:		password (string)   : Plain text password
-    Returns:	string              : hashed password, 64 characters
-    """
-    sha = hashlib.sha256()
-    sha.update(password.encode('utf-8'))
-    sha.update(config.CONFIG_DB.salt_)
-    return sha.hexdigest()
 
 
 # def list_to_dict(input_list):
@@ -151,19 +138,21 @@ def password_hash(password):
         # return [deepFilter(i, filterFn) for i in c]
     # return c
     
-def deepFilter (c, filterFn, updateFn=lambda k,v: v):#=None):
+def deepFilter (c, filterFn, updateFn=None):
     '''c is a json object - ie consisting of elements of type string, number, bool or None in nested lists and dicts.
     deepFilter() returns the result of recursively applying the filter and update functions to all dicts in c, 
     to remove or update dict members.
     filterFn(k,v) is a predicate (ie boolean function) returning True to include (k:v)   It must not modify k or v.
     updateFn(k,v) is a modifying function for dict values. It returns updated or same v.  
     '''
-    # if updateFn is None:
-        # updateFn = lambda k,v: v
+    if updateFn is None:
+        updateFn = lambda k,v: v
     
     def deepFilter_ (c):
         if isinstance (c, dict):
-            return { k : deepFilter_(updateFn(k,v)) for k,v in c.iteritems() if filterFn(k,v) }
+            return { k : deepFilter_(updateFn(k,v)) 
+                     for k,v in c.iteritems() 
+                     if filterFn(k,v) }
         if isinstance (c, list):
             return [ deepFilter_(i) for i in c ]
         return c
@@ -176,3 +165,15 @@ def pyProperties(cls):
     but they can also be created using property() built-in function, and in other arcane ways. 
     '''
     return [k for k, v in vars(cls).items() if isinstance(v, property)]
+
+def debugList (lst, label):
+    logging.debug('%s +++++++++++++++++++++++++++++++++++', label)
+    for i in lst:
+        logging.debug('%r', i)
+    logging.debug('+++++++++++++++++++++++++++++++++++++++++++')
+
+def debugDict (d, label):
+    logging.debug('%s +++++++++++++++++++++++++++++++++++', label)
+    for k,v in d.iteritems():
+        logging.debug('%r : %r', k,v)
+    logging.debug('+++++++++++++++++++++++++++++++++++++++++++')

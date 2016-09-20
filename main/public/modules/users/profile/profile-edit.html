@@ -4,10 +4,8 @@
         <input ng-model="editedUser.name"
                type="text"
                validator="name_span"
-               validator-class="userVdr"
                tabindex="1"
                name="name">
-
         <div ng-if="profileEditForm.name.$dirty" ng-messages="profileEditForm.name.$error">
             <div ng-message="maxlength">Your name is too long</div>
         </div>
@@ -18,7 +16,6 @@
         <input ng-model="editedUser.bio"
                name="bio"
                validator="bio_span"
-               validator-class="userVdr"
                show-counter="true"
                tabindex="3">
     </md-input-container>
@@ -27,7 +24,6 @@
         <input ng-model="editedUser.location"
                name="location"
                validator="location_span"
-               validator-class="userVdr"
                tabindex="4">
     </md-input-container>
     <div ng-repeat="(socKey, soc) in socialAccounts" layout="row" layout-align="start center">

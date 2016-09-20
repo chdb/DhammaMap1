@@ -18,7 +18,7 @@
             var ngModel = ctrls[1];
             scope.name  = scope.name  || 'password';
             scope.label = scope.label || 'Password';
-				var v = gaValidators.userVdr.password_span
+				var v = gaValidators.password_span
             scope.minlen = v ? v[0] : 0;
             scope.maxlen = v ? v[1] : 0;
             scope.form = form;

@@ -10,6 +10,7 @@ from main import config, auth
 from flask_restful import inputs
 from model.user import User
 from werkzeug import exceptions
+import validators as vdr
 import logging
 
 def model_by_key(func):
@@ -19,7 +20,7 @@ def model_by_key(func):
     @functools.wraps(func)
     def decorated_function(*args, **kwargs): # pylint: disable=missing-docstring
         g.model_key = ndb.Key(urlsafe=kwargs['key'])
-        logging.debug('xxxxxxxxxxxxxxxxxxx model_by_key: key = %r' , g.model_key)
+        #logging.debug('xxxxxxxxxxxxxxxxxxx model_by_key: key = %r' , g.model_key)
         g.model_db = g.model_key.get()
         if g.model_db:
             return func(*args, **kwargs)
@@ -38,10 +39,7 @@ def verify_captcha(form_name):
         @functools.wraps(func)
         def decorated_function(*args, **kwargs):  # pylint: disable=missing-docstring
             if form_name in config.CONFIG_DB.recaptcha_forms:
-                # p = reqparse.RequestParser()
-                # p.add_argument('captcha', type=ArgVdr.fn('captcha'), required=True)
-                # p.parse_args()
-                rqParse(rqArg('captcha', vdr='captchaVdr', required=True))
+                rqParse(rqArg('captcha', vdr=vdr.captchaVdr, required=True))
             return func(*args, **kwargs)
 
         return decorated_function
@@ -106,14 +104,8 @@ def parse_signin(func):
     """Parses credentials posted by client and loads appropriate user from datastore"""
     @functools.wraps(func)
     def decorated_function(*args, **kwargs): # pylint: disable=missing-docstring
-        # p = reqparse.RequestParser()
-        # p.add_argument('login', type=str, required=True)
-        # p.add_argument('password', type=model.UserVdr.fn('password_span'), required=True)
-        # p.add_argument('remember', type=inputs.boolean, default=False)
-        # g.args = p.parse_args()
-        
         g.args = rqParse( rqArg('login'   , type=str               , required=True)
-                        , rqArg('password', vdr='password_span', required=True)
+                        , rqArg('password', vdr=vdr.password_span, required=True)
                         , rqArg('remember', type=inputs.boolean    , default=False)
                         ) 
         

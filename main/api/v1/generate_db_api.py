@@ -3,12 +3,9 @@
 from flask_restful import Resource
 from main import API
 from flask import abort
-from config import DEVELOPMENT
-#from model.factories import UserFactory
-#from factory.fuzzy import FuzzyText, FuzzyChoice
+import config #import DEVELOPMENT
 import random
-#import factory
-import util
+from security import pwd
 from model.user import User
 from google.appengine.ext import ndb #pylint: disable=import-error
 from api.helpers import ok
@@ -19,15 +16,15 @@ class GenerateDatabaseAPI(Resource):
     @ndb.toplevel
     def post(self):
         """Deletes all users and re-generates mock users for development purposes"""
-        if not DEVELOPMENT:
-            abort(404) # very important - we dont want to offer users the opportunity to destroy our entire user base
+        if not config.DEVELOPMENT:
+            abort(404) # very important - dont give users the opportunity to destroy our entire user base
        
         def delete_all():
             ndb.delete_multi(User.query().fetch(keys_only=True))
             
         def create_admin():
             admin = User( username   ='admin'
-                        , pwdhash__  =util.password_hash('123456')
+                        , pwdhash__  =pwd.encrypt('123456')
                         , isAdmin_   =True
                         , isVerified_=True
                         , isActive_  =True
@@ -35,30 +32,21 @@ class GenerateDatabaseAPI(Resource):
             User.put(admin)
 
         def create_user(n):
-            
-            def optRandB64():
-                return util.randomB64() if random.choice((True, False)) else None
-                
-            user = User ( username   ='tutshka%d' % n 
-                        , pwdhash__  =util.password_hash('123456')
-                        , isAdmin_   =False
-                        , isVerified_=random.choice((True, False))
-                        , isActive_  =random.choice((True, False))
-                        , bio        =random.choice(('All component', 'things are', 'impernanent: work', 'out your', 'own salvation', 'with diligence.'))
-                        , facebook   =optRandB64()
-                        , twitter    =optRandB64()
-                        , gplus      =optRandB64()
-                        , instagram  =optRandB64()
-                        , linkedin   =optRandB64()
-                        , github     =optRandB64()
-                        )
-            User.put(user)
+            usr = User ( username   ='tutshka%d' % n 
+                       , pwdhash__  =pwd.encrypt('123456')
+                       , isAdmin_   =False
+                       , isVerified_=random.choice((True, False))
+                       , isActive_  =random.choice((True, False))
+                       , bio        =random.choice(('All component', 'things are', 'impermanent: work', 'out your', 'own salvation', 'with diligence.'))
+                       , authProviders = User.randomAuthProvs()
+                       )
+            User.put(usr)
         
         delete_all()
-        for n in xrange(45):
+        NumUsers = 45
+        for n in xrange(NumUsers):
             create_user(n)
         create_admin()
-        
         return ok()
 
         

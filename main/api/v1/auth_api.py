@@ -15,30 +15,20 @@ from api.helpers import ok, rqArg, rqParse
 from api.decorators import verify_captcha, parse_signin
 from google.appengine.ext import ndb  # pylint: disable=import-error
 from werkzeug import exceptions
+import validators as vdr
+from security import pwd
 import logging
 
 @API.resource('/api/v1/auth/signup')
 class SignupAPI(Resource):
     @verify_captcha('signupForm')
     def post(self):
-        """Creates new user account if provided valid arguments"""
-        # p = reqparse.RequestParser()
-        # p.add_argument('email'   , type=UserVdr.fn('emailUniqueVdr'), required=True)
-        # p.add_argument('username', type=UserVdr.fn('usrnameUniqueVdr'))
-        # p.add_argument('password', type=UserVdr.fn('password_span'))
-        # p.add_argument('remember', type=inputs.boolean, default=False)
-        # args = p.parse_args()
-
-        # logging.debug('args1 = %r', args)
-        
-        args = rqParse( rqArg('email'   ,vdr='emailUniqueVdr', required=True)
-                      , rqArg('username',vdr='usrnameUniqueVdr')
-                      , rqArg('password',vdr='password_span')
+        """Creates new user account, given valid arguments"""
+        args = rqParse( rqArg('email'   ,vdr=User.emailUniqueVdr, required=True)
+                      , rqArg('username',vdr=User.usrnameUniqueVdr)
+                      , rqArg('password',vdr=vdr.password_span)
                       , rqArg('remember',type=inputs.boolean, default=False)
                       )
-
-        logging.debug('args2 = %r', args)
-        
         usr = auth.create_user_db  ( auth_id=None
                                    , name=''
                                    , username=args.username
@@ -47,11 +37,9 @@ class SignupAPI(Resource):
                                    , password=args.password
                                    )
         usr.put()
-
         if config.CONFIG_DB.verify_email:
             task.sendVerifyEmail(usr)
             return ok()
-
         # if users don't need to verify email, we automaticaly signin newly registered user
         auth.signin_user_db(usr, remember=args.remember)
         return usr.toDict(publicOnly=False)
@@ -96,7 +84,7 @@ class ResendActivationAPI(Resource):
 class ForgotPasswordAPI(Resource):
     def post(self):
         """Sends email with token for resetting password to an user"""
-        args = rqParse( rqArg('email', vdr='emailExistsVdr'))       
+        args = rqParse( rqArg('email', vdr=User.emailExistsVdr))       
         usr = User.get_by('email_', args.email)
         task.sendResetEmail(usr)
         return ok()
@@ -109,12 +97,12 @@ class ResetPasswordAPI(Resource):
         """Sets new password given by user if he provided valid token
         Notice ndb.toplevel decorator here, so we can perform asynchronous put and sign-in in parallel
         """
-        args = rqParse( rqArg('token'      , vdr='token_span')
-                      , rqArg('newPassword', vdr='password_span', dest='new_password')
+        args = rqParse( rqArg('token'      , vdr=vdr.token_span)
+                      , rqArg('newPassword', vdr=vdr.password_span, dest='new_password')
                       )
         usr = User.get_by('token__', args.token)
-        usr.pwdhash__ = util.password_hash(args.new_password)
-        usr.token__ = util.uuid()
+        usr.pwdhash__ = pwd.encrypt(args.new_password)
+        usr.token__ = util.randomB64()
         usr.isVerified_ = True
         usr.put_async()
         auth.signin_user_db(usr)

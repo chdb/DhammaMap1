@@ -11,18 +11,20 @@
 
 <body layout="row" layout-fill>
 <md-sidenav md-is-locked-open="$mdMedia('gt-md')" 
-				md-component-id="leftSidenav"
+			md-component-id="leftSidenav"
             ng-include="'/p/modules/core/layout/sidenav.html'"
             class="md-sidenav-left sidenav-left md-whiteframe-z2">
 </md-sidenav>
 <div layout="column" role="main" flex>
     <md-toolbar>
-        <div ng-controller="HeaderController" ng-include="'/p/modules/core/layout/header.html'"></div>
+        <div ng-controller="HeaderController" 
+			 ng-include="'/p/modules/core/layout/header.html'">
+		</div>
     </md-toolbar>
     <md-content flex md-scroll-y
                 lr-infinite-scroll="mainContentScrolled" 
-					 scroll-threshold="200"
-					 id="mainBox"
+				scroll-threshold="200"
+				id="mainBox"
                 class="md-padding main-content">
         # block content
         # endblock
@@ -34,8 +36,8 @@
 # endblock
 <script type="text/javascript">
     var module = angular.module('Dhamma Map');
-    module.value('gaAuthUser'		 ,{{	                user | tojson | safe}});
-    module.value('gaAppConfig'	 ,{{            app_config | tojson | safe}});
+    module.value('gaAuthUser'	  ,{{                  user | tojson | safe}});
+    module.value('gaAppConfig'	  ,{{            app_config | tojson | safe}});
     module.value('gaValidators'   ,{{            validators | tojson | safe}});
     module.value('gaFlashMessages',{{get_flashed_messages() | tojson | safe}});
 </script>

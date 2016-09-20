@@ -96,7 +96,7 @@ def sendResetEmail(usr):
     """
     if not usr.email_:
         return
-    usr.token__ = util.uuid()
+    usr.token__ = util.randomB64()
     usr.put()
 
     toEma = '%s <%s>' % (usr.name, usr.email_)
@@ -114,7 +114,7 @@ def sendVerifyEmail(usr):
     if not usr.email_:
         logging.info ('no email')
         return
-    usr.token__ = util.uuid()
+    usr.token__ = util.randomB64()
     usr.put()
 
     toEma = usr.email_

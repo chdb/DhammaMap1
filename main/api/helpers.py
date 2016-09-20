@@ -86,26 +86,12 @@ def list_response(response_list, cursor=None, more=False, total_count=None):
 
 def rqArg(argName, **ka):
     '''syntax sugar to simplify calling RequestParser functions
-    EG  rqArg('name', vdr='myVdr')             ->   ('name', {'type' : ArgVdr.f('myVdr')})
-        rqArg('name', vdr='myUserVdr')        ->   ('name', {'type' : UserVdr.fn('myUserVdr')})
-        rqArg('name', vdr=('myUserVdr',True)  ->   ('name', {'type' : UserVdr.fn('myUserVdr', required=True)})
+    EG  rqArg('name', vdr=vdr.specifiedVdr)        ->   ('name', {'type' : specifiedVdr.fn})
+        rqArg('name', vdr=User.myCustomVdr)        ->   ('name', {'type' : myCustomVdr})
     '''
-   # def expandArgArgs(vdrName, vdrClass, ka):
-            #vdr = getattr(vdrClass,'fn')
-            # if isinstance(vdrArg, tuple) and len(vdrArg)==2:      #todo do we need this tuple? -  surely 'required' is redundant on vdr
-                # ka['type'] = vdr(vdrArg[0], required=vdrArg[1])
-            # else:
-                # ka['type'] = vdr(vdrArg) # eg SomeVdr.fn('myVdr')
-         
-   # expandArgArgs('vdr' , ArgVdr , ka)
-   # expandArgArgs('vdr', UserVdr, ka)
     if 'vdr' in ka:
-        vdrName = ka.pop('vdr')
-        try:
-            v = getattr(vdr, vdrName)
-        except AttributeError:
-            v = getattr(users, vdrName)
-        ka['type'] = vdr.fn(v) # eg SomeVdr.fn('myVdr')
+        vdr = ka.pop('vdr')
+        ka['type'] = vdr if callable(vdr) else vdr.fn 
     return argName, ka
     
 def rqParse(*pa):

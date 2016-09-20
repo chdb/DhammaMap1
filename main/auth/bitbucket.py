@@ -14,7 +14,7 @@ bitbucket_config = dict(
     authorize_url='https://bitbucket.org/api/1.0/oauth/authenticate',
     base_url='https://api.bitbucket.org/1.0/',
     # consumer_key=config.CONFIG_DB.auth_bitbucket_id,
-    # consumer_secret=config.CONFIG_DB.auth_bitbucket_secret,
+    # consumer_secret=config.CONFIG_DB.,
     request_token_url='https://bitbucket.org/api/1.0/oauth/request_token',
 )
 

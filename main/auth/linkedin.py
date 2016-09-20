@@ -19,7 +19,7 @@ linkedin_config = dict(
     # consumer_secret=config.CONFIG_DB.auth_linkedin_secret,
     request_token_params={
         'scope': 'r_basicprofile r_emailaddress',
-        'state': util.uuid(),
+        'state': util.randomB64(),
     },
 )
 

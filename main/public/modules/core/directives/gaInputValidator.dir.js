@@ -15,11 +15,11 @@
      * class UserVdr (model.BaseValidator):
      *      name = [3, 100]
      *
-     * This min/max value for name is then passed to client as gaValidators.userVdr.name_span === [3, 100]
+     * This min/max value for name is then passed to client as gaValidators.name_span === [3, 100]
      * Now, when we use directive:
-     * <input name="name" validator validator-class="userVdr">
+     * <input name="name" validator="userVdr">
      * It will automatically add ng-minlength and ng-maxlength like this:
-     * <input name="name" validator ng-minlength="3" ng-maxlength="100" validator-class="userVdr">
+     * <input name="name" validator ng-minlength="3" ng-maxlength="100">
      *
      * If you want to use md-maxlength to show character counter pass show-counter="true"
      */
@@ -27,7 +27,7 @@
 		var compile = function(el, attrs) {
 				
 			//var type = attrs.name + attrs.validator;
-			var vdr = gaValidators[attrs.validatorClass][attrs.validator];
+			var vdr = gaValidators[attrs.validator];
 			if (_.isArray(vdr)) {
 				if (vdr.length != 2)
 					throw 'unexpected validator array length'

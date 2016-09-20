@@ -31,6 +31,7 @@ SECRET_KEY  = CONFIG_DB.flask_secret.encode('ascii')
 #model.AuthProvider.init()
 
 
+
 logging.debug('####################################################### app id: %r ', APPLICATION_ID)
 logging.debug('####################################################### cur ver id: %r', CURRENT_VERSION_ID)
 logging.debug('####################################################### cur ver name: %r', CURRENT_VERSION_NAME)
