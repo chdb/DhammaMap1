@@ -3,7 +3,7 @@
 import flask
 
 import auth
-from model import User
+from model.user import User
 import config
 from main import app
 

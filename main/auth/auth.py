@@ -169,7 +169,18 @@ def create_user_db(auth_id, name, username, email='', verified=False, password='
     logging.debug('verified = %r', verified)
     if password:
         password = pwd.encrypt(password)
-    email = email.lower()
+   # email = email.lower() # todo wrong!
+    # Problem: email addresses CAN be case sensitive in local part according to the RFC  
+    # Unfortunately some smtp implementations may allow creating distinct addresses which only differ by case. 
+    # If someone has created such an mailbox address (whether unwittingly or  unwiselly)
+    # he might not recieve quite a lot of mail even if correctly addressed because much sofware ignores the RFC. 
+    # But the good mail servers will preserve the case when sending mail.
+    # We dont want to be one of the bad ones.
+    # Solution:
+        # Store emails with case sensitivity
+        # Send  emails with case sensitivity
+        # Perform all internal searches with case insensitivity
+    
     usr = User( name=name
               , email_=email
               , username=username
@@ -190,7 +201,7 @@ def create_or_get_user_db(auth_id, name, username, email='', **kwargs):
     If so, it will append auth_id for his record and saves it.
     If not we construct a unique username for this user (for the case of signing up via social account)
     and then store it into datastore"""
-    usr = User.get_by('email_', email.lower())
+    usr = User.get_by('email_', email)
     if usr:
         usr.authIDs_.append(auth_id)
         usr.put()

@@ -7,7 +7,7 @@ from google.appengine.api import users
 import flask
 
 import auth
-from model import User
+from model.user import User
 import util
 from main import app
 

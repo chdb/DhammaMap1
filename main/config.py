@@ -24,6 +24,14 @@ CURRENT_VERSION_DATE = datetime.utcfromtimestamp(CURRENT_VERSION_TIMESTAMP)
 
 EmailRegEx = util.getEmailRegex()
 
+
+# It is simple and convenient to create some configuration data here in the config file 
+# but other config data is stored in ndb DataStore because
+# 1) This is not a secure location for cryptographic keys and other secrets because our code base is open-source 
+#    Even closed-source code has access issues because its inevitably and habitually saved to a cvs with different/lower security than the DataStore 
+# 2) Its very convenient to change config settings without having to deploy modified application code
+  
+# 
 from model.config import Config # NB The model module needs to be imported *after* setting CURRENT_VERSION_TIMESTAMP,
             # since model.ndbModelBase uses it as default value for version_r property
 CONFIG_DB   = Config.get_master_db()

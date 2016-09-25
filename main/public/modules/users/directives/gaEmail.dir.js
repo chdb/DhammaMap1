@@ -10,30 +10,27 @@
      * throughout the app
      */
 
-    module.directive('gaEmail', function() {
-        /*jslint unparam:true*/
-        var prelink = function(scope, el, attrs, form) {
+    module.directive('gaEmail', function() 
+    {    /*jslint unparam:true*/
+        var prelink = function(scope, el, attrs, form) 
+		{	console.log('gaEmail scope --- ', scope)
             scope.name = scope.name || 'email';
             scope.label = scope.label || 'Email';
             scope.form = form;
             scope.required = attrs.required !== undefined && attrs.required !== 'false';
         };
 
-        return {
-            link        : {
-                pre : prelink
-            },
-            restrict    : 'EA',
-            replace     : true,
-            require     : '^form',
-            scope       : {
-                inputTabindex : '@',
-                name          : '@',
-                label         : '@',
-                ngModel       : '='
-            },
-            templateUrl : '/p/modules/users/directives/gaEmail.html'
-        };
+        return 	{ link    	 : { pre : prelink }
+				, restrict	 : 'EA'
+				, replace 	 : true
+				, require 	 : '^form'
+				, scope   	 : { inputTabindex : '@'
+							   , name          : '@'
+							   , label         : '@'
+							   , ngModel       : '='
+							   }
+				, templateUrl: '/p/modules/users/directives/gaEmail.html'
+				};
     });
 
 }());

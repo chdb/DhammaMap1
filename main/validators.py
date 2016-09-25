@@ -39,10 +39,14 @@ def match_regex(string, regex):
 class Vdr(object):     
 
     def init (_s, spec, fn):
-        def validator (arg1, arg2):                   
-            # For ndb property the validator signature is:  value = validator (property, value)   but in requestParser.add_argument() 
-            # the 'type' param expects this signature:      value = typeFn    (value [, otherArgs] )  This is the other way round for value arg (we dont use the other args
-            value = arg2 if isinstance(arg1, ndb.Property) else arg1  
+        def validator (arg1, arg2=None):                   
+            # In ndb the property code calls the validator like this :  value = validator (property, value)  
+            # but rqParse expects this signature                 :      value = validator (value)  
+            if arg2 is not None:
+                value = arg2 
+                assert isinstance(arg1, ndb.Property) 
+            else:
+                value = arg1  
             
             # if not required and value == '':  #todo delete - We dont need required param do we?
                 # return ''
@@ -106,11 +110,12 @@ def captchaVdr (captchaStr):
             raise ValueError('Sorry, invalid captcha')
     return captchaStr
 
-def cursorVdr (cursor):
-    """Verifies if given string is valid ndb query cursor, if so returns instance of it
-    Args    : cursor (string): Url encoded ndb query cursor
-    Returns : google.appengine.datastore.datastore_query.Cursor: ndb query cursor
-    Raises  : ValueError: If cursor fails
+def toCursor (cursor):
+    """This is a type converter, not merely a validator, it also converts.
+    As such should be used with the rqArg "type=" paramenter,  (NOT the "vdr=" parameter)
+    
+    In this case it converts from a cursor string to a ndb Query Cursor
+    and verifies that the given string is valid, returning an instance of ndb Query Cursor.
     """
     #logging.debug('xxxxxxxxx cursor = %r',cursor)
     if not cursor:

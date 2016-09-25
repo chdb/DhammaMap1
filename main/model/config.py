@@ -4,7 +4,7 @@ from __future__ import absolute_import
 
 from google.appengine.ext import ndb
 import config
-from model import ndbModelBase #, ConfigAuth
+from model import base #, ConfigAuth
 import util
 import logging
 
@@ -15,7 +15,7 @@ class AuthProvider (ndb.Model):
     secret_= ndb.StringProperty()
     
                     
-class Config(ndbModelBase):
+class Config(base.ndbModelBase):
     """A class describing datastore config."""
     analytics_id       = ndb.StringProperty()    # Google Analytics ID
     site_name          = ndb.StringProperty(default=config.APPLICATION_ID)  # Webapp name

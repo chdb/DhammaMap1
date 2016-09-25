@@ -5,7 +5,7 @@ Provides logic for non-api routes related to user
 import flask_login as login
 import flask
 import auth
-from model import User
+from model.user import User
 import util
 from main import app
 
@@ -37,7 +37,7 @@ def user_verify(token):
     usr = User.get_by('token__', token)
     if usr and not usr.isVerified_:
         # setting new token is necessary, so this one can't be reused
-        usr.token__ = util.randomB64()
+        usr.token__ = '' # util.randomB64()
         usr.isVerified_ = True
         usr.put()
         auth.signin_user_db(usr)

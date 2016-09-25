@@ -46,7 +46,8 @@ class ndbModelBase(ndb.Model):
         super(ndbModelBase, _s).populate(**ka)
 
     @classmethod
-    def get_by(cls, name, value):
+    def get_by(cls, propName, value):
+        #todo replace with indexing - or use ndb key for unique value
         """Gets model instance by given property-name and value"""
-        return cls.query(getattr(cls, name) == value).get()
+        return cls.query(getattr(cls, propName) == value).get()
 

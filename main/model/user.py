@@ -4,7 +4,7 @@ from __future__ import absolute_import
 
 import hashlib
 from google.appengine.ext import ndb
-import model
+from model import base
 import util
 import config
 import logging
@@ -15,19 +15,19 @@ from security import pwd
 ##############################################################################
 """Defines CUSTOM validators for user properties. For SPECIFIED user validators see Validator"""
 
-def _userExists (name, val, errmsg, flip=False): 
+def _userExists (propName, value, errmsg, flip=False): 
     """Validates that at least one User entity exists with given value for given property-name """
-    usr = User.get_by(name, token) # todo this is an expensive way, see: get_by() - instead use a key
+    usr = User.get_by(propName, value) # todo this is an expensive way, see: get_by() - instead use a key
     if (usr is None) != flip:
         raise ValueError(errmsg)
-    return token
+    return value
     
-def _noUserExists (name, val, errmsg) : return _userExists('token', token, errmsg, flip=True) 
+def _noUserExists (propName, value, errmsg) : return _userExists(propName, value, errmsg, flip=True) 
 
-def tokenExistsVdr (token)   : return _userExists  ('token', token, 'Sorry, your token is invalid or expired.')
-def emailExistsVdr (email)   : return _userExists  ('email_', email, 'This email address is not recognised. Please try again')
-def emailUniqueVdr (email)   : return _noUserExists('email_', email, 'Sorry, this email address is already taken.')
-def usrnameUniqueVdr(username):return _noUserExists('username', username, 'Sorry, this username is already taken.')
+def tokenExistsVdr (token)   : return _userExists  ('token'     , token        ,'Sorry, your token is invalid or expired.') # not called in current codebase
+def emailExistsVdr (email)   : return _userExists  ('email_ci__', email.lower(),'This email address is not recognised. Please try again')
+def emailUniqueVdr (email)   : return _noUserExists('email_ci__', email.lower(),'Sorry, this email address is already taken.')
+def usrnameUniqueVdr(username):return _noUserExists('username'  , username     ,'Sorry, this username is already taken.')
 
 ############################################################################
 
@@ -36,15 +36,16 @@ class AuthProvider (ndb.Model):
     id     = ndb.StringProperty (validator=vdr.social_span.fn)
     
    
-class User(model.ndbModelBase):
+class User(base.ndbModelBase):
     """A class describing datastore user."""
     name        = ndb.StringProperty (validator=vdr.name_span.fn)
     username    = ndb.StringProperty (validator=vdr.username_span.fn, required=True)
-    email_      = ndb.StringProperty (validator=vdr.email_rx.fn) #private
+    email_      = ndb.StringProperty (validator=vdr.email_rx.fn)
+    email_ci__  = ndb.ComputedProperty(lambda _s: _s.email_.lower() if _s.email_ else None) #for case-insensitive searching
     authIDs_    = ndb.StringProperty (repeated=True)                                                   #private
     permissions_= ndb.StringProperty (repeated=True)                                                   #private
     isActive_   = ndb.BooleanProperty(default= True)                                                   #private
-    isAdmin_    = ndb.BooleanProperty(default=False)   #todo: replace with a permissions_ property?   #private
+    isAdmin_    = ndb.BooleanProperty(default=False)   #todo: replace with a entry in permissions_ ?   #private
     isVerified_ = ndb.BooleanProperty(default=False)                                                   #private
     token__     = ndb.StringProperty ()                                                       #hidden
     pwdhash__   = ndb.StringProperty ()                                                       #hidden

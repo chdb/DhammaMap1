@@ -8,14 +8,14 @@ from flask import g
 import util
 import auth
 import config
-from model.user import User#, UserVdr, Config
+from model import user as u
 import task
 from main import API
 from api.helpers import ok, rqArg, rqParse
 from api.decorators import verify_captcha, parse_signin
 from google.appengine.ext import ndb  # pylint: disable=import-error
 from werkzeug import exceptions
-import validators as vdr
+import validators as v
 from security import pwd
 import logging
 
@@ -24,9 +24,9 @@ class SignupAPI(Resource):
     @verify_captcha('signupForm')
     def post(self):
         """Creates new user account, given valid arguments"""
-        args = rqParse( rqArg('email'   ,vdr=User.emailUniqueVdr, required=True)
-                      , rqArg('username',vdr=User.usrnameUniqueVdr)
-                      , rqArg('password',vdr=vdr.password_span)
+        args = rqParse( rqArg('email'   ,vdr=u.emailUniqueVdr, required=True)
+                      , rqArg('username',vdr=u.usrnameUniqueVdr)
+                      , rqArg('password',vdr=v.password_span)
                       , rqArg('remember',type=inputs.boolean, default=False)
                       )
         usr = auth.create_user_db  ( auth_id=None
@@ -84,8 +84,8 @@ class ResendActivationAPI(Resource):
 class ForgotPasswordAPI(Resource):
     def post(self):
         """Sends email with token for resetting password to an user"""
-        args = rqParse( rqArg('email', vdr=User.emailExistsVdr))       
-        usr = User.get_by('email_', args.email)
+        args = rqParse( rqArg('email', vdr=u.emailExistsVdr))       
+        usr = u.User.get_by('email_', args.email)
         task.sendResetEmail(usr)
         return ok()
 
@@ -97,10 +97,10 @@ class ResetPasswordAPI(Resource):
         """Sets new password given by user if he provided valid token
         Notice ndb.toplevel decorator here, so we can perform asynchronous put and sign-in in parallel
         """
-        args = rqParse( rqArg('token'      , vdr=vdr.token_span)
-                      , rqArg('newPassword', vdr=vdr.password_span, dest='new_password')
+        args = rqParse( rqArg('token'      , vdr=v.token_span)
+                      , rqArg('newPassword', vdr=v.password_span, dest='new_password')
                       )
-        usr = User.get_by('token__', args.token)
+        usr = u.User.get_by('token__', args.token)
         usr.pwdhash__ = pwd.encrypt(args.new_password)
         usr.token__ = util.randomB64()
         usr.isVerified_ = True

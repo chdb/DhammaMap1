@@ -67,7 +67,7 @@ def randomB64(n=15):
     r = os.urandom(n) 
     #return os.urandom(8) 
     #todo Do we need to base64-encode? Surely the token will be wrappped in a crytoken which will do it?
-    return base64.b64encode(r)
+    return base64.urlsafe_b64encode(r)
 
 
 def create_name_from_email(email):

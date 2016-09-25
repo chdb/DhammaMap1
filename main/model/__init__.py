@@ -1,9 +1,9 @@
 # coding: utf-8
 """
-Provides datastore model implementations as well as validator factories for it
+Provides datastore model implementations
 """
 
-from .base import ndbModelBase
+#from .base import ndbModelBase
 #from .config_auth import ConfigAuth
-from .config import Config, AuthProvider
-from .user import User #, UserVdr
+#from .config import Config, AuthProvider
+#from .user import User #, UserVdr

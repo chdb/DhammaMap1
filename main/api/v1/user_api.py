@@ -22,7 +22,7 @@ class UsersAPI(Resource):
     """
     @admin_required
     def get(self):
-        args = rqParse(rqArg('cursor', vdr=vdr.cursorVdr)) 
+        args = rqParse(rqArg('cursor', type=vdr.toCursor)) 
         usersQuery = User.query() \
             .order(-User.created_r) \
             .fetch_page_async(page_size=10, start_cursor=args.cursor)

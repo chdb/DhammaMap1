@@ -3,7 +3,7 @@
     var module = angular.module('users');
 
     module.controller('ProfileEditController', function($scope, gaBrowserHistory, gaToast, _, gaValidators, gaTracking) {
-
+		console.log ('edit scope: ', $scope);
         if (!$scope.hasAuthorization()) {
             gaBrowserHistory.back();
         }

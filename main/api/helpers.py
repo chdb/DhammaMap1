@@ -9,7 +9,6 @@ import logging
 import flask_restful as restful
 from werkzeug import exceptions
 import flask
-#import model
 from main import config
 import urllib
 from flask import request
@@ -89,10 +88,12 @@ def rqArg(argName, **ka):
     EG  rqArg('name', vdr=vdr.specifiedVdr)        ->   ('name', {'type' : specifiedVdr.fn})
         rqArg('name', vdr=User.myCustomVdr)        ->   ('name', {'type' : myCustomVdr})
     '''
+    vdr = None
     if 'vdr' in ka:
         vdr = ka.pop('vdr')
-        ka['type'] = vdr if callable(vdr) else vdr.fn 
-    return argName, ka
+        #ka['type'] = vdr if callable(vdr) else vdr.fn 
+        if not callable(vdr): vdr = vdr.fn
+    return argName, vdr, ka
     
 def rqParse(*pa):
     '''syntax sugar to simplify calling RequestParser functions    
@@ -103,11 +104,21 @@ def rqParse(*pa):
                         ->   requestParser.add_argument('name', type=UserVdr.fn('myUserVdr', required=True))
     '''
     p = restful.reqparse.RequestParser()
-    for a in pa:
+    vdrs = {}
+    for argName, vdr, ka in pa:
+        #vdr = a[1]
+        vdrs[argName] = vdr
         #logging.debug('+++++++++++++++++++++ add arg %r ++++++++',a)
-        p.add_argument( a[0], **a[1]) # a is a 2-tuple (argName, kwargs)
+        p.add_argument(argName, **ka) 
         #logging.debug('+++++++++++++++++++++ added arg here ++++++++')
-    r = p.parse_args()
-    #logging.debug('+++++++++++++++++++++ result %r ++++++++',r)
-    return r
+        #logging.debug('+++++++++++++++++++++ vdrs %r ++++++++',vdrs)
+    args = p.parse_args()
+    
+    assert len(vdrs) == len(args)
+    for k,v in vdrs.iteritems():
+        if v:
+            res = v(args[k])
+    logging.debug('+++++++++++++++++++++ vdrs %r ++++++++',vdrs)
+    logging.debug('+++++++++++++++++++++ args %r ++++++++',args)
+    return args
 
