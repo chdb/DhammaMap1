@@ -37,7 +37,7 @@ def inject_config():
 def inject_validators():
     """Inject vdr-specifiers for regex and min-max validators into jinja template for the client. See base.html
     This is so that client and server can both recreate same ie functionally equivalent validators. 
-    However custom validators cannot be passed and these are generally only applied server side
+    However custom validators cannot be passed but generally these are only applied server side
     """
     return { 'validators' : validators.to_dict(validators) }
 

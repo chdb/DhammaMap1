@@ -13,7 +13,7 @@
     module.directive('gaEmail', function() 
     {    /*jslint unparam:true*/
         var prelink = function(scope, el, attrs, form) 
-		{	console.log('gaEmail scope --- ', scope)
+		{	//console.log('gaEmail scope --- ', scope)
             scope.name = scope.name || 'email';
             scope.label = scope.label || 'Email';
             scope.form = form;

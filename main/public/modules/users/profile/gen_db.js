@@ -27,7 +27,7 @@
         };
 
         $scope.hasAuthorization = function() 
-        {	return $scope.isMyProfile() || $scope.auth.isAdmin();
+        {	return $scope.isMyProfile() || $scope.auth.is_admin();
         };
 
         $scope.showDeleteUserDialog = function(ev) 

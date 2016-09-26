@@ -10,7 +10,7 @@
 			$scope.appConfigForm.unchanged = true;
 			copyCfg();
 			
-			console.log('0 forms = ', $scope.cfg.recaptcha_forms);
+			//console.log('0 forms = ', $scope.cfg.recaptcha_forms);
 			
 			// recaptcha is configurable on forms with these names
 			// edit the array to allow other forms
@@ -20,7 +20,7 @@
 			var n = $scope.cfg.recaptcha_forms.length;
 			for (var i = 0; i < n; i++) 
 			{	var f = $scope.cfg.recaptcha_forms[i];
-				console.log('0 form = ', f);
+				//console.log('0 form = ', f);
 				$scope.init[f] = true;
 			}
         });
@@ -104,7 +104,7 @@
 								r[k] = filter (obj[k]);  
 					return r;
 				};
-				var c1 = JSON.stringify(filter ($scope.cfg));
+		/*		var c1 = JSON.stringify(filter ($scope.cfg));
 				var c2 = JSON.stringify(filter ($scope.cfg2));
 				var min = c1.length < c2.length ? c1.length : c2.length;
 				//var max = c1.length < c2.length ? c2.length : c1.length;
@@ -116,10 +116,10 @@
 						break;	
 				console.log("diff cfg2 = ", c2.substring(i-20, c2.length-j+20)); 
 				console.log("diff cfg  = ", c1.substring(i-20, c1.length-j+20)); 
-			}
+		*/	}
 			//console.log("cfg  = ", c1); 
 			//console.log("cfg2 = ", c2); 
-			console.log("unchanged = ", $scope.appConfigForm.unchanged); 
+			//console.log("unchanged = ", $scope.appConfigForm.unchanged); 
 		});
 		
 /*		$scope.submitForm = function(){
@@ -141,26 +141,26 @@
 		$scope.addAuthProv = function() 
 		{
 			var n = $scope.cfg.authProviders.length;
-			console.log('n = ', n);
-			console.log('name = ', $scope.newauth.name);
+			//console.log('n = ', n);
+			//console.log('name = ', $scope.newauth.name);
 			
 			$scope.cfg.authProviders[n] = { name	: $scope.newauth.name
 										  , id 		: ''
 										  , secret_ : ''
 										  };
 			$scope.newauth.name = '';							  
-			console.log($scope.cfg.authProviders);
+			//console.log($scope.cfg.authProviders);
 			$scope.appConfigForm.$setDirty()
 			
 		};
 		$scope.removeAuthProv = function(i) 
 		{
-			console.log('i = ', i);
-			console.log($scope.cfg.authProviders);
+			//console.log('i = ', i);
+			//console.log($scope.cfg.authProviders);
 			
 			$scope.cfg.authProviders.splice (i, 1);
 			$scope.appConfigForm.$setDirty()
-			console.log($scope.cfg.authProviders);
+			//console.log($scope.cfg.authProviders);
 			
 			// var confirm = $mdDialog.confirm()
                 // .title('Do you really want to delete Auth Provider ' + $scope.user.username)
@@ -182,18 +182,18 @@
         };
 		
 		$scope.toggle = function (formName) 
-		{	console.log('1 forms = ', $scope.cfg.recaptcha_forms);
+		{	//console.log('1 forms = ', $scope.cfg.recaptcha_forms);
 			var idx = $scope.cfg.recaptcha_forms.indexOf(formName);
 			if (idx > -1) 				//found, so remove
 				$scope.cfg.recaptcha_forms.splice(idx, 1);
 			else 						//not found, so insert at right position to preserve order
 				$scope.cfg.recaptcha_forms.splice(idx, 0, formName);
 				
-			console.log('2 forms = ', $scope.cfg.recaptcha_forms);
+			//console.log('2 forms = ', $scope.cfg.recaptcha_forms);
 		};
 		
 		$scope.save = function() {
-			console.log($scope.cfg);
+			//console.log($scope.cfg);
             $scope.cfg.save().then(function() {
 				_.extend(gaAppConfig, $scope.cfg);
                 gaToast.show('Application configuration was successfully saved.');

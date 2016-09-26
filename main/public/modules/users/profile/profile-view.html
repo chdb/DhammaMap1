@@ -17,20 +17,24 @@
         </md-button>
     </div>
 
-    <div class="vmar-10" ng-if="auth.isAdmin()">
+    <div class="vmar-10" ng-if="auth.is_admin()">
         <div class="mar-bot-5">Created:  {{user.created_r  | date:'medium'}}</div>
-        <div						>Modified: {{user.modified_r | date:'medium'}}</div>
+        <div				  >Modified: {{user.modified_r | date:'medium'}}</div>
         <div layout="row" layout-align="center center" class="mar-top-15">
-            <div ng-show="user.isVerified_" class="hpad-15">
+            <div ng-class="{'feint warn':!user.isVerified_}"
+				class="hpad-15">
                 <md-icon md-font-icon="fa fa-check"></md-icon>
                 <md-tooltip>Verified</md-tooltip>
             </div>
-            <div ng-hide="user.isActive_" class="hpad-15">
+            <div ng-class="{'feint': user.isActive_
+						   ,'warn' :!user.isActive_}"
+				class="hpad-15">
                 <md-icon md-font-icon="fa fa-ban"></md-icon>
                 <md-tooltip>Blocked</md-tooltip>
             </div>
-            <div ng-show="user.admin" class="hpad-15">
-                <md-icon md-font-icon="fa fa-user"></md-icon>
+            <div ng-class="{'feint': !user.isAdmin_}"
+				class="hpad-15">
+                <md-icon md-font-icon="fa fa-user-plus"></md-icon>
                 <md-tooltip>Admin</md-tooltip>
             </div>
         </div>
@@ -40,7 +44,7 @@
 </div>
 <div ng-if="hasAuthorization()" layout="row" layout-margin>
     <md-button flex class="md-warn"
-               ng-if="auth.isAdmin()"
+               ng-if="auth.is_admin()"
                ng-click="showDeleteUserDialog($event)">delete
     </md-button>
     <md-button flex class="md-warn" ui-sref="profile.password({username: user.username})">

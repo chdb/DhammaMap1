@@ -4,7 +4,7 @@
 Provides API logic relevant to users
 """
 from flask_restful import Resource
-import auth
+#import auth
 from security import pwd
 from main   import API
 from model.user import User#, UserVdr
@@ -49,7 +49,7 @@ class UserByUsernameAPI(Resource):
     @user_by_username
     def get(self, username):
         """Loads user's properties. If logged user is admin it loads also non public properties"""
-        return g.usr.toDict(publicOnly=not auth.is_admin())
+        return g.usr.toDict(publicOnly=not g.usr.isAdmin_)
 
 
 @API.resource('/api/v1/users/<string:key>')

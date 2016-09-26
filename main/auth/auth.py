@@ -170,16 +170,22 @@ def create_user_db(auth_id, name, username, email='', verified=False, password='
     if password:
         password = pwd.encrypt(password)
    # email = email.lower() # todo wrong!
-    # Problem: email addresses CAN be case sensitive in local part according to the RFC  
-    # Unfortunately some smtp implementations may allow creating distinct addresses which only differ by case. 
-    # If someone has created such an mailbox address (whether unwittingly or  unwiselly)
-    # he might not recieve quite a lot of mail even if correctly addressed because much sofware ignores the RFC. 
-    # But the good mail servers will preserve the case when sending mail.
-    # We dont want to be one of the bad ones.
+    # Problem: email addresses CAN be case sensitive in local part according to the RFC.. 
+    # The RFC allows addresses to differ in this way for historical reasons (once upon a time, it seemed ok) but does not require mail servers to offer creation of new addresses that are case sensiteive 
+    # Most dont allow it but in conformity with RFC some smtp implementations may allow creation of distinct addresses which only differ by case. 
+    # So there are still some (very few) distinct addresses in current use that are "case similar"
+    # OTOH much sofware especially small web servers ignore the RFC, and silently convert every email address to all lower case. 
+    # Consequently if someone has such an mailbox address (whether unwittingly or unwisely) 
+    # he might not receive some mail and/or might recieve the other's (correctly addressed) mail. 
+    # But the good mail servers will preserve the case when sending mail. We dont want to be one of the bad ones.
     # Solution:
-        # Store emails with case sensitivity
-        # Send  emails with case sensitivity
-        # Perform all internal searches with case insensitivity
+        # Mail servers should not allow creation of new case similar addresses
+        # Thus eventually the last case-similar address will be abandoned and the species will become extinct
+        # Meanwhilt the web servers should -
+            # Store emails with case sensitivity
+            # Send  emails with case sensitivity
+            # Perform all internal searches with case in-sensitivity
+            # Not allow creation of a new account keyed on case-similar address
     
     usr = User( name=name
               , email_=email

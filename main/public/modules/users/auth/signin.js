@@ -16,7 +16,7 @@
         $scope.signin = function() {
             Restangular.all('auth/signin').post($scope.credentials).then(function(user) {
                 var category;
-				console.log('user', user);
+				//console.log('user', user);
                 if (!user.isVerified_) {
                     gaToast.show('Your email isn\'t verified yet.', {
                         action : 'Resend Email',
