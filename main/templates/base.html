@@ -36,8 +36,10 @@
 # endblock
 <script type="text/javascript">
     var module = angular.module('Dhamma Map');
+	//register these values as injectable services 
     module.value('gaAuthUser'	  ,{{                  user | tojson | safe}});
     module.value('gaAppConfig'	  ,{{            app_config | tojson | safe}});
+    module.value('gaAuthNames'	  ,{{             authNames | tojson | safe}});
     module.value('gaValidators'   ,{{            validators | tojson | safe}});
     module.value('gaFlashMessages',{{get_flashed_messages() | tojson | safe}});
 </script>

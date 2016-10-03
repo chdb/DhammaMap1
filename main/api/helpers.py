@@ -2,20 +2,20 @@
 """
 Set of helper function used throughout the REST API
 """
-from google.appengine.datastore.datastore_query import Cursor #pylint: disable=import-error
-from google.appengine.api import urlfetch #pylint: disable=import-error
+#from google.appengine.datastore.datastore_query import Cursor #pylint: disable=import-error
+#from google.appengine.api import urlfetch #pylint: disable=import-error
 import logging
 
 import flask_restful as restful
-from werkzeug import exceptions
+#from werkzeug import exceptions
 import flask
-from main import config
-import urllib
-from flask import request
-import json
-import model.user as users
-import validators as vdr
-
+#from main import config
+#import urllib
+#from flask import request
+#import json
+#import model.user as users
+#import validators as vdr
+from werkzeug.utils import cached_property
 
 class Api(restful.Api): # pylint: disable=too-few-public-methods
     """By extending restful.Api class we can make custom implementation of some of its methods"""
@@ -46,8 +46,8 @@ def handle_error(err):
         err.code
     except AttributeError:
         err.code = 500
-    return flask.jsonify({'message': message
-                        }), err.code
+    return flask.jsonify({'message': message}
+                        ), err.code
 
 
 # def make_not_found_exception():
@@ -85,14 +85,14 @@ def list_response(response_list, cursor=None, more=False, total_count=None):
 
 def rqArg(argName, **ka):
     '''syntax sugar to simplify calling RequestParser functions
-    EG  rqArg('name', vdr=vdr.specifiedVdr)        ->   ('name', {'type' : specifiedVdr.fn})
-        rqArg('name', vdr=User.myCustomVdr)        ->   ('name', {'type' : myCustomVdr})
+    EG  rqArg('name', vdr=vdr.specifiedVdr)        ->   ('name', {'vdr' : specifiedVdr.fn})
+        rqArg('name', vdr=User.myCustomVdr)        ->   ('name', {'vdr' : myCustomVdr})
     '''
     vdr = None
     if 'vdr' in ka:
         vdr = ka.pop('vdr')
-        #ka['type'] = vdr if callable(vdr) else vdr.fn 
-        if not callable(vdr): vdr = vdr.fn
+        if not callable(vdr): 
+            vdr = vdr.fn
     return argName, vdr, ka
     
 def rqParse(*pa):
@@ -106,19 +106,43 @@ def rqParse(*pa):
     p = restful.reqparse.RequestParser()
     vdrs = {}
     for argName, vdr, ka in pa:
-        #vdr = a[1]
-        vdrs[argName] = vdr
-        #logging.debug('+++++++++++++++++++++ add arg %r ++++++++',a)
         p.add_argument(argName, **ka) 
-        #logging.debug('+++++++++++++++++++++ added arg here ++++++++')
-        #logging.debug('+++++++++++++++++++++ vdrs %r ++++++++',vdrs)
+        if 'dest' in ka:
+            argName = ka['dest']
+        vdrs[argName] = vdr
     args = p.parse_args()
     
     assert len(vdrs) == len(args)
     for k,v in vdrs.iteritems():
         if v:
-            res = v(args[k])
-    logging.debug('+++++++++++++++++++++ vdrs %r ++++++++',vdrs)
-    logging.debug('+++++++++++++++++++++ args %r ++++++++',args)
+            v(args[k]) #call the validator v with its parsed arg given by args[s]
     return args
 
+#------------------------------------
+
+class Handler (restful.Resource):  #base class for API classes
+
+    @cached_property
+    def apiName (_s):
+        assert _s.__class__.__name__.endswith('API')
+        return _s.__class__.__name__[:-3]
+
+      
+    def setLock (_s, lockname, duration):
+        def lockOn (kStr, mode, msg): 
+            m.Lock.set (kStr, duration, _s.apiName)
+            _s.flash ('Too many %s failures: %s for %s.' % ( _s.apiName, msg, u.hoursMins(duration)))
+        
+        logging.debug('xxxxxxxxxxxxxxxxxxxxxxxxxxx LOCK XXXXXXXXXXXXXXXX')
+        if name == 'ipa': # repeated bad attempts with same ipa but diferent ema's
+            lockOn (ipa,'Local','you are now locked out')
+        elif name == 'ema_ipa':# repeated bad attempts with same ema and ipa
+            lockOn (ema,'Local','this account is now locked')
+        elif name == 'ema': # repeated bad attempts with same ema but diferent ipa's
+            lockOn (ema,'Distributed','this account is now locked')
+        
+        # todo this password stuff is not generic to other handlers
+        pwd = _s.request.get('password')
+        logging.warning('%s BruteForceAttack! on %s page: start lock on %s: ema:%s pwd:%s ipa:%s',mode, hlr, name, ema, pwd, ipa)
+
+#------------------------------------

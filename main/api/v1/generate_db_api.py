@@ -38,7 +38,7 @@ class GenerateDatabaseAPI(Resource):
                        , isVerified_=random.choice((True, False))
                        , isActive_  =random.choice((True, False))
                        , bio        =random.choice(('All component', 'things are', 'impermanent: work', 'out your', 'own salvation', 'with diligence.'))
-                       , authProviders = User.randomAuthProvs()
+                       , authIds    =User.randomAuthIds()
                        )
             User.put(usr)
         

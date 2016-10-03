@@ -13,21 +13,6 @@ from werkzeug import exceptions
 import validators as vdr
 import logging
 
-def model_by_key(func):
-    """This decorator gets model by ndb.Key, which is passed in URL
-    Raises  : HTTPException    : if key was not found in data store
-    """
-    @functools.wraps(func)
-    def decorated_function(*args, **kwargs): # pylint: disable=missing-docstring
-        g.model_key = ndb.Key(urlsafe=kwargs['key'])
-        #logging.debug('xxxxxxxxxxxxxxxxxxx model_by_key: key = %r' , g.model_key)
-        g.model_db = g.model_key.get()
-        if g.model_db:
-            return func(*args, **kwargs)
-        raise exceptions.NotFound() #return make_not_found_exception()
-
-    return decorated_function
-
 
 def verify_captcha(form_name):
     """This decorator performs captcha validation. 'form_name' is to used to determine if captcha is enabled/disabled in CONFIG_DB.
@@ -37,34 +22,64 @@ def verify_captcha(form_name):
     """
     def decorator(func):  # pylint: disable=missing-docstring
         @functools.wraps(func)
-        def decorated_function(*args, **kwargs):  # pylint: disable=missing-docstring
+        def decorated_function(*pa, **ka):  # pylint: disable=missing-docstring
             if form_name in config.CONFIG_DB.recaptcha_forms:
                 rqParse(rqArg('captcha', vdr=vdr.captchaVdr, required=True))
-            return func(*args, **kwargs)
+            return func(*pa, **ka)
 
         return decorated_function
 
     return decorator
 
+    
+def entByKey(func):
+    """This decorator gets model by ndb.Key, which is passed in URL
+    Raises  : HTTPException    : if key was not found in data store
+    """
+    @functools.wraps(func)
+    def decorated_function(*pa, **ka): # pylint: disable=missing-docstring
+        g.ndbKey = ndb.Key (urlsafe=ka['key'])
+        #logging.debug('xxxxxxxxxxxxxxxxxxx entByKey: key = %r' , g.ndbKey)
+        g.ndbEnt = g.ndbKey.get()
+        if g.ndbEnt:
+            return func(*pa, **ka)
+        raise exceptions.NotFound() #return make_not_found_exception()
 
-def user_by_username(func):
+    return decorated_function
+    
+
+def usrByUsername(func):
     """Gets User model by username in URL and assigns it into g.usr"""
     @functools.wraps(func)
-    def decorated_function(*args, **kwargs): # pylint: disable=missing-docstring
-        g.usr = User.get_by('username', kwargs['username'])
+    def decorated_function(*pa, **ka): # pylint: disable=missing-docstring
+        g.usr = User.get_by('username', ka['username'])
         if g.usr:
-            return func(*args, **kwargs)
+            return func(*pa, **ka)
         raise exceptions.NotFound() #return make_not_found_exception()
 
     return decorated_function
 
 
+def usrByCredentials (func):
+    """Parses credentials posted by client and loads appropriate user from datastore"""
+    @functools.wraps(func)
+    def decorated_function(*pa, **ka): # pylint: disable=missing-docstring
+        g.args = rqParse( rqArg('loginId'   , type=str             , required=True)
+                        , rqArg('password', vdr=vdr.password_span, required=True)
+                        , rqArg('remember', type=inputs.boolean  , default=False)
+                        ) 
+        g.usr = User.get_by_credentials(g.args.loginId, g.args.password)
+        return func(*pa, **ka)
+
+    return decorated_function
+
+    
 def login_required(func):
     """Returns 401 error if user is not logged-in when requesting the given API URL"""
     @functools.wraps(func)
-    def decorated_function(*args, **kwargs): # pylint: disable=missing-docstring
+    def decorated_function(*pa, **ka): # pylint: disable=missing-docstring
         if auth.is_logged_in():
-            return func(*args, **kwargs)
+            return func(*pa, **ka)
         return abort(401)
 
     return decorated_function
@@ -75,9 +90,9 @@ def admin_required(func):
     or returns 403 response if user is not admin     when requesting the given API URL
     """
     @functools.wraps(func)
-    def decorated_function(*args, **kwargs): # pylint: disable=missing-docstring
+    def decorated_function(*pa, **ka): # pylint: disable=missing-docstring
         if auth.is_admin():
-            return func(*args, **kwargs)
+            return func(*pa, **ka)
         if not auth.is_logged_in():
             return abort(401)
         return abort(403)
@@ -90,26 +105,12 @@ def authorization_required(func):
     or Returns 403 response if logged-in user's ndb.Key is different from ndb.Key given in requested URL.
     """
     @functools.wraps(func)
-    def decorated_function(*args, **kwargs): # pylint: disable=missing-docstring
-        if auth.is_authorized(ndb.Key(urlsafe=kwargs['key'])):
-            return func(*args, **kwargs)
+    def decorated_function(*pa, **ka): # pylint: disable=missing-docstring
+        if auth.is_authorized(ndb.Key(urlsafe=ka['key'])):
+            return func(*pa, **ka)
         if not auth.is_logged_in():
             return abort(401)
         return abort(403)
 
     return decorated_function
 
-
-def parse_signin(func):
-    """Parses credentials posted by client and loads appropriate user from datastore"""
-    @functools.wraps(func)
-    def decorated_function(*args, **kwargs): # pylint: disable=missing-docstring
-        g.args = rqParse( rqArg('login'   , type=str               , required=True)
-                        , rqArg('password', vdr=vdr.password_span, required=True)
-                        , rqArg('remember', type=inputs.boolean    , default=False)
-                        ) 
-        
-        g.usr = User.get_by_credentials(g.args.login, g.args.password)
-        return func(*args, **kwargs)
-
-    return decorated_function

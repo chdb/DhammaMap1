@@ -6,6 +6,7 @@ import config
 import os
 import base64
 import logging
+import time as tim
 
 # The conde in index.py sends this serverside email regex to clientside along with other validators 
 # Note that currently, email fields on clientside forms dont use it.  Instead they will use the regex provided by AngularJS
@@ -84,6 +85,14 @@ def create_name_from_email(email):
     return re.sub(separator, ' ', local_part).title()
 
 
+def sNow():
+    return int(tim.time()) # seconds since epoch.  time() returns float with system-dependent resolution - some only resolve to nearest second
+
+def msNow():
+    return int(tim.time()*1000) # milliSeconds since epoch.  
+
+# def dsNow():
+    # return int(tim.time()*10) # deciSeconds since epoch.  
 
 
 # def list_to_dict(input_list):

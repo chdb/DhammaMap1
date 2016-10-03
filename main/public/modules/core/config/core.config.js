@@ -31,16 +31,18 @@
 
         Restangular.setErrorInterceptor(function(res) 
         {	endLoading();
-            if (res.status === 401) 
+           /* if (res.status === 401) 
 			{	gaToast.show('Please sign in first.');
 				//$state.go('signin');
 				// $location.path('/signin'); 
-            } else if (res.status === 403) 
+            } else 
+			*/
+			if (res.status === 403) 
             {	gaToast.show('No access to that page!');
                 //$timeout(function() { $state.go('signin'); }, 1000)
 				//$location.path('/signin'); 
 			} else if (res.status === 404) 
-            {	gaToast.show('No, that page does not exist.');
+            {	gaToast.show('Sorry, but that page does not exist.');
                 gaBrowserHistory.back();
             } else 
 			{	if (res.data && res.data.message)  
@@ -54,10 +56,23 @@
             return true;
         });
 
+        /* Restangular.addRequestInterceptor(
+		    function(element, operation, path, url, headers, params, httpConfig) 
+            {	var defer = $q.defer();
+				defer.reject();
+				Timeout is promise already rejected.
+				httpConfig.timeout = defer;
+				return 	{ element	: element
+						, headers	: headers
+						, params	: params
+						, httpConfig: httpConfig
+						};
+            }
+		 ); */
+		
         Restangular.addRequestInterceptor(function(element, operation) 
-        {	// This is just convenient loading indicator, so we don't have to do it in every controller
-            // separately. It's mainly used to disable submit buttons, when request is sent. There's also
-            // added little delay so disabling buttons looks more smoothly
+        {	// This is just a loading indicator, so we don't have to do it in every controller.
+            // It's mainly used to disable submit buttons, when request is sent with a little delay so disabling buttons looks more smoothly
             loadingPromise = $timeout(function() 
 				{	$rootScope.isLoading = true;
 				}

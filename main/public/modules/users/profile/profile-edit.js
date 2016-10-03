@@ -2,7 +2,10 @@
     'use strict';
     var module = angular.module('users');
 
-    module.controller('ProfileEditController', function($scope, gaBrowserHistory, gaToast, _, gaValidators, gaTracking) {
+    module.controller('ProfileEditController', function($scope, gaBrowserHistory
+											, gaAuthNames		
+											, gaToast, _, gaValidators, gaTracking) 
+	{
 		//console.log ('edit scope: ', $scope);
         if (!$scope.hasAuthorization()) {
             gaBrowserHistory.back();
@@ -15,6 +18,30 @@
                 $scope.editedUser = $scope.user.clone();
             }
         });
+		
+		$scope.authProviderName = function(authId)
+		{	if (authId[2] !== ':')
+				throw "invalid authId: missing colon"
+			var shortname = authId.substr(0, 3);
+			if (! shortname in gaAuthNames)
+				throw "missing shortname in authNames";
+			return gaAuthNames[shortname];
+			//return '<i class="fa fa-'+name+'"></i>'
+		};
+		
+		$scope.authUserId = function(authId)
+		{	if (authId[2] !== ':')
+				throw "invalid authId: missing colon"
+			return authId.substr(3, authId.length - 3);
+			//return '<i class="fa fa-'+name+'"></i>'
+		};
+		
+		$scope.removeAuthProv = function(i) 
+		{			
+			$scope.editedUser.authIds.splice (i, 1); // at position i remove 1 element with no replacements
+			$scope.profileEditForm.$setDirty()
+        };
+
 
         $scope.save = function() {
             $scope.editedUser.save().then(function() {

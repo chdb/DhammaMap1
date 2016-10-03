@@ -46,25 +46,25 @@
             });
         };
 
-        $scope.socialAccounts = 
-			{ facebook: { domain : 'facebook.com'
-						, name   : 'Facebook'
-						}
-			, twitter : { domain : 'twitter.com'
-						, name   : 'Twitter'
-						}
-			, gplus   : { domain : 'plus.google.com'
-						, name   : 'Google Plus'
-						}
-			, instagram:{ domain : 'instagram.com'
-						, name   : 'Instagram'
-						}
-			, linkedin: { domain : 'linkedin.com'
-						, name   : 'Linkedin'
-						}
-			, github  : { domain : 'github.com'
-						, name   : 'Github'
-						}
-			};
+        // $scope.socialAccounts = 
+			// { facebook: { domain : 'facebook.com'
+						// , name   : 'Facebook'
+						// }
+			// , twitter : { domain : 'twitter.com'
+						// , name   : 'Twitter'
+						// }
+			// , gplus   : { domain : 'plus.google.com'
+						// , name   : 'Google Plus'
+						// }
+			// , instagram:{ domain : 'instagram.com'
+						// , name   : 'Instagram'
+						// }
+			// , linkedin: { domain : 'linkedin.com'
+						// , name   : 'Linkedin'
+						// }
+			// , github  : { domain : 'github.com'
+						// , name   : 'Github'
+						// }
+			// };
     });
 }());

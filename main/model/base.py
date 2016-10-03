@@ -18,7 +18,7 @@ class ndbModelBase(ndb.Model):
     """
     created_r = ndb.DateTimeProperty(auto_now_add=True)
     modified_r= ndb.DateTimeProperty(auto_now=True)
-    version_r = ndb.IntegerProperty(default=config.CURRENT_VERSION_TIMESTAMP)
+    version_r = ndb.IntegerProperty (default=config.CURRENT_VERSION_TIMESTAMP)
     
     def toDict_(_s, publicOnly, nullprops=False):
         """Return a dict containing the entity's property values, so it can be passed to client

@@ -30,12 +30,52 @@ def emailUniqueVdr (email)   : return _noUserExists('email_ci__', email.lower(),
 def usrnameUniqueVdr(username):return _noUserExists('username'  , username     ,'Sorry, this username is already taken.')
 
 ############################################################################
-
-class AuthProvider (ndb.Model):
-    name   = ndb.StringProperty ()
-    id     = ndb.StringProperty (validator=vdr.social_span.fn)
+class NotUnique (ValueError): 
+    pass
+ 
+class AuthId (ndb.Model):
+    """AuthID holds a user's auth id - an identifying string used for login.
+    But the string is saved as the id of the entity's key - not in a property.
+    We model a many to one relationship - one user may have multiple authIDs, 
+    but each will have the same userId preoperty 
+    and each authId key string must have different prefix (before ':'). 
+    Examples:
+         - own:myusername
+         - ema:myemail@example.com
+         - google:g-username
+         - yahoo:y-username
+    Each auth_id must be unique across all users - not already taken by any other user
+    """
+    userId = ndb.IntegerProperty() # the Key for the 
     
-   
+    @classmethod
+    #@ndb.transactional #todo - commented out - because _create is private and we only call it from a transactional User.create() - is this ok  ?
+    def create (C, authId, userId): 
+        ''' create the AuthKey this keyStr, 
+            else if it already exists, raise NotUnique
+         '''
+        assert ':' in authId
+        k = ndb.Key(C, authId)
+        ent = k.get() 
+        if ent is not None:
+            logging.info('This authId key already exists: %s' % keyStr)
+            raise NotUnique
+        ent = C(userId=userId)
+        ent.key = k
+        ent.put()
+
+    
+    @staticmethod
+    def authId (prefix, id):
+        assert prefix.endswith(':')
+        return prefix + id
+
+    @staticmethod
+    def ownId (username):   return authId ('own:', username)
+    @staticmethod
+    def emailId (ema):      return authId ('ema:', username)
+
+#############################################################
 class User(base.ndbModelBase):
     """A class describing datastore user."""
     name        = ndb.StringProperty (validator=vdr.name_span.fn)
@@ -48,18 +88,85 @@ class User(base.ndbModelBase):
     isAdmin_    = ndb.BooleanProperty(default=False)   #todo: replace with a entry in permissions_ ?   #private
     isVerified_ = ndb.BooleanProperty(default=False)                                                   #private
     token__     = ndb.StringProperty ()                                                       #hidden
-    pwdhash__   = ndb.StringProperty ()                                                       #hidden
+    pwdhash__   = ndb.StringProperty ()    # None for users with only 3rd party auth                                                   #hidden
     bio         = ndb.StringProperty (validator=vdr.bio_span.fn)
     location    = ndb.StringProperty (validator=vdr.location_span.fn)
     
-    authProviders = ndb.StructuredProperty( AuthProvider, repeated=True) 
+ ##   authProviders = ndb.StructuredProperty( AuthProvider, repeated=True) 
+    authIds  = ndb.StringProperty (repeated=True) # list of IDs. EG for third party auth, eg 'google:userid'. UNIQUE.
     
+    
+# class User (ndb.model):
+     # pwdhash__  = ndb.StringProperty () # Hashed password string. NB not a required prop because third party authentication doesn't use password.
+
     @staticmethod
-    def randomAuthProvs():
+    @ndb.transactional(xg=True)
+    def create (authId, **ka):
+        ''' Use this method. Dont simply call    User(**ka).put()
+            Otherwise DataStore becomes incoherent '''
+        user = User (authIds=[authId], **ka)
+        key = user.put()
+        AuthId.create (authId, key.id())
+        return user
+        
+    @ndb.transactional(xg=True)
+    def mergeUsers (_s, authId):
+        '''Suppose you want to add an existing authId   authId1 -> user1 with id2'''
+        raise NotImpemented
+        
+    @ndb.transactional(xg=True)
+    def addNewAuthId (_s, authId):
+        ''' Use this method. Dont simply call:  _s.authIds.append (authId)
+            Otherwise DataStore becomes incoherent 
+            The authId should be a new one, if not Raises NotUnique 
+            NB If authId is not new,ie its already associated with a user, 
+            then you need to call mergeUsers() '''
+        if authId in _s.authIds:
+            logging.warning ('The user already has this authID: %s', authID)
+        else: 
+            userId = _s._key.id()
+            AuthId.create (authId, userId)
+            _s.authIds.append (authId)
+ 
+    @staticmethod
+    def _deleteAuthId (authId):
+        k = ndb.Key (AuthId, authId) 
+        k.delete()
+    
+    @ndb.transactional(xg=True)
+    def removeAuthId (_s, authId):
+        ''' Use this method. Dont simply call:  _s.authIds.remove (authId)
+            Otherwise DataStore becomes incoherent '''
+        if authId not in _s.authIds:
+            logging.warning ('The user does not have this authID: %s', authID)
+        else:
+            _s._deleteAuthId (authId)
+            _s.authIds.remove (authId)
+        
+    @ndb.transactional(xg=True)
+    def delete (_s):
+        ''' Use this method to delete User and associated authIds. 
+            Dont simply call:   _s._key.delete()
+            Otherwise DataStore becomes incoherent '''
+        for a in _s.authIds:
+            _s._deleteAuthId (a)
+        _s._key.delete()
+
+#############################################################
+
+        
+# class AuthProvider (ndb.Model):
+    # name   = ndb.StringProperty ()
+    # id     = ndb.StringProperty (validator=vdr.social_span.fn)
+    
+   
+    @staticmethod
+    def randomAuthIds():
         aps = []
         for ap in config.CONFIG_DB.authProviders:
             if random.choice((True, False)):
-                aps.append( AuthProvider(name=ap.name, id=util.randomB64()))
+                #aps.append( AuthProvider(name=ap.name, id=util.randomB64()))
+                aps.append( config.authNames[ap.name]+util.randomB64())
         util.debugList(aps, 'random Auth Providers')
         return aps
         
@@ -67,12 +174,11 @@ class User(base.ndbModelBase):
         """Test if user has the correct password"""
         valid, new_hash = pwd.verify_and_update(password, self.pwdhash__)
         if valid:
-            if new_hash:
-                # update user password hash
+            if new_hash: # update user password hash
                 self.pwdhash__ = new_hash
                 self.put()
         return valid
-                
+                 
     @classmethod
     def is_username_available(cls, username):
         """Tests if user has username is available"""
@@ -84,13 +190,10 @@ class User(base.ndbModelBase):
         #todo - this code looks a bit crazy!
         try:        
             email_or_username == User.email_ # what is this for? 
-            #its either True or False but how can it possibly throw?If theres no value for email_ then User.email_ evaluates to None or '' and the expression its False
         except ValueError: # how can this exception ever come here? 
             cond = email_or_username == User.username
-            logging.debug('@@@@@@@@@@@@@@ cond 1 = %r', cond)
         else:
             cond = email_or_username == User.email_
-            logging.debug('@@@@@@@@@@@@@@ cond 2 = %r', cond)
         usr = User.query(cond).get()
 
         if usr and usr.has_password(password):

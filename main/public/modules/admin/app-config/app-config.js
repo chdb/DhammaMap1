@@ -158,7 +158,7 @@
 			//console.log('i = ', i);
 			//console.log($scope.cfg.authProviders);
 			
-			$scope.cfg.authProviders.splice (i, 1);
+			$scope.cfg.authProviders.splice (i, 1); // at position i remove 1 element with no replacements
 			$scope.appConfigForm.$setDirty()
 			//console.log($scope.cfg.authProviders);
 			

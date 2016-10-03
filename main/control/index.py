@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Provides logic for rendering index template
+Injects data for rendering index template - see base.html
 """
 import flask
 from main import app
@@ -30,7 +30,9 @@ def inject_config():
     """Inject 'app_config' variable into jinja template, so it can be passed into angular. See base.html"""
     #config_properties = Config.get_all_properties() if auth.is_admin() else Config.get_public_properties()
     app_config = config.CONFIG_DB.toDict(not auth.is_admin())
-    return { 'app_config': app_config }
+    return { 'app_config': app_config 
+           , 'authNames' : config.authNames
+           }
 
 
 @app.context_processor

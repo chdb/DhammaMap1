@@ -4,20 +4,23 @@
 Provides API logic relevant to user authentication
 """
 from flask_restful import inputs, Resource
-from flask import g
+from flask import g, abort
 import util
 import auth
 import config
 from model import user as u
 import task
 from main import API
-from api.helpers import ok, rqArg, rqParse
-from api.decorators import verify_captcha, parse_signin
+from api.helpers import ok, rqArg, rqParse, Handler
+from api.decorators import verify_captcha, usrByCredentials
 from google.appengine.ext import ndb  # pylint: disable=import-error
-from werkzeug import exceptions
+#from werkzeug import exceptions as exc
+import control.error as exc
 import validators as v
 from security import pwd
+from api.throttle import rateLimit
 import logging
+
 
 @API.resource('/api/v1/auth/signup')
 class SignupAPI(Resource):
@@ -46,18 +49,21 @@ class SignupAPI(Resource):
 
 
 @API.resource('/api/v1/auth/signin')
-class SigninAPI(Resource):
+class SigninAPI(Handler):
     @verify_captcha('signinForm')
-    @parse_signin
+    @usrByCredentials #sets g.usr 
+    @rateLimit
     def post(self):
-        """Signs in existing user. Note, g.usr is set by parse_signin decorator"""
-        if g.usr and g.usr.isVerified_ and g.usr.isActive_:
-            auth.signin_user_db(g.usr, remember=g.args.remember)
-
+        """Signs in existing user."""
+        #return {'delay': 2000}
+        
         if g.usr is None:
-            raise exceptions.BadRequest('Seems like these credentials are invalid')
-
-        return g.usr.toDict(publicOnly=False)
+            return None
+        
+        if  g.usr.isVerified_ \
+        and g.usr.isActive_ :
+            auth.signin_user_db(g.usr, remember=g.args.remember)
+        return {'user': g.usr.toDict(publicOnly=False)}
 
 
 @API.resource('/api/v1/auth/signout')
@@ -72,11 +78,15 @@ class SignoutAPI(Resource):
 
 @API.resource('/api/v1/auth/resend-verification')
 class ResendActivationAPI(Resource):
-    @parse_signin
+    @usrByCredentials
     def post(self):
         """Resends email verification to user"""
-        if g.usr and not g.usr.isVerified_ and g.usr.isActive_:
-            task.sendVerifyEmail(g.usr)
+        if g.usr: 
+            if not g.usr.isActive_:
+                # abort(423)
+                raise exc.Locked('your account is locked until...') # todo "... until when"
+            if not g.usr.isVerified_:
+                task.sendVerifyEmail(g.usr)
         return ok()
 
 

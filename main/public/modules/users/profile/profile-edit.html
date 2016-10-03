@@ -26,8 +26,28 @@
                validator="location_span"
                tabindex="4">
     </md-input-container>
-    <div ng-repeat="(socKey, soc) in socialAccounts" layout="row" layout-align="start center">
-        <span class="mar-rig-5">{{soc.domain}}/</span>
+    <!--div ng-repeat="(socKey, soc) in socialAccounts" layout="row" layout-align="start center"-->
+    <div ng-repeat="aid in editedUser.authIds" >
+		
+		<div style='display:inline-block; vertical-align:top; width:20%'>
+			<i class="fa fa-{{authProviderName(aid)}}"></i>
+			{{ authProviderName(aid) }}
+		</div>
+		<md-input-container style='display:inline-block;font-family: monospace; font-size: larger;' readonly="true">
+			{{ authUserId(aid) }}
+		</md-input-container>		
+		<button ng-click="removeAuthProv($index)" style='float:right;'>
+			delete
+			<i class="fa fa-{{auth.name}}"></i>
+			{{auth.name}}
+			<i class="fa fa-times fa-lg" style='color:red;'>
+			</i>
+		</button>
+			
+		
+		
+		<!--{{aid.substr(0,2)}}
+        <span class="mar-rig-5">{{aid.substr(0,2)}}/</span>
         <md-input-container flex>
             <label>Your {{soc.name}}</label>
             <input ng-model="editedUser[socKey]"
@@ -38,7 +58,7 @@
             <div ng-if="profileEditForm[socKey].$dirty" ng-messages="profileEditForm[socKey].$error">
                 <div ng-message="maxlength">This seems to be too long for {{ soc.name }} page</div>
             </div>
-        </md-input-container>
+        </md-input-container-->
     </div>
     <div ng-if="auth.is_admin()">
         <md-checkbox ng-model="editedUser.isVerified_">
@@ -52,12 +72,16 @@
         </md-checkbox>
     </div>
     <div layout="row" layout-margin>
-        <md-button flex ui-sref="profile.view({username: user.username})">Cancel</md-button>
+        <md-button flex ui-sref="profile.view({username: user.username})">
+			Cancel
+		</md-button>
         <md-button flex
                    ng-click="save()"
                    ng-disabled="!profileEditForm.$valid || isLoading || !profileEditForm.$dirty"
                    type="submit"
                    tabindex="11"
-                   class="md-primary">Save</md-button>
+                   class="md-primary">
+			Save
+		</md-button>
     </div>
 </form>

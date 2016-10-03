@@ -9,7 +9,7 @@ from security import pwd
 from main   import API
 from model.user import User#, UserVdr
 from flask  import request, g
-from api.decorators import model_by_key, user_by_username, authorization_required, admin_required
+from api.decorators import entByKey, usrByUsername, authorization_required, admin_required
 from api.helpers    import list_response, ok, rqArg, rqParse
 from config import DEVELOPMENT
 import validators as vdr
@@ -46,7 +46,7 @@ class NumUsersAPI(Resource):
 @API.resource('/api/v1/users/<string:username>')
 class UserByUsernameAPI(Resource):
     @admin_required
-    @user_by_username
+    @usrByUsername
     def get(self, username):
         """Loads user's properties. If logged user is admin it loads also non public properties"""
         return g.usr.toDict(publicOnly=not g.usr.isAdmin_)
@@ -56,26 +56,26 @@ class UserByUsernameAPI(Resource):
 class UserByKeyAPI(Resource):
     @admin_required
     @authorization_required
-    @model_by_key
+    @entByKey
     def put(self, key):
         """Updates user's properties"""
-        g.model_db.populate(request.json)
-        g.model_db.put()
+        g.ndbEnt.populate(request.json)
+        g.ndbEnt.put()
         return ok()
 
         
     @admin_required
-    @model_by_key
+    @entByKey
     def delete(self, key):
         """Deletes user"""
-        g.model_key.delete()
+        g.ndbKey.delete()
         return ok()
 
 
 @API.resource('/api/v1/users/<string:key>/password')
 class UserPasswordAPI(Resource):
     @authorization_required
-    @model_by_key
+    @entByKey
     def post(self, key):
         """Changes user's password"""
         args = rqParse( rqArg('currentPassword', vdr=vdr.password_span, dest='current_password')
@@ -83,10 +83,10 @@ class UserPasswordAPI(Resource):
                       )
         # Users who signed up via social networks could have empty password_hash, but they have to be allowed
         # to change it as well - todo : why ? wouldnt we want them to provide email-address with password?
-        if g.model_db.pwdhash__ != '' and not g.model_db.has_password(args.current_password):
+        if g.ndbEnt.pwdhash__ != '' and not g.ndbEnt.has_password(args.current_password):
             raise ValueError('Given password is incorrect.')
-        g.model_db.pwdhash__ = pwd.encrypt(args.new_password)
-        g.model_db.put()
+        g.ndbEnt.pwdhash__ = pwd.encrypt(args.new_password)
+        g.ndbEnt.put()
         return ok()
 
 

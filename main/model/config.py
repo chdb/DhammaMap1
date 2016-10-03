@@ -48,6 +48,7 @@ class Config(base.ndbModelBase):
             
         apTestList = []
         for i in ['facebook','twitter','google','instagram','linkedin','github']:
+            assert i in config.authNames
             apTestList.append( AuthProvider ( name   =i
                                             , id     =util.randomB64() 
                                             , secret_=util.randomB64() 
