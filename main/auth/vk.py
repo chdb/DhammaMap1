@@ -60,5 +60,4 @@ def retrieve_user_from_vk(response):
         auth_id=auth_id,
         name=name,
         username=name,
-        isVerified_=True
     )

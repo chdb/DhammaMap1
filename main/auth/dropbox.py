@@ -56,5 +56,4 @@ def retrieve_user_from_dropbox(response):
         email_=response['email'],
         name=response['display_name'],
         username=response['display_name'],
-        isVerified_=True
     )

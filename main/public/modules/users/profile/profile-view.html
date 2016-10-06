@@ -18,6 +18,14 @@
     </div>
 
     <div class="vmar-10" ng-if="auth.is_admin()">
+        <div layout="row" layout-align="center center" class="mar-bot-15">
+			<div ng-repeat="aid in user.authIds" >
+				<div class="hpad-15">
+					<md-icon md-font-icon="fa fa-{{auth.authProviderName(aid)}}"></md-icon>
+					<md-tooltip>{{ auth.authProviderName(aid) }}</md-tooltip>
+				</div>
+			</div>
+        </div>
         <div class="mar-bot-5">Created:  {{user.created_r  | date:'medium'}}</div>
         <div				  >Modified: {{user.modified_r | date:'medium'}}</div>
         <div layout="row" layout-align="center center" class="mar-top-15">
@@ -39,8 +47,6 @@
             </div>
         </div>
     </div>
-
-
 </div>
 <div ng-if="hasAuthorization()" layout="row" layout-margin>
     <md-button flex class="md-warn"

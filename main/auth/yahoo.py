@@ -74,5 +74,4 @@ def retrieve_user_from_yahoo(response):
         name=' '.join(names).strip() or response['nickname'],
         username=response['nickname'],
         email_=email,
-        isVerified_=True,
     )

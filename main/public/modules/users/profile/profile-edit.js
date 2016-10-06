@@ -3,8 +3,7 @@
     var module = angular.module('users');
 
     module.controller('ProfileEditController', function($scope, gaBrowserHistory
-											, gaAuthNames		
-											, gaToast, _, gaValidators, gaTracking) 
+									 , gaAuth, gaToast, _, gaValidators, gaTracking) 
 	{
 		//console.log ('edit scope: ', $scope);
         if (!$scope.hasAuthorization()) {
@@ -19,15 +18,15 @@
             }
         });
 		
-		$scope.authProviderName = function(authId)
-		{	if (authId[2] !== ':')
-				throw "invalid authId: missing colon"
-			var shortname = authId.substr(0, 3);
-			if (! shortname in gaAuthNames)
-				throw "missing shortname in authNames";
-			return gaAuthNames[shortname];
-			//return '<i class="fa fa-'+name+'"></i>'
-		};
+		//$scope.authProviderName = gaAuth.authProviderName;
+		// function(authId)
+		// {	if (authId[2] !== ':')
+				// throw "invalid authId: missing colon"
+			// var shortname = authId.substr(0, 3);
+			// if (! shortname in gaAuthNames)
+				// throw "missing shortname in authNames";
+			// return gaAuthNames[shortname];
+		// };
 		
 		$scope.authUserId = function(authId)
 		{	if (authId[2] !== ':')

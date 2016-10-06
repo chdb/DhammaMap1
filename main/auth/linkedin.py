@@ -71,5 +71,4 @@ def retrieve_user_from_linkedin(response):
         name=name,
         username=email or name,
         email_=email,
-        isVerified_=True,
     )

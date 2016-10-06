@@ -52,6 +52,5 @@ def retrieve_user_from_facebook(response):
         name=response['name'],
         username=response.get('username', response['name']),
         email_=response.get('email', ''),
-        isVerified_=True,
         facebook=response.get('id')
     )

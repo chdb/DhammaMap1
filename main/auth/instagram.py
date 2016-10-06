@@ -52,5 +52,4 @@ def retrieve_user_from_instagram(response):
         auth_id=auth_id,
         name=response.get('full_name', '').strip() or response.get('username'),
         username=response.get('username'),
-        isVerified_=True
     )

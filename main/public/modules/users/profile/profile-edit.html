@@ -28,10 +28,9 @@
     </md-input-container>
     <!--div ng-repeat="(socKey, soc) in socialAccounts" layout="row" layout-align="start center"-->
     <div ng-repeat="aid in editedUser.authIds" >
-		
 		<div style='display:inline-block; vertical-align:top; width:20%'>
-			<i class="fa fa-{{authProviderName(aid)}}"></i>
-			{{ authProviderName(aid) }}
+			<i class="fa fa-{{auth.authProviderName(aid)}}"></i>
+			{{ auth.authProviderName(aid) }}
 		</div>
 		<md-input-container style='display:inline-block;font-family: monospace; font-size: larger;' readonly="true">
 			{{ authUserId(aid) }}

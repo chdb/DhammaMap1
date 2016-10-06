@@ -2,7 +2,7 @@
 """
 Provides logic for non-api routes related to user
 """
-import flask_login as login
+import flask_login as flog
 import flask
 import auth
 from model.user import User
@@ -20,7 +20,7 @@ def user_reset(token=None):
         return flask.redirect(flask.url_for('index'))
 
     if auth.is_logged_in():
-        login.logout_user()
+        flog.logout_user()
         return flask.redirect(flask.request.path)
 
     # note this is url with '#', so it leads to angular state
@@ -31,7 +31,7 @@ def user_reset(token=None):
 def user_verify(token):
     """Verifies user's email by token provided in url"""
     if auth.is_logged_in():
-        login.logout_user()
+        flog.logout_user()
         return flask.redirect(flask.request.path)
 
     usr = User.get_by('token__', token)
@@ -40,7 +40,7 @@ def user_verify(token):
         usr.token__ = '' # util.randomB64()
         usr.isVerified_ = True
         usr.put()
-        auth.signin_user_db(usr)
+        auth.signIn(usr)
         flask.flash('Welcome on board %s!' % usr.username)
     else:
         flask.flash('Sorry, activation link is either invalid or expired.')

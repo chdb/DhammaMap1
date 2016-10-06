@@ -45,8 +45,12 @@
             {	gaToast.show('Sorry, but that page does not exist.');
                 gaBrowserHistory.back();
             } else 
-			{	if (res.data && res.data.message)  
-					gaToast.show(res.data.message );
+			{	if (res.data)
+				{	if (res.data.message)
+						gaToast.show (res.data.message);
+					else
+						gaToast.show (res.data);
+				}
 				else 
 				{	gaToast.show('Sorry, I failed so badly I can\'t even describe it.  :(' );
 					console.log('In the following item, check the structure of the error msg and accordingly adjust error handler at core.config.js');

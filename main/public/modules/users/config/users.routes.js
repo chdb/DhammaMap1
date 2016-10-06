@@ -19,12 +19,12 @@
             .state('signout', {
                 url        : '/signout',
                 controller : function(Restangular, gaAuth, $state, gaAppConfig) {
-                    Restangular.all('auth/signout').post().then(function(appConfig) {
-                        gaAuth.user = false;
-                        _.assignDelete(gaAppConfig, appConfig);
-                        $state.go('home');
-                    });
-                }
+								Restangular.all('auth/signout').post().then(function(appConfig) {
+									gaAuth.user = false;
+									_.assignDelete(gaAppConfig, appConfig);
+									$state.go('home');
+								});
+							}
             })
             .state('forgot', {
                 url         : '/password/forgot',

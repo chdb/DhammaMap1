@@ -59,5 +59,4 @@ def retrieve_user_from_microsoft(response):
         name=response.get('name', ''),
         username=email,
         email_=email,
-        isVerified_=True,
     )

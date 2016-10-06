@@ -52,5 +52,4 @@ def retrieve_user_from_twitter(response):
         auth_id=auth_id,
         name=response['screen_name'],
         username=response['screen_name'],
-        isVerified_=True
     )

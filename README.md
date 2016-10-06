@@ -62,8 +62,9 @@ But it could (in the event of an attack on an unVerified account) be both un-Ver
 * replace auth code with authomatic lib
 * replace/test recaptcha code - it looks wrong
 * add MailGun sending code 
-* add MailGun email validation 
-* add password strength using _zxcvbn_ code 
+* add MailGun email validation and result-hint support in client
+* add password strength using _zxcvbn_ code
+* implement oldstudent-login 
 
 ### Done
 * separate validation module from model.Base and ArgVdr class 

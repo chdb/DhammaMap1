@@ -52,7 +52,6 @@ def retrieve_user_from_github(response):
         response.get('name', ''),
         response.get('login'),
         response.get('email', ''),
-        isVerified_=True,
         location=location,
         bio=bio,
         github=response.get('login')

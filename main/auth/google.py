@@ -44,6 +44,5 @@ def retrieve_user_from_google(google_user):
         name=util.create_name_from_email(google_user.email()),
         username=google_user.email(),
         email=google_user.email(),
-        isVerified_=True,
         isAdmin_=users.is_current_user_admin(),
     )

@@ -13,7 +13,9 @@ app.jinja_env.line_statement_prefix = '#'
 app.jinja_env.line_comment_prefix = '##'
 
 import auth # pylint: disable=unused-import
-import control # pylint: disable=unused-import
+import control.error
+import control.index
+import control.user
 import model # pylint: disable=unused-import
 import task # pylint: disable=unused-import
 from api import helpers

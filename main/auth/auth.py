@@ -5,26 +5,25 @@ Provides logic for authenticating users
 """
 from __future__ import absolute_import
 import re
-import flask_login as login
+import flask_login as flog
 from flask_oauthlib import client as oauth
 from google.appengine.ext import ndb  # pylint: disable=import-error
 import flask
 import unidecode
 from flask_restful import inputs
 from api.helpers   import rqArg, rqParse
-from model.user    import User
+import model.user  as u
 import task
 import util
 from security import pwd
 import config
 import logging
-
 from main import app, config
 
-login_manager = login.LoginManager()  # pylint: disable=invalid-name
+login_manager = flog.LoginManager()  # pylint: disable=invalid-name
 
 
-class AnonymousUser(login.AnonymousUserMixin):  # pylint: disable=no-init, too-few-public-methods
+class AnonymousUser(flog.AnonymousUserMixin):  # pylint: disable=no-init, too-few-public-methods
     """By default, when a user is not actually logged in, current_user is set to
     an AnonymousUserMixin object. It has the following properties and methods:
 
@@ -87,22 +86,22 @@ login_manager.init_app(app)
 
 def current_user_key():
     """Convenient method to get ndb.Key of currently logged user"""
-    return login.current_user.usr.key if login.current_user.usr else None
+    return flog.current_user.usr.key if flog.current_user.usr else None
 
 
 def currentUser():
     """Convenient method to get ndb.Model instance of currently logged user"""
-    return login.current_user.usr
+    return flog.current_user.usr
 
 
 def is_logged_in():
     """Convenient method if user is logged in"""
-    return bool(login.current_user.usr)
+    return bool(flog.current_user.usr)
 
 
 def is_admin():
     """Convenient method if currently logged user is admin"""
-    return is_logged_in() and login.current_user.usr.isAdmin_
+    return is_logged_in() and flog.current_user.usr.isAdmin_
 
 
 def is_authorized(user_key):
@@ -164,7 +163,7 @@ def signin_oauth(oauth_app, scheme=None):
         return flask.redirect(flask.url_for('index'))
 
 
-def create_user_db(auth_id, name, username, email='', verified=False, password='', **props):
+def create_user_db(auth_id, name, username, email='', verified=True, password='', **ka):
     """Saves new user into datastore"""
     logging.debug('verified = %r', verified)
     if password:
@@ -181,11 +180,11 @@ def create_user_db(auth_id, name, username, email='', verified=False, password='
     # Solution:
         # Mail servers should not allow creation of new case similar addresses
         # Thus eventually the last case-similar address will be abandoned and the species will become extinct
-        # Meanwhilt the web servers should -
+        # Meanwhile good web servers (and any other software use=ing email addresses) should -
             # Store emails with case sensitivity
             # Send  emails with case sensitivity
             # Perform all internal searches with case in-sensitivity
-            # Not allow creation of a new account keyed on case-similar address
+            # Not allow creation of a new resourse (EG user account) keyed on a case-similar address
     
     usr = User( name=name
               , email_=email
@@ -194,7 +193,7 @@ def create_user_db(auth_id, name, username, email='', verified=False, password='
               , isVerified_=verified
               , token__=util.randomB64()
               , pwdhash__=password
-              , **props
+              , **ka
               )
     usr.put()
     if config.CONFIG_DB.notify_on_new_user_:
@@ -217,48 +216,49 @@ def create_or_get_user_db(auth_id, name, username, email='', **kwargs):
     return create_user_db(auth_id, name, username, email_=email, **kwargs)
 
     
-def normalise_username(username):
+def normalise_username(uname):
     ''' # Todo - if its needed at all than rethink this. the logic seems possibly not thought out..
     This might make more sense-
     
-    if isinstance(username, unicode):
-        username = unidecode.unidecode(username).strip() # convert to ascii, approx transliterating if necessary, and strip whitespace from ends
-    username = username.split('@')[0].lower()           # remove everything after and including @, and convert to lower case
-    username = re.sub(r'[\W_]+', '.', username)         # replace non-word-chars with dots.  word-char: [a-zA-Z0-9_] 
+    if isinstance(uname, unicode):
+        uname = unidecode.unidecode(uname).strip() # convert to ascii, approx transliterating if necessary, and strip whitespace from ends
+    uname = uname.split('@')[0].lower()           # remove everything after and including @, and convert to lower case
+    uname = re.sub(r'[\W_]+', '.', uname)         # replace non-word-chars with dots.  word-char: [a-zA-Z0-9_] 
     '''
     
-    if isinstance(username, str):
-        username = username.decode('utf-8') # convert to unicode, if necessary      ## but then back to ascii -- why? 
-    username = username.split('@')[0].lower() # remove everything after and including @, and convert to lower case
-    username = unidecode.unidecode(username).strip() # convert to ascii, approx transliterating if necessary, and strip whitespace from ends
-    username = re.sub(r'[\W_]+', '.', username) # replace non-word-chars with dots.  word-char: [a-zA-Z0-9_] 
+    if isinstance(uname, str):
+        uname = uname.decode('utf-8') # convert to unicode, if necessary      ## but then back to ascii -- why? 
+    uname = uname.split('@')[0].lower() # remove everything after and including @, and convert to lower case
+    uname = unidecode.unidecode(uname).strip() # convert to ascii, approx transliterating if necessary, and strip whitespace from ends
+    uname = re.sub(r'[\W_]+', '.', uname) # replace non-word-chars with dots.  word-char: [a-zA-Z0-9_] 
     
     # make username unique by appending a number suffix - the lowest number necesssary.
-    new_username = username
+    un = uname
     suffix = 1
-    while not User.is_username_available(new_username):
-        new_username = '%s%d' % (username, suffix)
+    while u.usernameExists(un):
+    #while not User.is_username_available(new_username):
+        un = '%s%d' % (uname, suffix)
         suffix += 1
-    return new_username
+    return un
 
     
-def signin_user_db(usr, remember=False):
+def signIn(usr, remember=False):
     """Signs in given user"""
     flask_user_db = FlaskUser(usr)
     auth_params = flask.session.get ('auth-params'
                                     , { 'remember': remember
                                     } )
     flask.session.pop('auth-params', None)
-    return login.login_user(flask_user_db, remember=auth_params['remember'])
+    return flog.login_user(flask_user_db, remember=auth_params['remember'])
 
 
-def signout_user():
+def signOut():
     """Signs out given user"""
-    login.logout_user()
+    flog.logout_user()
 
 
 def signin_via_social(*args, **kwargs):
     """Signs in given, when he used social account and then it redirects him to home page"""
-    if not signin_user_db(*args, **kwargs):
+    if not signIn(*args, **kwargs):
         flask.flash('Sorry, there was an error while signing you in')
     return flask.redirect(flask.url_for('index'))

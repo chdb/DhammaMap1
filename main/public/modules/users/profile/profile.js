@@ -18,13 +18,15 @@
 					{	$scope.user = user;
 					});
 
-        // $scope.getAvailableSocialAccounts = function() 
-        // {	if ($scope.user) 
-				// return _.pick($scope.socialAccounts, function(val, key) 
-					// {	/*jslint unparam:true*/
-						// return !! $scope.user[key]; // pick socialAccounts which have key and val in user
-					// });
-        // };
+		//$scope.authProviderName = gaAuth.authProviderName;
+		// function(authId)
+		// {	if (authId[2] !== ':')
+				// throw "invalid authId: missing colon"
+			// var shortname = authId.substr(0, 3);
+			// if (! shortname in gaAuthNames)
+				// throw "missing shortname in authNames";
+			// return gaAuthNames[shortname];
+		// };
 
         $scope.hasAuthorization = function() 
         {	return $scope.isMyProfile() || $scope.auth.is_admin();

@@ -177,12 +177,18 @@ def pyProperties(cls):
 
 def debugList (lst, label):
     logging.debug('%s +++++++++++++++++++++++++++++++++++', label)
-    for i in lst:
-        logging.debug('%r', i)
+    if lst and hasattr(lst,'__iter__'):
+        for i in lst:
+            logging.debug('%r', i)
+    else:
+        logging.debug('%r', lst)
     logging.debug('+++++++++++++++++++++++++++++++++++++++++++')
 
 def debugDict (d, label):
     logging.debug('%s +++++++++++++++++++++++++++++++++++', label)
-    for k,v in d.iteritems():
-        logging.debug('%r : %r', k,v)
+    if d and hasattr(d,'iteritems'):
+        for k,v in d.iteritems():
+            logging.debug('%r \t: %r', k,v)
+    else:
+        logging.debug('%r', d)
     logging.debug('+++++++++++++++++++++++++++++++++++++++++++')

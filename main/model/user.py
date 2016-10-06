@@ -13,21 +13,24 @@ import random
 from security import pwd
 
 ##############################################################################
-"""Defines CUSTOM validators for user properties. For SPECIFIED user validators see Validator"""
+"""Define CUSTOM validators for user properties. For SPECIFIED user validators see Validator"""
 
-def _userExists (propName, value, errmsg, flip=False): 
+def usernameExists(un):
+    return AuthId.get_by_id (unameId(un)) is not None
+  
+def _userExists (aId, errmsg, flip=False): 
     """Validates that at least one User entity exists with given value for given property-name """
-    usr = User.get_by(propName, value) # todo this is an expensive way, see: get_by() - instead use a key
-    if (usr is None) != flip:
+    ref = AuthId.get_by_id (aId) 
+    if (ref is None) != flip:
         raise ValueError(errmsg)
-    return value
+    return aId[3:]
     
-def _noUserExists (propName, value, errmsg) : return _userExists(propName, value, errmsg, flip=True) 
+def _noUserExists (aId, errmsg) : return _userExists(aId, errmsg, flip=True) 
 
-def tokenExistsVdr (token)   : return _userExists  ('token'     , token        ,'Sorry, your token is invalid or expired.') # not called in current codebase
-def emailExistsVdr (email)   : return _userExists  ('email_ci__', email.lower(),'This email address is not recognised. Please try again')
-def emailUniqueVdr (email)   : return _noUserExists('email_ci__', email.lower(),'Sorry, this email address is already taken.')
-def usrnameUniqueVdr(username):return _noUserExists('username'  , username     ,'Sorry, this username is already taken.')
+#def tokenExistsVdr (token)   : return _userExists  ('token'     , token        ,'Sorry, your token is invalid or expired.') # not called in current codebase
+def emailExistsVdr (ema)   : return _userExists  (emailId(ema)  ,'This email address is not recognised. Please try again')
+def emailUniqueVdr (ema)   : return _noUserExists(emailId(ema)  ,'Sorry, this email address is already taken.')
+def usrnameUniqueVdr(uname): return _noUserExists(unameId(uname),'Sorry, this username is already taken.')
 
 ############################################################################
 class NotUnique (ValueError): 
@@ -58,32 +61,75 @@ class AuthId (ndb.Model):
         k = ndb.Key(C, authId)
         ent = k.get() 
         if ent is not None:
-            logging.info('This authId key already exists: %s' % keyStr)
+            logging.info('This authId key already exists: %s' % authId)
             raise NotUnique
         ent = C(userId=userId)
         ent.key = k
         ent.put()
-
     
-    @staticmethod
-    def authId (prefix, id):
-        assert prefix.endswith(':')
-        return prefix + id
+def _authId (prefix, id):
+    assert prefix.endswith(':')
+    assert prefix in config.authNames
+    return prefix + id
 
-    @staticmethod
-    def ownId (username):   return authId ('own:', username)
-    @staticmethod
-    def emailId (ema):      return authId ('ema:', username)
+def unameId (username): return _authId ('_u:', username)
+def emailId (ema):      return _authId ('_e:', ema.lower()) #NB we convert to lower so searches are case-insensitive
+                                                            # ...otoh User.email_ is case-sensitive and we use this for sending emails etc
+    
+def _byAuthId (aId):      
+    aId = AuthId.get_by_id (aId)
+    if aId:
+        #logging.debug('uid = %r', uid)
+        return User.get_by_id (aId.userId)
+    return None
+    
+def byEmail    (ema):      return _byAuthId (emailId (ema))
+def byUsername (userName): return _byAuthId (unameId (userName))
+        
+def byCredentials(email_or_username, password):
+    """Gets user model instance by email or username with given password"""
+    #todo - this code looks a bit crazy!
+    # try:        
+        # email_or_username == User.email_ # what is this for? 
+    # except ValueError: # how can this exception ever come here? 
+        # cond = email_or_username == User.username
+    # else:
+        # cond = email_or_username == User.email_
+    # usr = User.query(cond).get()
+    
+    usr =  byEmail   (email_or_username) \
+        or byUsername(email_or_username)
+    logging.debug('usr = %r', usr)
+    if usr and usr.has_password(password):
+        return usr
+    return None
+
+def avatarUrl(ema):
+    #todo why not 1) just pass the hash to client? and put the url template code in the client
+    #     and/or  2) store the hash in user model 
+    """Returns gravatar url, created from user's email or username"""
+    return '//gravatar.com/avatar/%(hash)s?d=identicon&r=x' % {
+        'hash': hashlib.md5(ema.lower().encode('utf-8')).hexdigest()
+        }
+        
+def randomAuthIds():
+    aps = []
+    for ap in config.CONFIG_DB.authProviders:
+        if random.choice((True, False)):
+            #aps.append( AuthProvider(name=ap.name, id=util.randomB64()))
+            aps.append( config.authNames[ap.name]+util.randomB64())
+    util.debugList(aps, 'random Auth Providers')
+    return aps
 
 #############################################################
 class User(base.ndbModelBase):
     """A class describing datastore user."""
-    name        = ndb.StringProperty (validator=vdr.name_span.fn)
+#    name        = ndb.StringProperty (validator=vdr.name_span.fn)
     username    = ndb.StringProperty (validator=vdr.username_span.fn, required=True)
     email_      = ndb.StringProperty (validator=vdr.email_rx.fn)
-    email_ci__  = ndb.ComputedProperty(lambda _s: _s.email_.lower() if _s.email_ else None) #for case-insensitive searching
-    authIDs_    = ndb.StringProperty (repeated=True)                                                   #private
-    permissions_= ndb.StringProperty (repeated=True)                                                   #private
+#    email_ci__  = ndb.ComputedProperty(lambda _s: _s.email_.lower() if _s.email_ else None) #for case-insensitive searching
+#    authIDs_    = ndb.StringProperty (repeated=True)                                                   #private
+#    permissions_= ndb.StringProperty (repeated=True)                                                   #private
     isActive_   = ndb.BooleanProperty(default= True)                                                   #private
     isAdmin_    = ndb.BooleanProperty(default=False)   #todo: replace with a entry in permissions_ ?   #private
     isVerified_ = ndb.BooleanProperty(default=False)                                                   #private
@@ -91,28 +137,37 @@ class User(base.ndbModelBase):
     pwdhash__   = ndb.StringProperty ()    # None for users with only 3rd party auth                                                   #hidden
     bio         = ndb.StringProperty (validator=vdr.bio_span.fn)
     location    = ndb.StringProperty (validator=vdr.location_span.fn)
+    avatar_url  = ndb.StringProperty ()
+    authIds     = ndb.StringProperty (repeated=True) # list of IDs. EG for third party auth, eg 'google:userid'. UNIQUE.
     
- ##   authProviders = ndb.StructuredProperty( AuthProvider, repeated=True) 
-    authIds  = ndb.StringProperty (repeated=True) # list of IDs. EG for third party auth, eg 'google:userid'. UNIQUE.
-    
-    
+
 # class User (ndb.model):
      # pwdhash__  = ndb.StringProperty () # Hashed password string. NB not a required prop because third party authentication doesn't use password.
 
     @staticmethod
     @ndb.transactional(xg=True)
-    def create (authId, **ka):
+    def create (**ka):
         ''' Use this method. Dont simply call    User(**ka).put()
             Otherwise DataStore becomes incoherent '''
-        user = User (authIds=[authId], **ka)
+        #assert 'email_' in ka, 'all accounts must be created with an email' 
+        util.debugDict(ka, 'ka')
+        ids = ka.get('authIds',[])
+        ema = ka['email_']
+        un  = ka['username']
+        ids.append(emailId(ema))
+        ids.append(unameId(un))
+        ka['authIds'] = ids
+        #if 'username' in ka:
+        user = User (avatar_url=avatarUrl(ema), **ka)
         key = user.put()
-        AuthId.create (authId, key.id())
+        for i in ids:
+            AuthId.create (i, key.id())
         return user
         
     @ndb.transactional(xg=True)
     def mergeUsers (_s, authId):
         '''Suppose you want to add an existing authId   authId1 -> user1 with id2'''
-        raise NotImpemented
+        raise NotImplemented
         
     @ndb.transactional(xg=True)
     def addNewAuthId (_s, authId):
@@ -121,12 +176,14 @@ class User(base.ndbModelBase):
             The authId should be a new one, if not Raises NotUnique 
             NB If authId is not new,ie its already associated with a user, 
             then you need to call mergeUsers() '''
-        if authId in _s.authIds:
-            logging.warning ('The user already has this authID: %s', authID)
-        else: 
-            userId = _s._key.id()
-            AuthId.create (authId, userId)
-            _s.authIds.append (authId)
+        prefix = authId[:3]
+        for i in _s.authIds:
+            if i.startswith(prefix):
+                logging.warning ('The user already has authID: %s', i)
+                raise Exception
+        userId = _s._key.id()
+        AuthId.create (authId, userId)
+        _s.authIds.append (authId)
  
     @staticmethod
     def _deleteAuthId (authId):
@@ -155,62 +212,36 @@ class User(base.ndbModelBase):
 #############################################################
 
         
-# class AuthProvider (ndb.Model):
-    # name   = ndb.StringProperty ()
-    # id     = ndb.StringProperty (validator=vdr.social_span.fn)
-    
-   
-    @staticmethod
-    def randomAuthIds():
-        aps = []
-        for ap in config.CONFIG_DB.authProviders:
-            if random.choice((True, False)):
-                #aps.append( AuthProvider(name=ap.name, id=util.randomB64()))
-                aps.append( config.authNames[ap.name]+util.randomB64())
-        util.debugList(aps, 'random Auth Providers')
-        return aps
         
-    def has_password(self, password):
+    def has_password(_s, password):
         """Test if user has the correct password"""
-        valid, new_hash = pwd.verify_and_update(password, self.pwdhash__)
+        logging.debug('pwd = %r', password)
+        valid, new_hash = pwd.verify_and_update(password, _s.pwdhash__)
         if valid:
             if new_hash: # update user password hash
-                self.pwdhash__ = new_hash
-                self.put()
+                _s.pwdhash__ = new_hash
+                _s.put()
         return valid
                  
-    @classmethod
-    def is_username_available(cls, username):
-        """Tests if user has username is available"""
-        return cls.get_by('username', username) is None
+    # @classmethod
+    # def is_username_available(cls, username):
+        # """Tests if user has username is available"""
+        # return cls.get_by('username', username) is None
 
-    @classmethod
-    def get_by_credentials(cls, email_or_username, password):
-        """Gets user model instance by email or username with given password"""
-        #todo - this code looks a bit crazy!
-        try:        
-            email_or_username == User.email_ # what is this for? 
-        except ValueError: # how can this exception ever come here? 
-            cond = email_or_username == User.username
-        else:
-            cond = email_or_username == User.email_
-        usr = User.query(cond).get()
 
-        if usr and usr.has_password(password):
-            return usr
-        return None
-
-    def toDict(self, publicOnly=True):
-        def avatar_url(self):
-            #todo why not 1) just pass the hash to client? and put the url template code in the client
-            #     and/or  2) store the hash in user model 
-            """Returns gravatar url, created from user's email or username"""
-            return '//gravatar.com/avatar/%(hash)s?d=identicon&r=x' % {
-                'hash': hashlib.md5((self.email_ or self.username).encode('utf-8')).hexdigest()
-                }
+    def toDict(_s, publicOnly=True):
     
-        d = self.toDict_(publicOnly)
-        d['key']        = self.key.urlsafe()
-        d['avatar_url'] = avatar_url(self)
+        d = _s.toDict_(publicOnly)
+        d['key'] = _s.key.urlsafe()
+        
+        # i = next(i for i in d['authIds'] if i.startswith('_u:'))
+        # if i: 
+            # d['username'] = i[3:]
+            
+        util.debugDict(d, 'user dict 1 ')
+        ids = d.get('authIds',[])
+        d['authIds'] = [ i for i in ids if not i.startswith('_')]
+                                
+        util.debugDict(d, 'user dict ')
         return d
 

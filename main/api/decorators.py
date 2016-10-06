@@ -8,7 +8,7 @@ from flask import g, abort
 from helpers import rqArg, rqParse
 from main import config, auth
 from flask_restful import inputs
-from model.user import User
+import model.user as user 
 from werkzeug import exceptions
 import validators as vdr
 import logging
@@ -52,7 +52,7 @@ def usrByUsername(func):
     """Gets User model by username in URL and assigns it into g.usr"""
     @functools.wraps(func)
     def decorated_function(*pa, **ka): # pylint: disable=missing-docstring
-        g.usr = User.get_by('username', ka['username'])
+        g.usr = user.byUsername(ka['username'])
         if g.usr:
             return func(*pa, **ka)
         raise exceptions.NotFound() #return make_not_found_exception()
@@ -64,11 +64,11 @@ def usrByCredentials (func):
     """Parses credentials posted by client and loads appropriate user from datastore"""
     @functools.wraps(func)
     def decorated_function(*pa, **ka): # pylint: disable=missing-docstring
-        g.args = rqParse( rqArg('loginId'   , type=str             , required=True)
+        g.args = rqParse( rqArg('loginId' , type=str             , required=True)
                         , rqArg('password', vdr=vdr.password_span, required=True)
                         , rqArg('remember', type=inputs.boolean  , default=False)
                         ) 
-        g.usr = User.get_by_credentials(g.args.loginId, g.args.password)
+        g.usr = user.byCredentials(g.args.loginId, g.args.password)
         return func(*pa, **ka)
 
     return decorated_function

@@ -8,7 +8,7 @@ import auth
 import model.user as users
 import config
 import validators
-#import logging
+import util
 
 @app.route('/')
 def index():
@@ -22,6 +22,7 @@ def inject_user():
     user = False
     if auth.is_logged_in():
         user = auth.currentUser().toDict(publicOnly=False)
+    util.debugDict(user, "auth.currentUser" )
     return { 'user': user }
 
 

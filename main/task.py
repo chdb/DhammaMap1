@@ -38,6 +38,7 @@ def sendEmail(subject, body, toEma=None, subjTag=None, **ka):
                           , subject
                           , body
                           )
+        #todo - shouldn't we use the task queue here - perhaps for more control of max rate of sending
         deferred.defer  ( mail.send_mail
                         , adminEma # from ema
                         , toEma
@@ -51,45 +52,18 @@ def sendNewUserEmail(usr):
     Args :  usr (model.User): newly registered user
     """
     url = '%s#!/user/%s' % (flask.url_for('index', _external=True), usr.username)
-    body = ( 'name: %s'
-           '\nusername: %s'
-           '\nemail: %s'
-           '\n%s'
-           '\nurl: %s' % \
-                ( usr.name
-                , usr.username
+    body = ('\nusername: %s'
+            '\nemail: %s'
+            '\n%s'
+            '\nurl: %s' 
+             %  ( usr.username
                 , usr.email_
-                , ''.join([': '.join(('%s\n' % a).split('_')) for a in usr.authIDs_])
+                , '\n'.join([': %s' % a for a in usr.authIds])
                 , url
            )    )
-    sendEmail('New user: %s' % usr.name, body)
+    sendEmail('New user: %s' % usr.username, body)
 
-# ##################################################################################################
-reset_text =\
-'''Hello %(name)s,
-It seems someone tried to reset your password with %(brand)s.
-Hopefully it was from you! In that case, please reset it by following this link:
-
-%(link)s
-
-If it wasn't you, don't be alarmed. There is no security breach because this email was sent only to you 
-- no one else has a copy of it.  You can delete this email or it or reply to it so we can take a look.
-Best regards,
-%(brand)s
-''' 
-# ##################################################################################################
-verify_text =\
-'''Welcome to %(brand)s.
-Please click the link below to confirm your email address and activate your account:
-
-%(link)s
-
-If it wasn't you, we apologize. You can either ignore this email or reply to it
-so we can take a look.
-Best regards,
-%(brand)s
-'''
-# ##################################################################################################
+    
 def sendResetEmail(usr):
     """Sends email with url, which user can use to reset his password
     Args : usr (model.User): User, who requested password reset
@@ -99,10 +73,10 @@ def sendResetEmail(usr):
     usr.token__ = util.randomB64()
     usr.put()
 
-    toEma = '%s <%s>' % (usr.name, usr.email_)
-    body = reset_text % { 'name': usr.name
+    toEma = '%s <%s>' % (usr.username, usr.email_)
+    body = reset_text % { 'name': usr.username
                         , 'link': flask.url_for('user_reset', token=usr.token__, _external=True)
-                        , 'brand': config.CONFIG_DB.site_name,
+                        , 'siteName': config.CONFIG_DB.site_name,
                         }
     sendEmail('Reset your password', body, toEma)
 
@@ -112,13 +86,41 @@ def sendVerifyEmail(usr):
     Args :  usr (model.User): user, who should verify his email
     """
     if not usr.email_:
-        logging.info ('no email')
+        logging.info ('no email address for sending')
         return
     usr.token__ = util.randomB64()
     usr.put()
 
     toEma = usr.email_
     body = verify_text % { 'link': flask.url_for('user_verify', token=usr.token__, _external=True)
-                         , 'brand': config.CONFIG_DB.site_name,
+                         , 'siteName': config.CONFIG_DB.site_name,
                          }
     sendEmail('Verify your email', body, toEma)
+
+
+# -----------------------------------------------------------
+reset_text =\
+'''Hello %(name)s,
+It seems someone tried to reset your password with %(siteName)s.
+Hopefully it was from you! In that case, please reset it by following this link:
+
+%(link)s
+
+If it wasn't you, we apologize. Don't be alarmed: there is no security breach because this email was sent only to you 
+- no one else has a copy of it.  You can delete this email, but its better if you reply to it so we can take a look.
+Best regards,
+%(siteName)s
+''' 
+# --------------------------------------------------------
+verify_text =\
+'''Welcome to %(siteName)s.
+Please click the link below to confirm your email address and activate your account:
+
+%(link)s
+
+If it wasn't you, we apologize. You can ignore this email, but its better if you reply to it
+so we can take a look.
+Best regards,
+%(siteName)s
+'''
+# -----------------------------------------------------
