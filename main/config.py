@@ -3,37 +3,11 @@
 Global config variables. Config variables stored in DB are loaded into CONFIG_DB variable
 """
 import os
-from datetime import datetime
-from google.appengine.api import app_identity #pylint: disable=import-error
+#pylint: disable=import-error
 import util
-import logging 
+import logging   
 
 
-# It is simple and convenient to create some configuration data here in the config file 
-# but other config data is stored in ndb DataStore because
-# 1) Source Code is not a secure location for cryptographic keys and other secrets because our code base is open-source 
-#    Even closed-source code has access issues because its inevitably and habitually saved to a cvs with different/lower security than the DataStore 
-# 2) Its very convenient to change some config settings using the client, without having to deploy modified application code
-#    However while some secure data should only be in DataStore, it should not be modifiable in the Client eg Salt  
-# Therefore 
-
-PRODUCTION          = os.environ.get('SERVER_SOFTWARE', '').startswith('Google App Eng')
-DEVELOPMENT         = not PRODUCTION
-APPLICATION_ID      = app_identity.get_application_id()
-CURRENT_VERSION_ID  = os.environ.get('CURRENT_VERSION_ID')
-CURRENT_VERSION_NAME= CURRENT_VERSION_ID.split('.')[0]
-
-if DEVELOPMENT:
-    import calendar
-    CURRENT_VERSION_TIMESTAMP = calendar.timegm(datetime.utcnow().timetuple())
-else:
-    CURRENT_VERSION_TIMESTAMP = long(CURRENT_VERSION_ID.split('.')[1]) >> 28
-
-CURRENT_VERSION_DATE = datetime.utcfromtimestamp(CURRENT_VERSION_TIMESTAMP)
-
-EmailRegEx = util.getEmailRegex()
-  
-# 
 from model.config import Config # NB The model module needs to be imported *after* setting CURRENT_VERSION_TIMESTAMP,
             # since model.ndbModelBase uses it as default value for version_r property
 CONFIG_DB   = Config.get_master_db()
@@ -55,7 +29,8 @@ LockCfg     = namedtuple('LockCfg'     , [ 'delayFn'   # lambda(n) - minimum tim
                                          , 'period'    # seconds - time permitted for < maxbad consecutive 'bad' requests
                                          , 'lockTime'  # seconds - duration of lockout
                                          , 'bGoodReset'# boolean - whether reset occurs for good login
-                                         ] )
+                                         ] )                                     
+                                        
 cfg_={'DebugMode'         : True    #if True, uncaught exceptions are raised instead of using HTTPInternalServerError.
                                    # so that you get a stack trace in the log
                                    #otherwise its just a '500 Internal Server Error' 
@@ -143,43 +118,45 @@ class TwoWayDict(dict):
 
 
 authNames = TwoWayDict()
+# follow the convention: all short names end in ':' (and long names dont)
+# follow the convention: all builtin names start with '_' (short and long names, both)
 authNames ['_e:'] = '_email'
 authNames ['_u:'] = '_userName'
 
-    # OAuth 1.0a
-authNames ['bb:'] = 'bitbucket'
-authNames ['fk:'] = 'flickr'
-authNames ['pk:'] = 'plurk'
+    ## OAuth 1.0a
+# authNames ['bb:'] = 'bitbucket'
+# authNames ['fk:'] = 'flickr'
+# authNames ['pk:'] = 'plurk'
 authNames ['tt:'] = 'twitter'
-authNames ['tb:'] = 'tumblr'
-    # 'ubuntuone',  # UbuntuOne service is no longer available
-authNames ['vm:'] = 'vimeo'
-authNames ['xr:'] = 'xero'
-authNames ['xg:'] = 'xing'
-authNames ['yh:'] = 'yahoo'
+# authNames ['tb:'] = 'tumblr'
+ ##   'ubuntuone',  # UbuntuOne service is no longer available
+# authNames ['vm:'] = 'vimeo'
+# authNames ['xr:'] = 'xero'
+# authNames ['xg:'] = 'xing'
+# authNames ['yh:'] = 'yahoo'
 
-    # OAuth 2.0
-authNames ['am:'] = 'amazon'
-    # 'behance',  # doesn't support third party authorization anymore.
-authNames ['bl:'] = 'bitly'
-authNames ['dv:'] = 'deviantart'
+ ##   OAuth 2.0
+# authNames ['am:'] = 'amazon'
+ ##  'behance',  # doesn't support third party authorization anymore.
+# authNames ['bl:'] = 'bitly'
+# authNames ['dv:'] = 'deviantart'
 authNames ['fb:'] = 'facebook'
-authNames ['fs:'] = 'foursquare'
+# authNames ['fs:'] = 'foursquare'
 authNames ['gg:'] = 'google'
 authNames ['gh:'] = 'github'
 authNames ['li:'] = 'linkedin'
-authNames ['pp:'] = 'paypal'
-authNames ['rd:'] = 'reddit'
-authNames ['vk:'] = 'vk'
-authNames ['wl:'] = 'windowslive'
-authNames ['ym:'] = 'yammer'
-authNames ['yd:'] = 'yandex'
+# authNames ['pp:'] = 'paypal'
+# authNames ['rd:'] = 'reddit'
+# authNames ['vk:'] = 'vk'
+# authNames ['wl:'] = 'windowslive'
+# authNames ['ym:'] = 'yammer'
+# authNames ['yd:'] = 'yandex'
 authNames ['ig:'] = 'instagram' # not yet impl in authomatic
  
-   # OpenID
-authNames ['ol:'] = 'openid_livejournal'
-authNames ['ov:'] = 'openid_verisignlabs'
-authNames ['ow:'] = 'openid_wordpress'
-authNames ['oy:'] = 'openid_yahoo'
+   ## OpenID
+# authNames ['ol:'] = 'openid_livejournal'
+# authNames ['ov:'] = 'openid_verisignlabs'
+# authNames ['ow:'] = 'openid_wordpress'
+# authNames ['oy:'] = 'openid_yahoo'
 
 

@@ -1,8 +1,8 @@
-import config
+import util
 import logging
 from passlib.context import CryptContext
 
-defRounds_sha512 = (10000 if config.DEVELOPMENT else 
+defRounds_sha512 = (10000 if util.DEVT else 
                     80000)
 logging.info('@@@@@@@ default rounds sha512 = %d @@@@@@@@', defRounds_sha512)
 

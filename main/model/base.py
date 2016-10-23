@@ -18,7 +18,7 @@ class ndbModelBase(ndb.Model):
     """
     created_r = ndb.DateTimeProperty(auto_now_add=True)
     modified_r= ndb.DateTimeProperty(auto_now=True)
-    version_r = ndb.IntegerProperty (default=config.CURRENT_VERSION_TIMESTAMP)
+    version_r = ndb.IntegerProperty (default=util.VERtimeStamp)
     
     def toDict_(_s, publicOnly, nullprops=False):
         """Return a dict containing the entity's property values, so it can be passed to client
@@ -26,21 +26,34 @@ class ndbModelBase(ndb.Model):
         """
         suffix = '_' if publicOnly else '__'
               
-        d = util.deepFilter ( _s.to_dict()
-                            , lambda k,v: not k.endswith(suffix)
-                                          and (v or nullprops or isinstance(v, bool))   # unless nullprops or boolean, exclude items with falsy values EG '' or None
-                            , lambda k,v: v.isoformat() if isinstance(v, date) else v   # convert date type values to a string repr
-                            )
-        return d
+        data, filtrate = util.deepFilter ( _s.to_dict() 
+            , lambda k,v: not k.endswith(suffix)
+                          and (v or nullprops or isinstance(v, bool))   # unless nullprops or boolean, exclude items with falsy values EG '' or None
+            , lambda k,v: v.isoformat() if isinstance(v, date) else v   # convert date type values to a string repr
+            )
+        util.debugDict(filtrate, 'filtered out these:')
+        return data
 
     def populate(_s, ka):
         """Extended ndb.Model populate method, so it can ignore properties, which are not defined in model class without throwing error
         """
         #todo add publicOnly param - if true  and client has tried to modify private prop. throw 403
 
-        #util.debugDict(ka, 'qqqqq')
-        ka = {k:v for k,v in ka.iteritems() if k in _s._properties} # remove extra properties at  root level
-        ka = util.deepFilter (ka, lambda k,v : not k.endswith('_r')) # exclude read-only properties at all levels
+        util.debugDict(ka, 'populating: ')
+        
+        ka.pop('_k',None)
+        bad = [k for k in ka if k not in _s._properties]
+        if bad:
+            logging.warning ('Invalid update: contains unknown field: %r', bad)
+            raise ValueError('Invalid update')
+        
+        bad = util.deepFindKey(ka, lambda k: k.endswith('_r'))
+        if bad:
+            logging.warning ('Invalid update: contains read-only fields: %r', bad)
+            raise ValueError('Invalid update')
+            
+#        ka = {k:v for k,v in ka.iteritems() if k in _s._properties} # remove extra properties at  root level
+#        ka = util.deepFilter (ka, lambda k,v : not k.endswith('_r')) # exclude read-only properties at all levels
      
         #util.debugDict(ka, 'wwwwwwwwwwww')
         super(ndbModelBase, _s).populate(**ka)

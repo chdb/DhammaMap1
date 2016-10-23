@@ -6,12 +6,13 @@ import functools
 from google.appengine.ext import ndb #pylint: disable=import-error
 from flask import g, abort
 from helpers import rqArg, rqParse
-from main import config, auth
+from main import auth
 from flask_restful import inputs
 import model.user as user 
 from werkzeug import exceptions
 import validators as vdr
 import logging
+import config
 
 
 def verify_captcha(form_name):

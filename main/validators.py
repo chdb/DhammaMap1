@@ -5,6 +5,7 @@ import logging
 from google.appengine.ext import ndb #pylint: disable=import-error
 from google.appengine.datastore import datastore_query#.Cursor #pylint: disable=import-error
 import re
+import util
 import config
         
 
@@ -83,7 +84,8 @@ bio_span      = lengthVdr([0,140])
 location_span = lengthVdr([0, 70])
 social_span   = lengthVdr([0, 50])
 
-email_rx  = regexVdr(config.EmailRegEx)
+email_rx  = regexVdr(util.getEmailRegex())
+
 
 ######## Custom Validators ##############################################################
 

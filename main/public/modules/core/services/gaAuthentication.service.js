@@ -8,14 +8,27 @@
      * @description
      * This service holds a user object so that it can be accessed in any controller
      */
+	
+	module.factory('gaX', function() 
+	{	
+		return { avatarUrl : function(user, size)
+					{	
+						if (user)
+							return '//gravatar.com/avatar/'+user.hash+'?d=identicon&r=x&s='+size;
+						return undefined;
+					}
+
+			   }
+	});
 
     module.factory('gaAuth', function(gaAuthUser, gaAuthNames, Restangular) 
 	{	
 		var u =	
-		{ user 		: gaAuthUser
-		, loggedIn  : function() 	
-					{ 	return !! u.user; }
-		, is_admin  : function() 	
+		{ user 	   : gaAuthUser
+		, loggedIn : function() 	
+					{ 	return !! u.user; 
+					}
+		, is_admin : function() 	
 					{ 	if (! u.user)
 							return false;
 						if (u.user.isAdmin_ === undefined) 
@@ -24,7 +37,13 @@
 						return u.user.isAdmin_
 					}
 		, setUser : function(user) 
-					{ 	u.user = Restangular.restangularizeElement(null, user, 'users'); }
+					{ 	u.user = Restangular.restangularizeElement(null, user, 'users');
+						// u.user.avatarUrl = function(size)
+						// {	console.log (u);
+							// return '//gravatar.com/avatar/'+u.hash+'?d=identicon&r=x&s='+size;
+						// }
+						return u.user;
+					}
 		, authProviderName : function(authId)
 					{	if (authId[2] !== ':')
 							throw "invalid authId: missing colon"
@@ -33,8 +52,12 @@
 							throw "missing shortname in authNames";
 						return gaAuthNames[shortname];
 					}
+		// , avatarUrl : function(user, size)
+					// {	return '//gravatar.com/avatar/'+user.hash+'?d=identicon&r=x&s='+size;
+					// }
 		};
 		return u;  
     });
+
 
 }());

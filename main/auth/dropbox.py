@@ -41,8 +41,8 @@ def get_dropbox_oauth_token():
 
 @app.route('/signin/dropbox/')
 def signin_dropbox():
-    scheme = 'https' if config.PRODUCTION else 'http'
-    return auth.signin_oauth(dropbox, scheme)
+    #scheme = 'https' if config.PRODUCTION else 'http'
+    return auth.signin_oauth(dropbox) #, scheme)
 
 
 def retrieve_user_from_dropbox(response):

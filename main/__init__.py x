@@ -1,0 +1,43 @@
+# coding: utf-8
+"""
+based on gae-angular-material-starter
+
+    https://github.com/gae-angular-material-starter
+    http://gae-angular-material-starter.appspot.com
+
+    by Matus Lestan.
+    
+License MIT, see LICENSE for more details.
+
+"""
+
+__version__ = '1'
+#from .main import API
+#from .main import app
+import flask
+#import config
+
+app = flask.Flask(__name__) # pylint: disable=invalid-name
+# note:Flask server doesn't need DEBUG parameter while developing, since server restarting is taken care by GAE SDK
+#app.config.from_object(config)
+app.jinja_env.line_statement_prefix = '#'
+app.jinja_env.line_comment_prefix  = '##'
+
+import auth # pylint: disable=unused-import
+import control.error
+import control.index
+import control.user
+import model # pylint: disable=unused-import
+import task # pylint: disable=unused-import
+from api import helpers
+
+API = helpers.Api(app)
+
+import api.v1 # pylint: disable=unused-import
+import logging
+
+#logging.debug('####################################################### app id: %r '         , util.APPLICATION_ID)
+logging.debug('####################################################### cur ver id: %r'      , util.VERid)
+logging.debug('####################################################### cur ver name: %r'    , util.VERname)
+logging.debug('####################################################### cur ver timestamp: %r',util.VERtimeStamp)
+logging.debug('####################################################### cur ver datetime: %r', util.VERdate)

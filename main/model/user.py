@@ -104,13 +104,12 @@ def byCredentials(email_or_username, password):
         return usr
     return None
 
-def avatarUrl(ema):
+def getHash(ema):
     #todo why not 1) just pass the hash to client? and put the url template code in the client
     #     and/or  2) store the hash in user model 
-    """Returns gravatar url, created from user's email or username"""
-    return '//gravatar.com/avatar/%(hash)s?d=identicon&r=x' % {
-        'hash': hashlib.md5(ema.lower().encode('utf-8')).hexdigest()
-        }
+    """Returns hash created from user's email or username for the gravatar url,"""
+    return hashlib.md5(ema.lower().encode('utf-8')).hexdigest()
+    
         
 def randomAuthIds():
     aps = []
@@ -125,20 +124,20 @@ def randomAuthIds():
 class User(base.ndbModelBase):
     """A class describing datastore user."""
 #    name        = ndb.StringProperty (validator=vdr.name_span.fn)
-    username    = ndb.StringProperty (validator=vdr.username_span.fn, required=True)
-    email_      = ndb.StringProperty (validator=vdr.email_rx.fn)
+    username    = ndb.StringProperty (indexed=False, required=True, validator=vdr.username_span.fn)
+    email_      = ndb.StringProperty (indexed=False, required=True, validator=vdr.email_rx.fn)
 #    email_ci__  = ndb.ComputedProperty(lambda _s: _s.email_.lower() if _s.email_ else None) #for case-insensitive searching
 #    authIDs_    = ndb.StringProperty (repeated=True)                                                   #private
 #    permissions_= ndb.StringProperty (repeated=True)                                                   #private
-    isActive_   = ndb.BooleanProperty(default= True)                                                   #private
-    isAdmin_    = ndb.BooleanProperty(default=False)   #todo: replace with a entry in permissions_ ?   #private
-    isVerified_ = ndb.BooleanProperty(default=False)                                                   #private
-    token__     = ndb.StringProperty ()                                                       #hidden
-    pwdhash__   = ndb.StringProperty ()    # None for users with only 3rd party auth                                                   #hidden
-    bio         = ndb.StringProperty (validator=vdr.bio_span.fn)
-    location    = ndb.StringProperty (validator=vdr.location_span.fn)
-    avatar_url  = ndb.StringProperty ()
-    authIds     = ndb.StringProperty (repeated=True) # list of IDs. EG for third party auth, eg 'google:userid'. UNIQUE.
+    isActive_   = ndb.BooleanProperty(indexed=False, default= True)                                                   #private
+    isAdmin_    = ndb.BooleanProperty(indexed=False, default=False)   #todo: replace with a entry in permissions_ ?   #private
+    isVerified_ = ndb.BooleanProperty(indexed=False, default=False)                                                   #private
+    token__     = ndb.StringProperty (indexed=False)                                                       #hidden
+    pwdhash__   = ndb.StringProperty (indexed=False)    # None for users with only 3rd party auth                                                   #hidden
+    bio         = ndb.StringProperty (indexed=False, validator=vdr.bio_span.fn)
+    location    = ndb.StringProperty (indexed=False, validator=vdr.location_span.fn)
+    hash        = ndb.StringProperty (indexed=False)
+    authIds     = ndb.StringProperty (indexed=False, repeated=True) # list of IDs. EG for third party auth, eg 'google:userid'. UNIQUE.
     
 
 # class User (ndb.model):
@@ -157,8 +156,9 @@ class User(base.ndbModelBase):
         ids.append(emailId(ema))
         ids.append(unameId(un))
         ka['authIds'] = ids
+        ka['hash'] = getHash(ema)
         #if 'username' in ka:
-        user = User (avatar_url=avatarUrl(ema), **ka)
+        user = User (**ka)
         key = user.put()
         for i in ids:
             AuthId.create (i, key.id())
@@ -212,7 +212,6 @@ class User(base.ndbModelBase):
 #############################################################
 
         
-        
     def has_password(_s, password):
         """Test if user has the correct password"""
         logging.debug('pwd = %r', password)
@@ -232,7 +231,7 @@ class User(base.ndbModelBase):
     def toDict(_s, publicOnly=True):
     
         d = _s.toDict_(publicOnly)
-        d['key'] = _s.key.urlsafe()
+        d['_k'] = _s.key.urlsafe() #needed for client calls to Restangular.one(...).get()
         
         # i = next(i for i in d['authIds'] if i.startswith('_u:'))
         # if i: 

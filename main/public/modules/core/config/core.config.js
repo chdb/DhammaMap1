@@ -9,7 +9,7 @@
 
         RestangularProvider
             .setBaseUrl('/api/v1')
-            .setRestangularFields( { id : 'key' } );
+            .setRestangularFields( { id : '_k' } ); //used in calls to Restangular.one(...).get()
 
         $mdThemingProvider.theme('default')
             .primaryPalette('indigo')

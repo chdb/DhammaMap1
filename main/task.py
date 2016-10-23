@@ -24,7 +24,7 @@ def sendEmail(subject, body, toEma=None, subjTag=None, **ka):
         subject = '[%s: %s] %s' % (site_name, subjTag, subject) if subjTag else\
                   '[%s] %s'     % (site_name, subject)
         
-        if config.DEVELOPMENT:
+        if util.DEVT:
             logging.info( '\n######### Deferring to send this email: #############################'
                           '\nFrom: %s'
                           '\nTo: %s'

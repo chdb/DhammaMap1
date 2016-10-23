@@ -7,7 +7,7 @@ import werkzeug.exceptions as ex
 import flask
 
 from api import helpers
-import config
+import util
 
 from main import app
 
@@ -47,7 +47,7 @@ def error_handler(err):
     return flask.render_template('index.html')
 
 
-if config.PRODUCTION:
+if not util.DEVT:
     @app.errorhandler(Exception)
     def production_error_handler(err): # pylint: disable=missing-docstring
         return error_handler(err)

@@ -11,13 +11,13 @@ from model.user import User#, UserVdr
 from flask  import request, g
 from api.decorators import entByKey, usrByUsername, authorization_required, admin_required
 from api.helpers    import list_response, ok, rqArg, rqParse
-from config import DEVELOPMENT
+import util
 import validators as vdr
 import logging
 
 @API.resource('/api/v1/users')
 class UsersAPI(Resource):
-    """Gets list of users. Uses ndb Cursor for pagination. Obtaining users is executed
+    """Get list of users with ndb Cursor for pagination. Obtaining users is executed
     in parallel with obtaining total count via *_async functions
     """
     @admin_required
@@ -35,10 +35,10 @@ class UsersAPI(Resource):
         
 @API.resource('/api/v1/num_users')
 class NumUsersAPI(Resource):
-    """Gets number of users.
+    """Get number of users.
     """
     def get(self):
-        if not DEVELOPMENT:
+        if not util.DEVT:
             abort(404) 
         return User.query().count(); # if number gets large, should we be using sharded counter for this?
 
@@ -58,16 +58,16 @@ class UserByKeyAPI(Resource):
     @authorization_required
     @entByKey
     def put(self, key):
-        """Updates user's properties"""
+        """Update user's properties"""
         g.ndbEnt.populate(request.json)
         g.ndbEnt.put()
         return ok()
 
-        
+       
     @admin_required
     @entByKey
     def delete(self, key):
-        """Deletes user"""
+        """Delete user"""
         g.ndbKey.delete()
         return ok()
 

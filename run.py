@@ -29,9 +29,13 @@ PARSER.add_argument(
     help='clears the datastore, blobstore, etc',
 )
 PARSER.add_argument(
+    '--skip-checks', dest='args'
+    help='skip the checks before calling dev_appserver.py',
+)PARSER.add_argument(
     '--appserver-args', dest='args', nargs=argparse.REMAINDER, default=[],
     help='all following args are passed to dev_appserver.py',
 )
+
 ARGS = PARSER.parse_args()
 
 

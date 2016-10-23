@@ -3,7 +3,7 @@
 from flask_restful import Resource
 from main import API
 from flask import abort
-import config #import DEVELOPMENT
+import util #import DEVELOPMENT
 import random
 from security import pwd
 import model.user as u
@@ -16,7 +16,7 @@ class GenerateDatabaseAPI(Resource):
     @ndb.toplevel
     def post(self):
         """Deletes all users and re-generates mock users for development purposes"""
-        if not config.DEVELOPMENT:
+        if not util.DEVT:
             abort(404) # very important - dont give users the opportunity to destroy our entire user base
        
         def delete_all():

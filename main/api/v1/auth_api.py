@@ -27,9 +27,9 @@ class SignupAPI(Resource):
     @verify_captcha('signupForm')
     def post(self):
         """Creates new user account, given valid arguments"""
-        args = rqParse( rqArg('email'   ,vdr=u.emailUniqueVdr, required=True)
-                      , rqArg('username',vdr=u.usrnameUniqueVdr)
-                      , rqArg('password',vdr=v.password_span)
+        args = rqParse( rqArg('email'   ,vdr=u.emailUniqueVdr  , required=True)
+                      , rqArg('username',vdr=u.usrnameUniqueVdr, required=True)
+                      , rqArg('password',vdr=v.password_span   , required=True)
                       , rqArg('remember',type=inputs.boolean, default=False)
                       )
         usr = u.User.create( username=args.username

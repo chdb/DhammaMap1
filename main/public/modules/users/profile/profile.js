@@ -1,12 +1,14 @@
 (function() 
 {	'use strict';
-    var module = angular.module('users');
-
-    module.controller('ProfileController', function($scope, Restangular, gaAppConfig, gaAuth
-                                                    , $stateParams, $mdDialog, gaToast, $state) 
+    angular
+		.module('users')
+		.controller('ProfileController', 
+	function ($scope , Restangular , gaAppConfig , gaAuth , gaX , $stateParams , $mdDialog , gaToast , $state)
     {	$scope.cfg = gaAppConfig;
-        $scope.auth = gaAuth;
-        $scope.isMyProfile = function() 
+        $scope.avatarUrl = gaX.avatarUrl;
+		$scope.auth = gaAuth;
+        
+		$scope.isMyProfile = function() 
         {	return gaAuth.loggedIn() && $stateParams.username === gaAuth.user.username;
         };
 
@@ -17,16 +19,6 @@
 				.then(function(user) 
 					{	$scope.user = user;
 					});
-
-		//$scope.authProviderName = gaAuth.authProviderName;
-		// function(authId)
-		// {	if (authId[2] !== ':')
-				// throw "invalid authId: missing colon"
-			// var shortname = authId.substr(0, 3);
-			// if (! shortname in gaAuthNames)
-				// throw "missing shortname in authNames";
-			// return gaAuthNames[shortname];
-		// };
 
         $scope.hasAuthorization = function() 
         {	return $scope.isMyProfile() || $scope.auth.is_admin();
@@ -47,6 +39,5 @@
                 });
             });
         };
-
     });
 }());

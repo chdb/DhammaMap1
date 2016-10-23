@@ -16,9 +16,10 @@ import model.user  as u
 import task
 import util
 from security import pwd
-import config
+#import config
 import logging
-from main import app, config
+from main import app
+import config
 
 login_manager = flog.LoginManager()  # pylint: disable=invalid-name
 
@@ -148,7 +149,7 @@ def signin_oauth(oauth_app, scheme=None):
             scheme (string) : http or https to use in callback url
     """
     if scheme is None:
-        scheme = 'https' if config.PRODUCTION else 'http'
+        scheme = 'http' if util.DEVT else 'https'
     try:
         flask.session.pop('oauth_token', None)
         save_request_params()

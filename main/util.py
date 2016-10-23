@@ -2,11 +2,12 @@
 """
 Set of utility function used throughout the app
 """
-import config
+#import config
 import os
 import base64
 import logging
 import time as tim
+from datetime import datetime
 
 # The conde in index.py sends this serverside email regex to clientside along with other validators 
 # Note that currently, email fields on clientside forms dont use it.  Instead they will use the regex provided by AngularJS
@@ -53,6 +54,23 @@ def getEmailRegex():
     # return AngularJS email regex, or our own one, if not found.    
     return findNgEMAIL_REGEXP() or EMAIL_REGEX
 
+# class Config (object):
+DEVT = not os.environ.get('SERVER_SOFTWARE', '').startswith('Google App Eng')
+VERid = os.environ.get('CURRENT_VERSION_ID')
+VERname = VERid.split('.')[0]
+
+if DEVT:
+    import calendar
+    VERtimeStamp = calendar.timegm(datetime.utcnow().timetuple())
+else:
+    VERtimeStamp = long(VERid.split('.')[1]) >> 28
+logging.debug('####################################################### cur ver id: %r'      , VERid)
+logging.debug('####################################################### cur ver name: %r'    , VERname)
+logging.debug('####################################################### cur ver timestamp: %r',VERtimeStamp)
+logging.debug('####################################################### cur ver datetime: %r', datetime.utcfromtimestamp(VERtimeStamp))
+
+# def ConfigFactory(_x = Config() ) : return _x
+    
 #def uuid():
     # """Generates random UUID used as user token for verification, reseting password etc.
     # Returns:	string:     32 characters long 
@@ -147,6 +165,21 @@ def msNow():
         # return [deepFilter(i, filterFn) for i in c]
     # return c
     
+    
+def fib(n):
+    if n == 0:
+        return 0
+    elif n == 1:
+        return 1
+    else:
+        return fib(n-1) + fib(n-2)
+
+memo = {0:0, 1:1}
+def fibm(n):
+    if not n in memo:
+        memo[n] = fibm(n-1) + fibm(n-2)
+    return memo[n]
+
 def deepFilter (c, filterFn, updateFn=None):
     '''c is a json object - ie consisting of elements of type string, number, bool or None in nested lists and dicts.
     deepFilter() returns the result of recursively applying the filter and update functions to all dicts in c, 
@@ -156,17 +189,42 @@ def deepFilter (c, filterFn, updateFn=None):
     '''
     if updateFn is None:
         updateFn = lambda k,v: v
-    
+   
+    filtrate = {}
     def deepFilter_ (c):
         if isinstance (c, dict):
+            filtrate.update ({ k : v 
+                     for k,v in c.iteritems() 
+                     if not filterFn(k,v) 
+                   })
             return { k : deepFilter_(updateFn(k,v)) 
                      for k,v in c.iteritems() 
-                     if filterFn(k,v) }
+                     if filterFn(k,v) 
+                   }
         if isinstance (c, list):
             return [ deepFilter_(i) for i in c ]
         return c
         
-    return deepFilter_ (c)
+    return deepFilter_ (c), filtrate
+
+def deepFindKey (c, pred):
+    """ depth-first search of c, a json object consisting of nestedlists and dicts, 
+        returns the all dict keys (at whatever level) satisfying the predicate pred.
+    """
+    def _deepFindKey (c, pred):
+        if isinstance(c, dict):
+            for k,v in c.iteritems():
+                if pred(k):
+                    res.append(k)
+                _deepFindKey(v, pred)
+        elif isinstance(c, list):
+            for i in c:
+                _deepFindKey(i, pred)   
+                
+    res = []
+    _deepFindKey (c, pred)
+    return res
+         
     
 def pyProperties(cls):
     '''return a list of names of all the python properties in cls

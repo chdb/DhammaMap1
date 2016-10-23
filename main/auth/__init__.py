@@ -6,15 +6,16 @@ Provides logic for authenticating users
 import config
 import importlib
 import logging
+
 from .auth import *
 
 
-apList = config.CONFIG_DB.authProviders 
-for i in apList:
-    if i.name:
-        importlib.import_module('auth.'+i.name)
-    else:
-        logging.warning('empty name for authProvider')
+# apList = config.CONFIG_DB.authProviders 
+# for i in apList:
+    # if i.name:
+        # importlib.import_module('auth.'+i.name)
+    # else:
+        # logging.warning('empty name for authProvider')
    # importlib.import_module(i.name)
     
 # from .bitbucket import *

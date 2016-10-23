@@ -2,13 +2,14 @@
 {	'use strict';
     
 	var module = angular.module('admin');
-    module.controller('UsersController', function($scope, $timeout, Restangular) 
+    module.controller('UsersController', function($scope, $timeout, Restangular, gaX) 
 	{
         var ctrl = this;
         var nextCursor = '';
         var more = true;
         $scope.users = [];
-
+		$scope.avatarUrl = gaX.avatarUrl;
+       
         ctrl.getUsers = function() 
 		{	if (more)
 			{	$scope.isLoading = true;
