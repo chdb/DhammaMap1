@@ -3,7 +3,7 @@
 .DS_Store
 bower_components
 main/index.yaml
-main/public/script.html
+main/templates/script.html
 main/lib
 main/lib.zip
 main/public/dist

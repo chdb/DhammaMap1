@@ -224,9 +224,10 @@
     });
 	
 	var runServer_ = function(skipChecks) 
-    {	var execStr = 'python -u run.py --appserver-args --log_level=debug';
+    {	var execStr = 'python -u run.py';
 		if (skipChecks)
-			execStr	+= ' --skip-checks'
+			execStr	+= ' --skip-checks';
+		execStr	+= ' --appserver-args --log_level=debug';
 		var proc = exec(execStr);
         proc.stderr.on('data', function(data) 
         {	process.stderr.write(data);

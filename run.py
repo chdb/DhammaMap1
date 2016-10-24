@@ -11,49 +11,43 @@ import platform
 import shutil
 import sys
 
+# Options ###############################################################################
 
-###############################################################################
-# Options
-###############################################################################
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument(
-    '-o', '--host', dest='host', action='store', default='127.0.0.1',
-    help='the host to start the dev_appserver.py',
-)
+    '-o', '--host', default='127.0.0.1'
+	,     help='the host to start the dev_appserver.py'
+	, )
 PARSER.add_argument(
-    '-p', '--port', dest='port', action='store', default='8080',
-    help='the port to start the dev_appserver.py',
-)
+    '-p', '--port', default='8080'
+	,     help='the port to start the dev_appserver.py'
+	, )
 PARSER.add_argument(
-    '-f', '--flush', dest='flush', action='store_true',
-    help='clears the datastore, blobstore, etc',
-)
+    '-f', '--flush', action='store_true'
+	,     help='clears the datastore, blobstore, etc'
+	, )
 PARSER.add_argument(
-    '--skip-checks', dest='args'
-    help='skip the checks before calling dev_appserver.py',
-)PARSER.add_argument(
-    '--appserver-args', dest='args', nargs=argparse.REMAINDER, default=[],
-    help='all following args are passed to dev_appserver.py',
-)
+    '--skip-checks', dest='skip', action='store_true'
+	,     help='skip the checks before calling dev_appserver.py'
+	, )
+PARSER.add_argument(
+    '--appserver-args', dest='args', nargs=argparse.REMAINDER, default=[]
+	,     help='all following args are passed to dev_appserver.py'
+	, )
 
 ARGS = PARSER.parse_args()
 
+# Globals ###############################################################################
 
-###############################################################################
-# Globals
-###############################################################################
 GAE_PATH = ''
 IS_WINDOWS = platform.system() == 'Windows'
 
+# Directories ###############################################################################
 
-###############################################################################
-# Directories
-###############################################################################
 DIR_MAIN = 'main'
 DIR_TEMP = 'temp'
 DIR_VENV = os.path.join(DIR_TEMP, 'venv')
-
-DIR_LIB = os.path.join(DIR_MAIN, 'lib')
+DIR_LIB  = os.path.join(DIR_MAIN, 'lib')
 DIR_LIBX = os.path.join(DIR_MAIN, 'libx')
 FILE_REQUIREMENTS = 'requirements.txt'
 
@@ -64,17 +58,18 @@ FILE_VENV = os.path.join(DIR_VENV, 'Scripts', 'activate.bat') \
 DIR_STORAGE = os.path.join(DIR_TEMP, 'storage')
 
 
-###############################################################################
-# Helpers
-###############################################################################
+# Helpers ###############################################################################
+
 def make_dirs(directory):
-    """Creates directories"""
+    """Creates directories
+    """
     if not os.path.exists(directory):
         os.makedirs(directory)
 
 
 def os_execute(executable, args, source, target, append=False):
-    """Executes OS command"""
+    """Executes OS command
+    """
     operator = '>>' if append else '>'
     os.system('%s %s %s %s %s' % (executable, args, source, operator, target))
 
@@ -91,7 +86,8 @@ def listdir(directory, split_ext=False):
 
 
 def site_packages_path():
-    """Gets path of site-packages folder with third party libraries on system"""
+    """Gets path of site-packages folder with third party libraries on system
+    """
     if IS_WINDOWS:
         return os.path.join(DIR_VENV, 'Lib', 'site-packages')
     py_version = 'python%s.%s' % sys.version_info[:2]
@@ -117,7 +113,8 @@ def create_virtualenv():
 
 
 def exec_pip_commands(command):
-    """Executes pip command on system"""
+    """Executes pip command on system
+    """
     script = []
     if create_virtualenv():
         activate_cmd = 'call %s' if IS_WINDOWS else 'source %s'
@@ -134,14 +131,15 @@ def exec_pip_commands(command):
 def install_py_libs():
     """Installs requirements from requirements file and then copies them
     from site-packages folder into main/lib folder
-    Alse excludes files that don't need to be deployed"""
+    Alse excludes files that don't need to be deployed
+    """
     exec_pip_commands('pip install -q -r %s' % FILE_REQUIREMENTS)
 
     exclude_ext = ['.pth', '.pyc', '.egg-info', '.dist-info']
     exclude_prefix = ['setuptools-', 'pip-', 'Pillow-']
     exclude = [
-        'test', 'tests', 'pip', 'setuptools', '_markerlib', 'PIL',
-        'easy_install.py', 'pkg_resources.py'
+        'test', 'tests', 'pip', 'setuptools', '_markerlib', 'PIL'
+	,         'easy_install.py', 'pkg_resources.py'
     ]
 
     def _exclude_prefix(pkg): # pylint: disable=missing-docstring
@@ -179,20 +177,12 @@ def install_dependencies():
     install_py_libs()
 
 
-###############################################################################
-# Doctor
-###############################################################################
+# Doctor ###############################################################################
 
 def check_requirement(check_func):
     """Executes check function for given requirement
-
-    Args:
-        check_func (function): check function, which should return True if requirement
-            is satisfied
-
-    Returns:
-        bool: True if requirement is OK
-
+    Args: check_func (function): check function, which should return True if requirement is satisfied
+    Returns:    bool: True if requirement is OK
     """
     result, name = check_func()
     if not result:
@@ -203,9 +193,7 @@ def check_requirement(check_func):
 
 def find_gae_path():
     """Tries to find GAE's dev_appserver.py executable
-
-    Returns:
-        string: Absolute path of dev_appserver.py or empty string
+    Returns:   string: Absolute path of dev_appserver.py or empty string
     """
     global GAE_PATH
     if GAE_PATH:
@@ -248,9 +236,7 @@ def check_virtualenv():
 
 def doctor_says_ok():
     """Executes all check functions
-
-    Returns:
-        bool: True only iif all chcek functions return True
+    Returns:  bool: True only iif all chcek functions return True
     """
     checkers = [check_gae, check_pip, check_virtualenv]
     if False in [check_requirement(check) for check in checkers]:
@@ -258,36 +244,33 @@ def doctor_says_ok():
     return True
 
 
-###############################################################################
-# Main
-###############################################################################
-
-def run_dev_appserver():
-    """Runs dev_appserver.py with given arguments"""
-    make_dirs(DIR_STORAGE)
-    clear = 'yes' if ARGS.flush else 'no'
-    port = int(ARGS.port)
-    args = [
-        '"%s"' % os.path.join(find_gae_path(), 'dev_appserver.py'),
-        DIR_MAIN,
-        '--host %s' % ARGS.host,
-        '--port %s' % port,
-        '--admin_port %s' % (port + 1),
-        '--storage_path=%s' % DIR_STORAGE,
-        '--clear_datastore=%s' % clear,
-        '--skip_sdk_update_check',
-    ] + ARGS.args
-
-    run_command = ' '.join(args)
-    os.system(run_command)
-
+# Main ###############################################################################
 
 def run():
-    """Runs this script"""
-    os.chdir(os.path.dirname(os.path.realpath(__file__)))
-    if doctor_says_ok():
-        install_dependencies()
-        run_dev_appserver()
+    """Run dev_appserver.py with given arguments
+    """
+    if not ARGS.skip:
+        if doctor_says_ok():
+            install_dependencies()
+        else:
+            print 'doctor says no'
+            return
+            
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))    
+    make_dirs(DIR_STORAGE)
+    port = int(ARGS.port)
+    args =  [ '"%s"'                % os.path.join(find_gae_path(), 'dev_appserver.py')
+            , DIR_MAIN
+            , '--host %s'           % ARGS.host
+            , '--port %s'           % port
+            , '--admin_port %s'     % (port + 1)
+            , '--storage_path=%s'   % DIR_STORAGE
+            , '--clear_datastore=%s'% ('yes' if ARGS.flush else 'no')
+            , '--skip_sdk_update_check'
+            ] + ARGS.args
+            
+    os.system(' '.join(args))
+
 
 if __name__ == '__main__':
     run()
