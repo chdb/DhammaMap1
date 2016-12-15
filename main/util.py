@@ -57,13 +57,13 @@ def getEmailRegex():
 # class Config (object):
 DEVT = not os.environ.get('SERVER_SOFTWARE', '').startswith('Google App Eng')
 VERid = os.environ.get('CURRENT_VERSION_ID')
-VERname = VERid.split('.')[0]
+VERname = VERid.split('.')[0] if VERid else None
 
 if DEVT:
     import calendar
     VERtimeStamp = calendar.timegm(datetime.utcnow().timetuple())
 else:
-    VERtimeStamp = long(VERid.split('.')[1]) >> 28
+    VERtimeStamp = long(VERid.split('.')[1]) >> 28 if VERid else None
 logging.debug('####################################################### cur ver id: %r'      , VERid)
 logging.debug('####################################################### cur ver name: %r'    , VERname)
 logging.debug('####################################################### cur ver timestamp: %r',VERtimeStamp)

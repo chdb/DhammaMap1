@@ -19,7 +19,7 @@ from security import pwd
 #import config
 import logging
 from main import app
-import config
+#import config
 
 login_manager = flog.LoginManager()  # pylint: disable=invalid-name
 
@@ -27,7 +27,6 @@ login_manager = flog.LoginManager()  # pylint: disable=invalid-name
 class AnonymousUser(flog.AnonymousUserMixin):  # pylint: disable=no-init, too-few-public-methods
     """By default, when a user is not actually logged in, current_user is set to
     an AnonymousUserMixin object. It has the following properties and methods:
-
         is_active and is_authenticated are False
         is_anonymous is True
         get_id() returns None
@@ -106,19 +105,16 @@ def is_admin():
 
 
 def is_authorized(user_key):
-    """Convenient method for finding out if curretly logged user has given user_key
-    or is admin"""
+    """Convenient method for finding out if curretly logged user has given user_key or is admin"""
     return current_user_key() == user_key or is_admin()
 
 
 def create_oauth_app(service_config, name):
-    """Creates oauth app for particaular web service
-
-    Args:
-        service_config (dict): config required for creating oauth app
-        name (string): name of the service, e.g github
+    """Creates oauth app for particular web service
+    Args: service_config (dict): config required for creating oauth app
+          name         (string): name of the service, e.g github
     """
-    for i in config.CONFIG_DB.authProviders:
+    for i in app.config.CONFIG_DB.authProviders:
         if i.name == name:
             service_config['consumer_key'] = i.id
             service_config['consumer_secret'] = i.secret_
@@ -197,7 +193,7 @@ def create_user_db(auth_id, name, username, email='', verified=True, password=''
               , **ka
               )
     usr.put()
-    if config.CONFIG_DB.notify_on_new_user_:
+    if app.config.CONFIG_DB.notify_on_new_user_:
         task.sendNewUserEmail(usr)
     return usr
 

@@ -40,23 +40,23 @@ class AuthId (ndb.Model):
     """AuthID holds a user's auth id - an identifying string used for login.
     But the string is saved as the id of the entity's key - not in a property.
     We model a many to one relationship - one user may have multiple authIDs, 
-    but each will have the same userId preoperty 
-    and each authId key string must have different prefix (before ':'). 
+    but each will have the same userId property 
+    and each authId key string must have different prefix (before ':') as specified by config.authNames 
     Examples:
-         - own:myusername
-         - ema:myemail@example.com
-         - google:g-username
-         - yahoo:y-username
+          _u:myusername
+          _e:myemail@example.com
+          gg:google-user-id
+          yh:yahoo-user-id
     Each auth_id must be unique across all users - not already taken by any other user
     """
-    userId = ndb.IntegerProperty() # the Key for the 
+    userId = ndb.IntegerProperty() # the Key id for the User entity associated with this AuthID
     
     @classmethod
     #@ndb.transactional #todo - commented out - because _create is private and we only call it from a transactional User.create() - is this ok  ?
     def create (C, authId, userId): 
         ''' create the AuthKey this keyStr, 
             else if it already exists, raise NotUnique
-         '''
+        '''
         assert ':' in authId
         k = ndb.Key(C, authId)
         ent = k.get() 

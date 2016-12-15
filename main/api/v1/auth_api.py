@@ -7,7 +7,7 @@ from flask_restful import inputs, Resource
 from flask import g, abort
 import util
 import auth
-import config
+from model.config import CONFIG_DB
 from model import user as u
 import task
 from main import API
@@ -30,17 +30,17 @@ class SignupAPI(Resource):
         args = rqParse( rqArg('email'   ,vdr=u.emailUniqueVdr  , required=True)
                       , rqArg('username',vdr=u.usrnameUniqueVdr, required=True)
                       , rqArg('password',vdr=v.password_span   , required=True)
-                      , rqArg('remember',type=inputs.boolean, default=False)
+                      , rqArg('remember',type=inputs.boolean   , default=False)
                       )
-        usr = u.User.create( username=args.username
-                           , email_=args.email
-                           , isVerified_= not config.CONFIG_DB.verify_email
-                           , pwdhash__=pwd.encrypt(args.password)
+        usr = u.User.create( username   =args.username
+                           , email_     =args.email
+                           , isVerified_= not CONFIG_DB.verify_email
+                           , pwdhash__  =pwd.encrypt(args.password)
                            )
-        if config.CONFIG_DB.notify_on_new_user_:
+        if CONFIG_DB.notify_on_new_user_:
             task.sendNewUserEmail(usr)
 
-        if config.CONFIG_DB.verify_email:
+        if CONFIG_DB.verify_email:
             task.sendVerifyEmail(usr)
             return ok()
         # if users don't need to verify email, we automaticaly signin newly registered user
@@ -72,7 +72,7 @@ class SignoutAPI(Resource):
         """Signs out user. Also it sends back a public config object to update client in case
         previous user was admin and so client config object included private data"""
         auth.signOut()
-        app_config = config.CONFIG_DB.toDict()
+        app_config = CONFIG_DB.toDict()
         return app_config
 
 

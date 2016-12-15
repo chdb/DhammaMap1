@@ -6,7 +6,7 @@ import logging
 import flask
 from google.appengine.api import mail #pylint: disable=import-error
 from google.appengine.ext import deferred #pylint: disable=import-error
-import config
+from model.config import CONFIG_DB
 import util
 
 
@@ -17,9 +17,9 @@ def sendEmail(subject, body, toEma=None, subjTag=None, **ka):
             toEma   (string, optional)  : Email to, if omitted will send email to admin ema
             **kwargs                    : Arbitrary keyword arguments.
     """
-    if config.CONFIG_DB.admin_email_:
-        site_name = config.CONFIG_DB.site_name
-        adminEma  = '%s <%s>' % (site_name, config.CONFIG_DB.admin_email_)
+    if CONFIG_DB.admin_email_:
+        site_name = CONFIG_DB.site_name
+        adminEma  = '%s <%s>' % (site_name, CONFIG_DB.admin_email_)
         toEma = toEma or adminEma
         subject = '[%s: %s] %s' % (site_name, subjTag, subject) if subjTag else\
                   '[%s] %s'     % (site_name, subject)
@@ -76,7 +76,7 @@ def sendResetEmail(usr):
     toEma = '%s <%s>' % (usr.username, usr.email_)
     body = reset_text % { 'name': usr.username
                         , 'link': flask.url_for('user_reset', token=usr.token__, _external=True)
-                        , 'siteName': config.CONFIG_DB.site_name,
+                        , 'siteName': CONFIG_DB.site_name,
                         }
     sendEmail('Reset your password', body, toEma)
 
@@ -93,7 +93,7 @@ def sendVerifyEmail(usr):
 
     toEma = usr.email_
     body = verify_text % { 'link': flask.url_for('user_verify', token=usr.token__, _external=True)
-                         , 'siteName': config.CONFIG_DB.site_name,
+                         , 'siteName': CONFIG_DB.site_name,
                          }
     sendEmail('Verify your email', body, toEma)
 

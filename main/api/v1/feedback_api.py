@@ -4,7 +4,7 @@ from flask_restful import reqparse, Resource
 from flask import abort
 from main import API
 import task
-import config
+from model.config import CONFIG_DB
 from api.helpers import ok, rqArg, rqParse
 from api.decorators import verify_captcha
 import validators as vdr
@@ -16,7 +16,7 @@ class FeedbackAPI(Resource):
     @verify_captcha('feedbackForm')
     def post(self):
         """Sends feedback email to admin"""
-        if not config.CONFIG_DB.admin_email_:
+        if not CONFIG_DB.admin_email_:
             return abort(418)
         
         args = rqParse( rqArg('message', vdr=vdr.feedback_span, required=True)

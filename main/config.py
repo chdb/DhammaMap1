@@ -8,12 +8,6 @@ import util
 import logging   
 
 
-from model.config import Config # NB The model module needs to be imported *after* setting CURRENT_VERSION_TIMESTAMP,
-            # since model.ndbModelBase uses it as default value for version_r property
-CONFIG_DB   = Config.get_master_db()
-SECRET_KEY  = CONFIG_DB.flask_secret.encode('ascii')
-#model.AuthProvider.init()
-
 #from jinja_boot import set_autoescape
 from collections import namedtuple
 

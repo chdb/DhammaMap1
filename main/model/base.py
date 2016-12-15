@@ -4,7 +4,7 @@
 from __future__ import absolute_import
 from google.appengine.ext import ndb
 
-import config
+#import config
 from datetime import date
 import util
 import logging  
@@ -49,8 +49,8 @@ class ndbModelBase(ndb.Model):
         
         bad = util.deepFindKey(ka, lambda k: k.endswith('_r'))
         if bad:
-            logging.warning ('Invalid update: contains read-only fields: %r', bad)
-            raise ValueError('Invalid update')
+           # logging.warning ('Invalid update: contains read-only fields: %r', bad)
+            raise ValueError('Invalid update: contains read-only fields: %r'% bad)
             
 #        ka = {k:v for k,v in ka.iteritems() if k in _s._properties} # remove extra properties at  root level
 #        ka = util.deepFilter (ka, lambda k,v : not k.endswith('_r')) # exclude read-only properties at all levels

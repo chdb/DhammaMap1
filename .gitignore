@@ -2,6 +2,7 @@
 *.pyo
 .DS_Store
 bower_components
+main/secret.py
 main/index.yaml
 main/templates/script.html
 main/lib

@@ -6,6 +6,7 @@ import flask
 from main import app
 import auth
 import model.user as users
+from model.config import CONFIG_DB
 import config
 import validators
 import util
@@ -30,7 +31,7 @@ def inject_user():
 def inject_config():
     """Inject 'app_config' variable into jinja template, so it can be passed into angular. See base.html"""
     #config_properties = Config.get_all_properties() if auth.is_admin() else Config.get_public_properties()
-    app_config = config.CONFIG_DB.toDict(not auth.is_admin())
+    app_config = CONFIG_DB.toDict(not auth.is_admin())
     return { 'app_config': app_config 
            , 'authNames' : config.authNames
            }

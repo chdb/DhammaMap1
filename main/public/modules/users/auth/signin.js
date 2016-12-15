@@ -35,13 +35,13 @@
 				else if (resp.user)// redirect:	window.location = resp.nextUrl;	
 				{	var category;
 					//console.log('user', user);
-					if (!resp.user.isVerified_) 
+					if (! resp.user.isVerified_) 
 					{	gaToast.show('Your email isn\'t verified yet.', 
 						{	action : 'Resend Email',
 							delay  : 5000
 						}).then(ctrl.resendEmail);
 						category = 'unverified';
-					} else if (!resp.user.isActive_) 
+					} else if (! resp.user.isActive_) 
 					{	gaToast.show('Your account has been blocked. Please contact administrators to find out why.');
 						category = 'blocked';
 					} else 

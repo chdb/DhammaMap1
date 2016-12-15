@@ -12,7 +12,7 @@ import model.user as user
 from werkzeug import exceptions
 import validators as vdr
 import logging
-import config
+from model.config import CONFIG_DB
 
 
 def verify_captcha(form_name):
@@ -24,7 +24,7 @@ def verify_captcha(form_name):
     def decorator(func):  # pylint: disable=missing-docstring
         @functools.wraps(func)
         def decorated_function(*pa, **ka):  # pylint: disable=missing-docstring
-            if form_name in config.CONFIG_DB.recaptcha_forms:
+            if form_name in CONFIG_DB.recaptcha_forms:
                 rqParse(rqArg('captcha', vdr=vdr.captchaVdr, required=True))
             return func(*pa, **ka)
 

@@ -4,7 +4,7 @@
 import flask
 
 import auth
-import config
+#import config
 from model.user import User
 from main import app
 

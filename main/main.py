@@ -3,14 +3,30 @@
 Initializes flask server and assigns all routes by importing modules
 """
 import flask
-import config
+#import config
 import util
+from model.config import Config # NB The model module needs to be imported *after* setting CURRENT_VERSION_TIMESTAMP,
+            # since model.ndbModelBase uses it as default value for version_r property
 
 app = flask.Flask(__name__) # pylint: disable=invalid-name
 # note:Flask server doesn't need DEBUG parameter while developing, since server restarting is taken care by GAE SDK
 
-config.DEVELOPMENT = util.DEVT
+
+#SECRET_KEY  = CONFIG_DB.flask_secret.encode('ascii')
+#model.AuthProvider.init()
+
+class Config(object):
+    DEVELOPMENT = util.DEVT
+    SECRET_KEY  = util.randomB64()
+    CONFIG_DB = Config.get_master_db()
+
+config = Config()
 app.config.from_object(config)
+
+util.debugDict(config,'my config ')
+
+util.debugDict(app.config,'flask app config ')
+
 
 app.jinja_env.line_statement_prefix = '#'
 app.jinja_env.line_comment_prefix  = '##'

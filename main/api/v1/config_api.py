@@ -4,7 +4,7 @@ from flask_restful import Resource
 
 from main import API
 from flask import request
-from config import CONFIG_DB
+from model.config import CONFIG_DB
 #from model import Config
 import util
 from api.helpers import ok
