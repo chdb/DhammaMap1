@@ -5,7 +5,7 @@
     module.controller('SidenavController', function($scope, $mdSidenav, gaAuth, gaAppConfig, Restangular,
                                                     gaToast, $mdDialog, $timeout) {
         $scope.auth = gaAuth;
-        $scope.cfg = gaAppConfig;
+        //$scope.cfg = gaAppConfig;
 		  //console.log(gaAppConfig);
         $scope.closeSidenav = function() {
             $mdSidenav('leftSidenav').close();

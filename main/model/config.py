@@ -7,7 +7,6 @@ from google.appengine.api import app_identity
 #import config
 from model import base #, ConfigAuth
 import util
-import logging
 
 # class AuthProvider (ndb.Model):
     # name   = ndb.StringProperty()
@@ -81,7 +80,7 @@ class Config(base.ndbModelBase):
     def toDict(self, nullVals=False):
         """Creates dict representation of config model plus some other config props """        
         d = self.toDict_(publicOnly=False, nullprops=nullVals)
-        d['development'] = util.DEVT
+    #    d['development'] = util.DEVT
         d['has_feedback']= bool(self.admin_email_) 
       #  d['authProviders'] = _apDict(d['authProviders'])
         

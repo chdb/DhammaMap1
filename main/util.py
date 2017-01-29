@@ -7,7 +7,7 @@ import os
 import base64
 import logging
 import time as tim
-from datetime import datetime
+#from datetime import datetime
 
 # The conde in index.py sends this serverside email regex to clientside along with other validators 
 # Note that currently, email fields on clientside forms dont use it.  Instead they will use the regex provided by AngularJS
@@ -53,21 +53,6 @@ def getEmailRegex():
         
     # return AngularJS email regex, or our own one, if not found.    
     return findNgEMAIL_REGEXP() or EMAIL_REGEX
-
-# class Config (object):
-DEVT = not os.environ.get('SERVER_SOFTWARE', '').startswith('Google App Eng')
-VERid = os.environ.get('CURRENT_VERSION_ID')
-VERname = VERid.split('.')[0] if VERid else None
-
-if DEVT:
-    import calendar
-    VERtimeStamp = calendar.timegm(datetime.utcnow().timetuple())
-else:
-    VERtimeStamp = long(VERid.split('.')[1]) >> 28 if VERid else None
-logging.debug('####################################################### cur ver id: %r'      , VERid)
-logging.debug('####################################################### cur ver name: %r'    , VERname)
-logging.debug('####################################################### cur ver timestamp: %r',VERtimeStamp)
-logging.debug('####################################################### cur ver datetime: %r', datetime.utcfromtimestamp(VERtimeStamp))
 
 # def ConfigFactory(_x = Config() ) : return _x
     
@@ -219,12 +204,13 @@ def deepFindKey (c, pred):
                 _deepFindKey(v, pred)
         elif isinstance(c, list):
             for i in c:
-                _deepFindKey(i, pred)   
-                
+                _deepFindKey(i, pred)            
     res = []
     _deepFindKey (c, pred)
     return res
-         
+    
+def disjointDictKeys(d1, d2):    
+    return not d1.viewkeys() & d2.viewkeys() # '&' returns the intersection as a python set  
     
 def pyProperties(cls):
     '''return a list of names of all the python properties in cls
@@ -232,8 +218,8 @@ def pyProperties(cls):
     but they can also be created using property() built-in function, and in other arcane ways. 
     '''
     return [k for k, v in vars(cls).items() if isinstance(v, property)]
-
-def debugList (lst, label):
+    
+def debugList (lst, label=None):
     logging.debug('%s +++++++++++++++++++++++++++++++++++', label)
     if lst and hasattr(lst,'__iter__'):
         for i in lst:
@@ -242,7 +228,7 @@ def debugList (lst, label):
         logging.debug('%r', lst)
     logging.debug('+++++++++++++++++++++++++++++++++++++++++++')
 
-def debugDict (d, label):
+def debugDict (d, label=None):
     logging.debug('%s +++++++++++++++++++++++++++++++++++', label)
     if d and hasattr(d,'iteritems'):
         for k,v in d.iteritems():

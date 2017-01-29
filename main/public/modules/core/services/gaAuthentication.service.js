@@ -42,6 +42,9 @@
 						// {	console.log (u);
 							// return '//gravatar.com/avatar/'+u.hash+'?d=identicon&r=x&s='+size;
 						// }
+						
+						//localStorage.setItem('dwsession', authToken);
+						
 						return u.user;
 					}
 		, authProviderName : function(authId)

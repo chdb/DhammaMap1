@@ -1,13 +1,16 @@
 <footer layout="row" layout-padding class="footer" role="contentinfo">
     <p flex layout="column" layout-align="center center">
-        # if current_user.isAdmin_
         <small>
-            Version: {{config.CURRENT_VERSION_NAME}}
-            (
-            <time datetime="{{config.CURRENT_VERSION_DATE}}">{{config.CURRENT_VERSION_DATE}}</time>
-            )
-        </small>
-        # endif
-        <small>&copy; 2015 - {{config.CONFIG_DB.site_name}} code is licensed under the MIT License</small>
+			# if current_user_isAdmin_
+				Version: {{config.CURRENT_VERSION_NAME}}
+				(issued:
+				<time datetime="{{config.CURRENT_VERSION_DATE[:-9]}}T{{
+								  config.CURRENT_VERSION_DATE[-8:]}}">   <!--for machine format we replace space with 'T' between date and time (last 8 chars) -->
+								{{config.CURRENT_VERSION_DATE}}</time>
+				)
+			# endif
+			<br>
+			&copy; 2017 - {{config.site_name}} code is licensed under the MIT License
+		</small>
     </p>
 </footer>

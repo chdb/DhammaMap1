@@ -5,7 +5,7 @@
     module.controller('FeedbackController', function($scope, Restangular, gaToast, gaAppConfig, gaAuth,
                                                      gaBrowserHistory) {
         var ctrl = this;
-        $scope.cfg = gaAppConfig;
+        //$scope.cfg = gaAppConfig;
 
         if (! $scope.cfg.has_feedback) {//jscs:disable requireCamelCaseOrUpperCaseIdentifiers
             gaBrowserHistory.back();

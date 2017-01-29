@@ -10,7 +10,7 @@
         }
 
         var ctrl = this;
-        $scope.cfg = gaAppConfig;
+        //$scope.cfg = gaAppConfig;
         $scope.captchaControl = {};
 
         $scope.signin = function() 

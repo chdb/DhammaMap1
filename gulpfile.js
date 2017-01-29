@@ -27,8 +27,8 @@
     var htmlhint	= require('gulp-htmlhint');
     var templateCache=require('gulp-angular-templatecache');
     var zip			= require('gulp-zip');
-	var gutil = require('gulp-util');
-	gutil.log('Hello world!');
+	var gutil 		= require('gulp-util');
+	//gutil.log('Hello world!');
 	
     // Frontend Paths
     var rootDir 	= 'main';
@@ -223,11 +223,24 @@
     {	del(['bower_compenents', 'node_modules', publicLibDir, distDir, venvDir, pyLibDir]);
     });
 	
+	var getArg = function (key) 
+	{	if (key[0] !== '-') throw 'invalid key name';
+		var index = process.argv.indexOf(key);
+		var next  = process.argv[index + 1];
+		return (index < 0) ? null : (!next || next[0] === "-") ? true : next;
+	};
+	
 	var runServer_ = function(skipChecks) 
-    {	var execStr = 'python -u run.py';
+    {	
+		for (var i = 0; i < process.argv.length; i++)
+			gutil.log(i + ': ' + process.argv[i]);
+		var execStr = 'python -u run.py';
 		if (skipChecks)
 			execStr	+= ' --skip-checks';
-		execStr	+= ' --appserver-args --log_level=debug';
+		execStr	+= ' --appserver-args';
+		for (var i = 3; i < process.argv.length; i++)
+			execStr	+= ' ' + process.argv[i];
+
 		var proc = exec(execStr);
         proc.stderr.on('data', function(data) 
         {	process.stderr.write(data);
@@ -235,7 +248,8 @@
         proc.stdout.on('data', function(data) 
         {	process.stdout.write(data);
         });
-    };	
+    };
+	
     gulp.task(  'run-server', function() {runServer_(false)});
     gulp.task('rerun-server', function() {runServer_(true )});
 

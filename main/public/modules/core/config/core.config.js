@@ -6,10 +6,11 @@
 
     module.config(function($locationProvider, RestangularProvider, $mdThemingProvider) 
     {	$locationProvider.html5Mode(false);
-
+		var authToken = localStorage.getItem('dwsession');
         RestangularProvider
             .setBaseUrl('/api/v1')
-            .setRestangularFields( { id : '_k' } ); //used in calls to Restangular.one(...).get()
+            .setRestangularFields({ id : '_k' }) //used in calls to Restangular.one(...).get()
+			.setDefaultHeaders({ authentication: 'bearer ' + authToken });
 
         $mdThemingProvider.theme('default')
             .primaryPalette('indigo')
@@ -17,13 +18,14 @@
     });
 
     module.run(function(Restangular, gaToast, $state, $rootScope, $timeout, gaFlashMessages, _,
-                        gaAuth, gaBrowserHistory) 
+                       gaAppConfig, gaAuth, gaBrowserHistory) 
     {	var loadingPromise;
         var endLoading = function() 
         {	$timeout.cancel(loadingPromise);
             $rootScope.isLoading = false;
         };
-
+		$rootScope.cfg = gaAppConfig;
+		
         if (gaAuth.loggedIn()) 
         	gaAuth.user = Restangular.restangularizeElement(null, gaAuth.user, 'users');
 

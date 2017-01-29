@@ -10,6 +10,7 @@ from model.config import CONFIG_DB
 import config
 import validators
 import util
+import logging
 
 @app.route('/')
 def index():
@@ -24,6 +25,7 @@ def inject_user():
     if auth.is_logged_in():
         user = auth.currentUser().toDict(publicOnly=False)
     util.debugDict(user, "auth.currentUser" )
+    logging.debug('inject user')
     return { 'user': user }
 
 
@@ -32,6 +34,7 @@ def inject_config():
     """Inject 'app_config' variable into jinja template, so it can be passed into angular. See base.html"""
     #config_properties = Config.get_all_properties() if auth.is_admin() else Config.get_public_properties()
     app_config = CONFIG_DB.toDict(not auth.is_admin())
+    logging.debug('inject config')
     return { 'app_config': app_config 
            , 'authNames' : config.authNames
            }
@@ -43,6 +46,7 @@ def inject_validators():
     This is so that client and server can both recreate same ie functionally equivalent validators. 
     However custom validators cannot be passed but generally these are only applied server side
     """
+    logging.debug('inject valid')
     return { 'validators' : validators.to_dict(validators) }
 
            

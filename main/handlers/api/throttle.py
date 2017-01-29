@@ -8,7 +8,7 @@ import util as ut
 from werkzeug import exceptions as exc
 
         
-def rateLimit (fn):
+def rateLimit (fn): # decorator
     #@cookies 
     def _rateLimit (handler, *pa, **ka):        # handler is for handler
         ipa = request.remote_addr

@@ -1,11 +1,11 @@
-# if config.DEVELOPMENT
+# if config.development
     <!-- inject:js -->
     <!-- endinject -->
 # else
-    <script src="/p/dist/libs.min.js?{{ config.CURRENT_VERSION_ID }}"></script>
-    <script src="/p/dist/scripts.min.js?{{ config.CURRENT_VERSION_ID }}"></script>
-    <script src="/p/dist/templates.js?{{ config.CURRENT_VERSION_ID }}"></script>
+    <script src="/p/dist/libs.min.js?{{config.CURRENT_VERSION_ID }}"></script>
+    <script src="/p/dist/scripts.min.js?{{config.CURRENT_VERSION_ID }}"></script>
+    <script src="/p/dist/templates.js?{{config.CURRENT_VERSION_ID }}"></script>
 # endif
-# if config.DEVELOPMENT
+# if config.development
     <script src="http://{{ request.host.split(':')[0] }}:35729/livereload.js"></script>
 # endif

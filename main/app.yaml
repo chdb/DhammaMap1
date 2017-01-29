@@ -13,10 +13,15 @@ inbound_services:
 - warmup
 
 libraries:
-- name: jinja2
-  version: latest
+- { name: webapp2  , version: latest }
+- { name: webob    , version: latest }
+- { name: jinja2   , version: latest }
 
 handlers:
+- url: /_ah/warmup
+  script: main.app
+  login: admin
+  
 - url: /favicon.ico
   static_files: public/modules/core/img/favicon.ico
   upload: public/modules/core/img/favicon.ico

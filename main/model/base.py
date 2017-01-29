@@ -7,26 +7,31 @@ from google.appengine.ext import ndb
 #import config
 from datetime import date
 import util
+from env import ENV
 import logging  
 
 class ndbModelBase(ndb.Model):
-    """ndbModelBase model class, it should always be extended
-    Attributes:
-        created_r (ndb.DateTimeProperty)  : DateTime when model instance was created
-        modified_r (ndb.DateTimeProperty) : DateTime when model instance was last time modified
-        version_r (ndb.IntegerProperty)   : version of app
     """
-    created_r = ndb.DateTimeProperty(auto_now_add=True)
-    modified_r= ndb.DateTimeProperty(auto_now=True)
-    version_r = ndb.IntegerProperty (default=util.VERtimeStamp)
+    Properties of ndbModelBase and subclasses can have the following suffixes which server code will 
+    use to govern client behaviour.The sufffixes subdivide model properties into 4 groups 
+        _r      : readonly - visible but not to be modified by client
+        __      : hidden - not visible (and not sent) to any client
+        _       : private - visible only to privileged clients (administrators)
+        (none)  : public - the attribute is visible and modifiable
+    """
+    created_r  = ndb.DateTimeProperty(auto_now_add=True)         # when model instance was created
+    modified_r = ndb.DateTimeProperty(auto_now=True)             # when model instance was last modified
+    version_r  = ndb.IntegerProperty (default=ENV['CURRENT_VERSION_TIMESTAMP']) # app version number 
     
     def toDict_(_s, publicOnly, nullprops=False):
-        """Return a dict containing the entity's property values, so it can be passed to client
-        Args:		include (list, optional): Set of property names to include, default all properties
+        """Return a dict containing the entity's property values, to be passed to client
+        publicOnly:	true excludes hidden and private properties
+                    false includes private but not hidden properties
+        nullProps:  whether to include properties with value None (useful if client need property names)
         """
         suffix = '_' if publicOnly else '__'
               
-        data, filtrate = util.deepFilter ( _s.to_dict() 
+        data, filtrate = util.deepFilter ( _s.to_dict() # defined in ndb.Model 
             , lambda k,v: not k.endswith(suffix)
                           and (v or nullprops or isinstance(v, bool))   # unless nullprops or boolean, exclude items with falsy values EG '' or None
             , lambda k,v: v.isoformat() if isinstance(v, date) else v   # convert date type values to a string repr

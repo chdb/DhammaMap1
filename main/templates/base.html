@@ -2,7 +2,7 @@
 <html class="ng-cloak" lang="en">
 <head>
     # include 'bit/meta.html'
-    <title>{{ config.CONFIG_DB.site_name }}</title>
+    <title>{{config.site_name }}</title>
     # include 'bit/style.html'
     # block head
     # endblock
@@ -10,38 +10,41 @@
 </head>
 
 <body layout="row" layout-fill>
-<md-sidenav md-is-locked-open="$mdMedia('gt-md')" 
-			md-component-id="leftSidenav"
-            ng-include="'/p/modules/core/layout/sidenav.html'"
-            class="md-sidenav-left sidenav-left md-whiteframe-z2">
-</md-sidenav>
-<div layout="column" role="main" flex>
-    <md-toolbar>
-        <div ng-controller="HeaderController" 
-			 ng-include="'/p/modules/core/layout/header.html'">
-		</div>
-    </md-toolbar>
-    <md-content flex md-scroll-y
-                lr-infinite-scroll="mainContentScrolled" 
-				scroll-threshold="200"
-				id="mainBox"
-                class="md-padding main-content">
-        # block content
-        # endblock
-        # include 'bit/footer.html'
-    </md-content>
+## qqq {{config.site_name }} qqq
+<div>
+	<md-sidenav md-is-locked-open="$mdMedia('gt-md')" 
+				md-component-id="leftSidenav"
+				ng-include="'/p/modules/core/layout/sidenav.html'"
+				class="md-sidenav-left sidenav-left md-whiteframe-z2">
+	</md-sidenav>
 </div>
-# include 'script.html'
-# block scripts
-# endblock
-<script type="text/javascript">
-    var module = angular.module('Dhamma Map');
-	//register these values as injectable services 
-    module.value('gaAuthUser'	  ,{{                  user | tojson | safe}});
-    module.value('gaAppConfig'	  ,{{            app_config | tojson | safe}});
-    module.value('gaAuthNames'	  ,{{             authNames | tojson | safe}});
-    module.value('gaValidators'   ,{{            validators | tojson | safe}});
-    module.value('gaFlashMessages',{{get_flashed_messages() | tojson | safe}});
-</script>
+	<div layout="column" role="main" flex>
+		<md-toolbar>
+			<div ng-controller="HeaderController" 
+				 ng-include="'/p/modules/core/layout/header.html'">
+			</div>
+		</md-toolbar>
+		<md-content flex md-scroll-y
+					lr-infinite-scroll="mainContentScrolled" 
+					scroll-threshold="200"
+					id="mainBox"
+					class="md-padding main-content">
+			# block content
+			# endblock
+			# include 'bit/footer.html'
+		</md-content>
+	</div>
+	# include 'script.html'
+	# block scripts
+	# endblock
+	<script type="text/javascript">
+		var module = angular.module('Dhamma Map');
+		//register these values as injectable services 
+		module.value('gaAuthUser'	  ,{{                  user | tojson | safe}});
+		module.value('gaAppConfig'	  ,{{                config | tojson | safe}});
+		module.value('gaAuthNames'	  ,{{             authNames | tojson | safe}});
+		module.value('gaValidators'   ,{{            validators | tojson | safe}});
+		module.value('gaFlashMessages',{{get_flashed_messages() | tojson | safe}});
+	</script>
 </body>
 </html>

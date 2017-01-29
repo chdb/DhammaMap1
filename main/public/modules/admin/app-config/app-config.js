@@ -133,22 +133,22 @@
 			
 			var ng = angular;
 			
-			var fn = function (cfg, cfg0)
+			var diff = function (cfg, cfg0)
 			{ 	ng.forEach(cfg, function(v,k)
 				{ 	
 					var v0 = cfg0[k];
 					if (_.isEqual(v, v0)) 
 					{	//delete $scope.cfg[k];
 						delete cfg[k];
-						console.log('deleted: '+k); 
+						//console.log('deleted: '+k); 
 					}			
 					else if(ng.isObject(v))
-					 	fn(v, v0); 
+					 	diff(v, v0); 
 				});
 			};
-			console.log('cfg0: ',cfg0); 
-			fn(cfg, cfg0);
-			console.log('cfg: ',cfg); 
+			//console.log('cfg0: ',cfg0); 
+			diff(cfg, cfg0);
+			//console.log('cfg: ',cfg); 
 			
 			cfg = Restangular.restangularizeElement (null, cfg, 'config');
 			

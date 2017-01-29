@@ -2,12 +2,9 @@
 """
 Global config variables. Config variables stored in DB are loaded into CONFIG_DB variable
 """
-import os
 #pylint: disable=import-error
 import util
-import logging   
-
-
+from env import ENV
 #from jinja_boot import set_autoescape
 from collections import namedtuple
 
@@ -97,60 +94,75 @@ cfg_={'DebugMode'         : True    #if True, uncaught exceptions are raised ins
                                # }
     }
 cfg_['Signup'] = cfg_['Forgot']
+        
 
+def init():
+    util.debugDict(ENV)
+    util.debugDict(cfg_)
+    
+    assert util.disjointDictKeys(ENV, cfg_), '1) No key should be in both dicts.'
+ 
+ #   cfg.update(cfg_)   # todo remove or stringify functions etc  - not jsonisable
+                        # also, for security, throttle settings are admin only
+                        
+    from model.config import CONFIG_DB # NB The model module needs to be imported *after* setting CURRENT_VERSION_TIMESTAMP,
+            # since model.ndbModelBase uses it as default value for version_r property
+
+    cfg = CONFIG_DB.toDict()
+    assert util.disjointDictKeys(cfg, ENV), '2) No key should be in both dicts.'
+    cfg.update(ENV)
+
+    return cfg
+    
+ 
 class TwoWayDict(dict):
     def __setitem__(_s, key1, key2):
         # Remove any previous connections with these keys
         if not key1.endswith(':'):
-            raise ValueError
+            raise ValueError('key1 is invalid')
         if key1 in _s:
-            raise ValueError
+            raise ValueError('key1 not unique')
         if key2 in _s:
-            raise ValueError
+            raise ValueError('key2 not unique')
         dict.__setitem__(_s, key1, key2)
         dict.__setitem__(_s, key2, key1)
 
 
 authNames = TwoWayDict()
 # follow the convention: all short names end in ':' (and long names dont)
-# follow the convention: all builtin names start with '_' (short and long names, both)
+# follow the convention: all builtin names start with '_' (both short and long names)
 authNames ['_e:'] = '_email'
 authNames ['_u:'] = '_userName'
+authNames ['tt:'] = 'twitter'       # OAuth 1.0a
+authNames ['fb:'] = 'facebook'      # OAuth 2.0
+authNames ['gg:'] = 'google'        # OAuth 2.0
+authNames ['gh:'] = 'github'        # OAuth 2.0
+authNames ['li:'] = 'linkedin'      # OAuth 2.0
+authNames ['ig:'] = 'instagram'     # OAuth 2.0 but not yet impl in authomatic
 
-    ## OAuth 1.0a
-# authNames ['bb:'] = 'bitbucket'
-# authNames ['fk:'] = 'flickr'
-# authNames ['pk:'] = 'plurk'
-authNames ['tt:'] = 'twitter'
-# authNames ['tb:'] = 'tumblr'
- ##   'ubuntuone',  # UbuntuOne service is no longer available
-# authNames ['vm:'] = 'vimeo'
-# authNames ['xr:'] = 'xero'
-# authNames ['xg:'] = 'xing'
-# authNames ['yh:'] = 'yahoo'
-
- ##   OAuth 2.0
-# authNames ['am:'] = 'amazon'
- ##  'behance',  # doesn't support third party authorization anymore.
-# authNames ['bl:'] = 'bitly'
-# authNames ['dv:'] = 'deviantart'
-authNames ['fb:'] = 'facebook'
-# authNames ['fs:'] = 'foursquare'
-authNames ['gg:'] = 'google'
-authNames ['gh:'] = 'github'
-authNames ['li:'] = 'linkedin'
-# authNames ['pp:'] = 'paypal'
-# authNames ['rd:'] = 'reddit'
-# authNames ['vk:'] = 'vk'
-# authNames ['wl:'] = 'windowslive'
-# authNames ['ym:'] = 'yammer'
-# authNames ['yd:'] = 'yandex'
-authNames ['ig:'] = 'instagram' # not yet impl in authomatic
- 
-   ## OpenID
-# authNames ['ol:'] = 'openid_livejournal'
-# authNames ['ov:'] = 'openid_verisignlabs'
-# authNames ['ow:'] = 'openid_wordpress'
-# authNames ['oy:'] = 'openid_yahoo'
+# authNames ['bb:'] = 'bitbucket'   # OAuth 1.0a
+# authNames ['fk:'] = 'flickr'      # OAuth 1.0a
+# authNames ['pk:'] = 'plurk'       # OAuth 1.0a
+# authNames ['tb:'] = 'tumblr'      # OAuth 1.0a
+# authNames ['ub:'] = 'ubuntuone'   # OAuth 1.0a but UbuntuOne service is no longer available
+# authNames ['vm:'] = 'vimeo'       # OAuth 1.0a
+# authNames ['xr:'] = 'xero'        # OAuth 1.0a
+# authNames ['xg:'] = 'xing'        # OAuth 1.0a
+# authNames ['yh:'] = 'yahoo'       # OAuth 1.0a
+# authNames ['am:'] = 'amazon'      # OAuth 2.0
+# authNames ['be:'] =  'behance'    # OAuth 2.0 but doesn't support third party authorization anymore.
+# authNames ['bl:'] = 'bitly'       # OAuth 2.0
+# authNames ['dv:'] = 'deviantart'  # OAuth 2.0
+# authNames ['fs:'] = 'foursquare'  # OAuth 2.0
+# authNames ['pp:'] = 'paypal'      # OAuth 2.0
+# authNames ['rd:'] = 'reddit'      # OAuth 2.0
+# authNames ['vk:'] = 'vk'          # OAuth 2.0
+# authNames ['wl:'] = 'windowslive' # OAuth 2.0
+# authNames ['ym:'] = 'yammer'      # OAuth 2.0
+# authNames ['yd:'] = 'yandex'      # OAuth 2.0
+# authNames ['ol:'] = 'openid_livejournal'   # OpenID
+# authNames ['ov:'] = 'openid_verisignlabs'  # OpenID
+# authNames ['ow:'] = 'openid_wordpress'     # OpenID
+# authNames ['oy:'] = 'openid_yahoo'         # OpenID
 
 

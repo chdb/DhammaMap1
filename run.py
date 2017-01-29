@@ -14,18 +14,18 @@ import sys
 # Options ###############################################################################
 
 PARSER = argparse.ArgumentParser()
-PARSER.add_argument(
-    '-o', '--host', default='127.0.0.1'
-	,     help='the host to start the dev_appserver.py'
-	, )
-PARSER.add_argument(
-    '-p', '--port', default='8080'
-	,     help='the port to start the dev_appserver.py'
-	, )
-PARSER.add_argument(
-    '-f', '--flush', action='store_true'
-	,     help='clears the datastore, blobstore, etc'
-	, )
+# PARSER.add_argument(
+    # '-o', '--host', default='127.0.0.1'
+	# ,     help='the host to start the dev_appserver.py'
+	# , )
+# PARSER.add_argument(
+    # '-p', '--port', default='8080'
+	# ,     help='the port to start the dev_appserver.py'
+	# , )
+# PARSER.add_argument(
+    # '-f', '--flush', action='store_true'
+	# ,     help='clears the datastore, blobstore, etc'
+	# , )
 PARSER.add_argument(
     '--skip-checks', dest='skip', action='store_true'
 	,     help='skip the checks before calling dev_appserver.py'
@@ -52,8 +52,8 @@ DIR_LIBX = os.path.join(DIR_MAIN, 'libx')
 FILE_REQUIREMENTS = 'requirements.txt'
 
 FILE_VENV = os.path.join(DIR_VENV, 'Scripts', 'activate.bat') \
-    if IS_WINDOWS \
-    else os.path.join(DIR_VENV, 'bin', 'activate')
+            if IS_WINDOWS else\
+            os.path.join(DIR_VENV, 'bin', 'activate')
 
 DIR_STORAGE = os.path.join(DIR_TEMP, 'storage')
 
@@ -195,28 +195,29 @@ def find_gae_path():
     """Tries to find GAE's dev_appserver.py executable
     Returns:   string: Absolute path of dev_appserver.py or empty string
     """
-    global GAE_PATH
-    if GAE_PATH:
-        return GAE_PATH
-    if IS_WINDOWS:
-        gae_path = None
-        for path in os.environ['PATH'].split(os.pathsep):
-            if os.path.isfile(os.path.join(path, 'dev_appserver.py')):
-                gae_path = path
-    else:
-        gae_path = spawn.find_executable('dev_appserver.py')
-        if gae_path:
-            gae_path = os.path.dirname(os.path.realpath(gae_path))
-    if not gae_path:
-        return ''
-    gcloud_exec = 'gcloud.cmd' if IS_WINDOWS else 'gcloud'
-    if not os.path.isfile(os.path.join(gae_path, gcloud_exec)):
-        GAE_PATH = gae_path
-    else:
-        gae_path = os.path.join(gae_path, '..', 'platform', 'google_appengine')
-        if os.path.exists(gae_path):
-            GAE_PATH = os.path.realpath(gae_path)
-    return GAE_PATH
+    return r'C:\Users\colin\AppData\Local\Google\Cloud SDK\google-cloud-sdk\platform\google_appengine'
+    # global GAE_PATH
+    # if GAE_PATH:
+        # return GAE_PATH
+    # if IS_WINDOWS:
+        # gae_path = None
+        # for path in os.environ['PATH'].split(os.pathsep):
+            # if os.path.isfile(os.path.join(path, 'dev_appserver.py')):
+                # gae_path = path
+    # else:
+        # gae_path = spawn.find_executable('dev_appserver.py')
+        # if gae_path:
+            # gae_path = os.path.dirname(os.path.realpath(gae_path))
+    # if not gae_path:
+        # return ''
+    # gcloud_exec = 'gcloud.cmd' if IS_WINDOWS else 'gcloud'
+    # if not os.path.isfile(os.path.join(gae_path, gcloud_exec)):
+        # GAE_PATH = gae_path
+    # else:
+        # gae_path = os.path.join(gae_path, '..', 'platform', 'google_appengine')
+        # if os.path.exists(gae_path):
+            # GAE_PATH = os.path.realpath(gae_path)
+    # return GAE_PATH
 
 
 def check_gae():
@@ -236,7 +237,7 @@ def check_virtualenv():
 
 def doctor_says_ok():
     """Executes all check functions
-    Returns:  bool: True only iif all chcek functions return True
+    Returns:  bool: True only iif all checker functions return True
     """
     checkers = [check_gae, check_pip, check_virtualenv]
     if False in [check_requirement(check) for check in checkers]:
@@ -245,6 +246,7 @@ def doctor_says_ok():
 
 
 # Main ###############################################################################
+#import logging
 
 def run():
     """Run dev_appserver.py with given arguments
@@ -258,18 +260,22 @@ def run():
             
     os.chdir(os.path.dirname(os.path.realpath(__file__)))    
     make_dirs(DIR_STORAGE)
-    port = int(ARGS.port)
-    args =  [ '"%s"'                % os.path.join(find_gae_path(), 'dev_appserver.py')
+   # port = int(ARGS.port)
+    cmds =  [ '"%s"'                % os.path.join(find_gae_path(), 'dev_appserver.py')
             , DIR_MAIN
-            , '--host %s'           % ARGS.host
-            , '--port %s'           % port
-            , '--admin_port %s'     % (port + 1)
+           # , '--host=%s'           % ARGS.host
+           # , '--port=%s'           % port
+          # , '--admin_port=%s'     % (port + 1)
             , '--storage_path=%s'   % DIR_STORAGE
-            , '--clear_datastore=%s'% ('yes' if ARGS.flush else 'no')
-            , '--skip_sdk_update_check'
+           # , '--clear_datastore=%s'% ('yes' if ARGS.flush else 'no')
+           # , '--skip_sdk_update_check'
             ] + ARGS.args
-            
-    os.system(' '.join(args))
+    print 'cmd line:'
+    n=0
+    for a in cmds:
+        print '%d: %s'%(n,a)
+        n+=1
+    os.system(' '.join(cmds))
 
 
 if __name__ == '__main__':

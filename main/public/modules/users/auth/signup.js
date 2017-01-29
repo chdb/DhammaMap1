@@ -8,7 +8,7 @@
             gaBrowserHistory.back();
         }
 
-        $scope.cfg = gaAppConfig;
+        //$scope.cfg = gaAppConfig;
 		  
         $scope.captchaControl = {};
 		  //console.log($scope.cfg);
