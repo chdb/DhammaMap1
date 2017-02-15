@@ -6,11 +6,12 @@
 
     module.config(function($locationProvider, RestangularProvider, $mdThemingProvider) 
     {	$locationProvider.html5Mode(false);
-		var authToken = localStorage.getItem('dwsession');
+		//var authToken = localStorage.getItem('dwsession');
         RestangularProvider
             .setBaseUrl('/api/v1')
             .setRestangularFields({ id : '_k' }) //used in calls to Restangular.one(...).get()
-			.setDefaultHeaders({ authentication: 'bearer ' + authToken });
+			//.setDefaultHeaders({ authentication: 'bearer ' + authToken })
+			;
 
         $mdThemingProvider.theme('default')
             .primaryPalette('indigo')

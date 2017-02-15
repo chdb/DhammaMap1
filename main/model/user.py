@@ -23,7 +23,7 @@ def _userExists (aId, errmsg, flip=False):
     ref = AuthId.get_by_id (aId) 
     if (ref is None) != flip:
         raise ValueError(errmsg)
-    return aId[3:]
+    return _Id (aId)
     
 def _noUserExists (aId, errmsg) : return _userExists(aId, errmsg, flip=True) 
 
@@ -37,16 +37,16 @@ class NotUnique (ValueError):
     pass
  
 class AuthId (ndb.Model):
-    """AuthID holds a user's auth id - an identifying string used for login.
-    But the string is saved as the id of the entity's key - not in a property.
+    """AuthID holds a user's auth idStr - an identifying string used for login.
+    But the string is saved as the idStr of the entity's key - not in a property.
     We model a many to one relationship - one user may have multiple authIDs, 
     but each will have the same userId property 
     and each authId key string must have different prefix (before ':') as specified by config.authNames 
     Examples:
           _u:myusername
           _e:myemail@example.com
-          gg:google-user-id
-          yh:yahoo-user-id
+          gg:google-user-idStr
+          yh:yahoo-user-idStr
     Each auth_id must be unique across all users - not already taken by any other user
     """
     userId = ndb.IntegerProperty() # the Key id for the User entity associated with this AuthID
@@ -67,10 +67,13 @@ class AuthId (ndb.Model):
         ent.key = k
         ent.put()
     
-def _authId (prefix, id):
+def _authId (prefix, idStr):
     assert prefix.endswith(':')
     assert prefix in config.authNames
-    return prefix + id
+    assert len(prefix) == 3
+    return prefix + idStr
+    
+def _Id (authId): return authId[3:]
 
 def unameId (username): return _authId ('_u:', username)
 def emailId (ema):      return _authId ('_e:', ema.lower()) #NB we convert to lower so searches are case-insensitive
@@ -142,6 +145,9 @@ class User(base.ndbModelBase):
 
 # class User (ndb.model):
      # pwdhash__  = ndb.StringProperty () # Hashed password string. NB not a required prop because third party authentication doesn't use password.
+
+    def id (_s):
+        return _s._key.id()
 
     @staticmethod
     @ndb.transactional(xg=True)

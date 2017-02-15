@@ -2,15 +2,15 @@
 import logging
 import helpers
 from google.appengine.api import memcache
-from flask import request, g
+#from flask import request, g
 from config import cfg_
 import util as ut
-from werkzeug import exceptions as exc
-
+#from werkzeug import exceptions as exc
+from webapp2 import abort
         
 def rateLimit (fn): # decorator
     #@cookies 
-    def _rateLimit (handler, *pa, **ka):        # handler is for handler
+    def _rateLimit (handler, *pa, **ka):
         ipa = request.remote_addr
         ema = g.args.loginId 
         rlt = RateLimiter (ema, ipa, handler)
@@ -18,7 +18,7 @@ def rateLimit (fn): # decorator
             return {'delay': rlt.delay}
         resp = fn (handler, *pa, **ka) # CALL THE HANDLER
         if rlt.tryLock (resp): 
-            raise exc.Unauthorized('These credentials are invalid')
+            abort(401, detail='These credentials are invalid')
         return resp
         #todo: instead of auto unlock after n=locktime seconds, after n send user and email with unlock link 
 

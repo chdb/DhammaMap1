@@ -6,8 +6,9 @@ import hashlib
 import hmac
 import os
 import json
-import utils as u
+import util as u
 import widget as W
+from passlib.utils import consteq
 import logging
 
 from base64 import urlsafe_b64encode\
@@ -156,7 +157,7 @@ def _decode (token):
     data = bytes[ :-MAC]
     mac1 = bytes[-MAC: ] 
     mac2 = _hash (data, ts)
-    badMac = not u.sameStr (mac1, mac2)
+    badMac = not consteq (mac1, mac2)
     data = _deserialize (data [preDataLen: ])
     # logging.debug('data: %r', data)
     return _TokenData (token, ttype, data, badMac, ts)

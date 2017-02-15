@@ -1,23 +1,23 @@
 # coding: utf-8
 # pylint: disable=too-few-public-methods, no-self-use, missing-docstring, unused-argument
-from flask_restful import Resource
-from main import API
-from flask import abort
-import util #import DEVELOPMENT
+# from flask_restful import Resource
+# from main import API
+# from flask import abort
+# import util #import DEVELOPMENT
 import random
 from security import pwd
 import model.user as u
 from google.appengine.ext import ndb #pylint: disable=import-error
-from api.helpers import ok
+from handlers.api.helpers import ok
 import logging
-
-@API.resource('/api/v1/generate_database')
-class GenerateDatabaseAPI(Resource):
+from handlers.basehandler import HBase
+#@API.resource('/api/v1/generate_database')
+class GenerateDatabaseAPI(HBase):
     @ndb.toplevel
     def post(self):
         """Deletes all users and re-generates mock users for development purposes"""
         if not util.DEVT:
-            abort(404) # very important - dont give users the opportunity to destroy our entire user base
+            _s.abort(404) # very important - dont give users the opportunity to destroy our entire user base
        
         def delete_all():
             ndb.delete_multi(u.User  .query().fetch(keys_only=True))

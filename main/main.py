@@ -94,7 +94,9 @@ def route (s, hm=None, ms=None, **ka):
 
     
 rts=[ webapp2.Route('/_ah/warmup', handler=h.H_warmup, name='wu')
-    , webapp2.Route('/'          , handler=h.H_home, name='Home')
+    , webapp2.Route('/'          , handler=h.H_home  , name='Home')
+    , webapp2.Route('/api/v1/auth/signin' , handler=h.api.v1.SigninAPI, name='SigninAPI')
+   # , route ('NoCookie'                )
     ]
     # , route ('NoCookie'                )
     # , route ('Signup'                  )

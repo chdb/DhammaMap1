@@ -39,19 +39,19 @@ def match_regex(string, regex):
     
 class Vdr(object):     
 
-    def init (_s, spec, fn):
+    def init (_s, spec, func):
         def validator (arg1, arg2=None):                   
-            # In ndb the property code calls the validator like this :  value = validator (property, value)  
-            # but rqParse expects this signature                 :      value = validator (value)  
+            #  ndb.property code calls the validator like this :  value = validator (property, value)  
+            # but rqParse expects this signature           :      value = validator (value)  
             if arg2 is not None:
-                value = arg2 
                 assert isinstance(arg1, ndb.Property) 
+                value = arg2 
             else:
                 value = arg1  
             
             # if not required and value == '':  #todo delete - We dont need required param do we?
                 # return ''
-            return fn(value, spec)
+            return func(value, spec)
         
         _s.fn = validator
         _s.specifier = spec
@@ -77,17 +77,35 @@ def to_dict(module):
 feedback_span = lengthVdr([1,2000]) #determining min and max lengths of feedback message sent to admin
 
 # User ####################
+email_MinMax  = [3, 254]
+uname_MinMax  = [3, 40]
+login_MinMax  = [ min( email_MinMax[0]
+                     , uname_MinMax[0] )
+                , max( email_MinMax[1]
+                     , uname_MinMax[1] )
+                ]
+username_span = lengthVdr(uname_MinMax)
+email_span    = lengthVdr(email_MinMax)
+loginId_span  = lengthVdr(login_MinMax)
 name_span     = lengthVdr([0,100])
-username_span = lengthVdr([3, 40])
 password_span = lengthVdr([6, 70])
 bio_span      = lengthVdr([0,140])
 location_span = lengthVdr([0, 70])
 social_span   = lengthVdr([0, 50])
+arithExpr_span= lengthVdr([0, 50])
 
 email_rx  = regexVdr(util.getEmailRegex())
 
 
 ######## Custom Validators ##############################################################
+
+def toBool (v):
+    if type(v) is bool          : return v
+    v = v.lower()
+    if v == 'yes'or v == 'true' : return True
+    if v == 'no' or v == 'false': return False
+    raise ValueError ('Sorry, "%s" is not a valid boolean'% v) 
+    
 
 def captchaVdr (captchaStr):
     """Verifies captcha by sending it to google servers
@@ -129,4 +147,106 @@ def toCursor (cursor):
         raise ValueError('Sorry, invalid cursor.')
     return cursorObj
 
+def simpleArithmeticExpr (expr):
+    # len(fnStr) <= max
+    arithExpr_span.fn (expr)
+   
+    try: 
+        for n in xrange(maxbad):
+            eval_expr(expr, {'n': n})
+    except ValueError:
+        raise
+    except:
+        ei = sys.exc_info()
+    # try:
+        # revert_stuff()
+    # except:
+        # # If this happens, it clobbers exc_info, which is why we had to save it above
+        # import traceback
+        # print >> sys.stderr, "Error in revert_stuff():"
+        # traceback.print_exc()
+    raise ei[0], ei[1], ei[2]
+    
+##################################################
+import ast
+import operator
+import functools
+
+
+def maxIntermediate (max_=None):
+    """ limit magnitude of intermediate results IE at every operation."""
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*pa, **ka):
+            ret = func(*pa, **ka)
+            try:
+                mag = abs(ret) 
+            except TypeError:
+                pass    # ret is a branch node, so limit() is not applicable 
+            else:       # ret is a leaf node IE a number
+                if mag > max_:
+                    raise ValueError('overflow: %d'%ret)
+            return ret
+        return wrapper
+    return decorator
+
+def eval_expr (expr, vals):
+    """ Examples:
+            >>> eval_expr('2^6')
+            4
+            >>> eval_expr('2**6')
+            64
+            >>> eval_expr('1 + 2*3**(4^5) / (6 + -7)')
+            -5.0
+            >>> evil = "__import__('os').remove('important file')"
+            >>> eval_expr(evil) #doctest:+IGNORE_EXCEPTION_DETAIL
+            Traceback (most recent call last):
+            ...
+            TypeError:
+            >>> eval_expr("9**9")
+            387420489
+            >>> eval_expr("9**9**9**9**9**9**9**9") #doctest:+IGNORE_EXCEPTION_DETAIL
+            Traceback (most recent call last):
+            ...
+            ValueError:
+    """
+    def limited_power(a, b):
+        '''to limit input arguments for a**b:'''
+        if abs(b) > 20:
+            raise ValueError('excessive exponent: %r' %b)
+        if abs(a) > 100:
+            raise ValueError('excessive mantissa: %r' %a)
+        return operator.pow(a, b)
+
+    #def getOp(x):
+        # supported operators
+    ops = { ast.Add     : operator.add      # +
+          , ast.Sub     : operator.sub      # -
+          , ast.Mult    : operator.mul      # *
+          , ast.Div     : operator.truediv  # /
+          , ast.FloorDiv: operator.floordiv # //
+          , ast.Pow     : operator.pow      # **    or use limited_power 
+          , ast.USub    : operator.neg      # - (unary)
+          }
+              
+    @maxIntermediate(2**32)
+    def eval_(x): # x:= node in recursive tree
+        if isinstance(x, ast.Num):    
+            return x.n                  # actual number  
+        if isinstance(x, ast.BinOp):    # <left> <operator> <right>
+            return ops[type(x.op)] (eval_(x.left), eval_(x.right))
+        if isinstance(x, ast.UnaryOp):  # <op> <operand> EG Node(-1) has {op: ast.USub,  operand:ast.Num(1)}
+            return ops[type(x.op)] (eval_(x.operand))
+        if hasattr(x,'id'):
+            if isinstance(x, ast.Name):
+                if x.id in vals:
+                    return vals[x.id]
+                raise ValueError("Unrecognised name: %s" % x.id) 
+            raise ValueError("Unrecognised symbol: %s" % x.id) 
+        if isinstance(x, ast.Call):
+            raise ValueError("Unrecognised function: %s" % x.func.id) #)
+        raise ValueError("Unrecognised node at: %s" % expr[x.col_offset : x.col_offset+4])
+        
+    return eval_(ast.parse(expr, mode='eval').body)
+       
 ##################################################################################

@@ -7,6 +7,7 @@ import os
 import base64
 import logging
 import time as tim
+import traceback
 #from datetime import datetime
 
 # The conde in index.py sends this serverside email regex to clientside along with other validators 
@@ -75,7 +76,7 @@ def randomB64(n=15):
 
 
 def create_name_from_email(email):
-    """Function tries to recreate real name from email address
+    """Function tries to recreate a real name from email address
     Examples:     >>> create_name_from_email('bobby.tables@email.com')
                   Bobby Tables
                   >>> create_name_from_email('bobby-tables@email.com')
@@ -97,6 +98,9 @@ def msNow():
 # def dsNow():
     # return int(tim.time()*10) # deciSeconds since epoch.  
 
+def utf8 (uStr):
+    assert isinstance (uStr, unicode)
+    return uStr.encode('utf-8')
 
 # def list_to_dict(input_list):
     # """Creates dictionary with keys from list values
@@ -236,3 +240,9 @@ def debugDict (d, label=None):
     else:
         logging.debug('%r', d)
     logging.debug('+++++++++++++++++++++++++++++++++++++++++++')
+
+def logStackTrace (n=0):
+    depth = -(n+2) if n>0 else 0
+    stacktrace = ''.join(traceback.format_stack()[depth:-2])
+    assert logging.getLogger().isEnabledFor(logging.DEBUG)
+    logging.debug ("TRACE last %d:\n %s", n, stacktrace)

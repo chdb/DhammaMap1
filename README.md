@@ -4,6 +4,7 @@
 * ##### server module structure ...
 	has imports loops and over-complexity 
 	* remove main/__init__.py and create a direct entrypoint in main.py from app.yaml into /main.app 
+	
 	* config is defined in config.py constants and also in model/config.py   
 	then imported into config module rethink and simplify this!
 	What goes into config?
@@ -12,10 +13,13 @@
 		* data that is shared over different modules   
 It is simple and convenient to create some hard-coded configuration data in a config file  
 But some config data is stored in ndb DataStore because  
-		1) main Source Code is not a secure location for cryptographic keys and other secrets because our code base is open-source
-		(Even closed-source code has access issues because its inevitably and habitually saved to a cvs with different/lower security than the DataStore)    
-		2) Its convenient to change some config settings eg throttle settings, via the client, or the GAE dashboard, without having to deploy modified application code
-		(However while some secure data should only be in DataStore, it should not be modifiable in the Client eg Salt)
+		1) main Source Code is not a secure location for cryptographic keys and other secrets because our code base is 
+		open-source	(Even closed-source code has access issues because its inevitably and habitually saved to a cvs with 
+		different/lower security than the DataStore)    
+		2) Its convenient to change some config settings eg throttle settings, via the client, or the GAE dashboard, 
+		without having to deploy modified application code
+		(However while some secure data should only be in DataStore, it should never be modifiable especially in the Client eg Salt, 
+		because if Salt is modified then all passwords become invalid and so we could lose all the users) 
 		
 		* create 2 config files : config-dev in source control, config-prod in gitignore 
 		* use datastore only for config items needing dynamic adjustment IE without uploading restarting instance - therefore needs to be in datastore   
@@ -117,13 +121,34 @@ The logged-in admin user can see and edit all (private and public) non-hidden no
 So she can add or remove admin status from others and herself.
 
 Currently * isAdmin\_ * is a private property of User.  Thats why it ends with __\_ __. 
-Therefore the non-admin user cannot even see explicitly that she is an admin (However it will be obvious from lack of features eg get User List)
+Therefore the non-admin user cannot even see explicitly that she is not an admin (However it will be obvious from lack of features eg get User List)
 But an admin user can remove admin status from self or others. Once it is removed then it can only be replaced by another admin or by using the Google Cloud Dashboard aka Console
 
 Some config setting should not be visible or readonly in the client eg crypto ones, especially Salt .
 Changing salt invalidates all user passwords.
 
-----
+#### template rendering
+We are currently using 2 templating engines - 
+* jinja2 server-side rendering of all html files in **main/templates** and **main/templates/bit**
+* angular client-side rendering of all html files in **main/public**
+
+The jinja2 engine is just doing the rendering for most of the home page. Angular does the rest 
+but also (oddly) some bits of home page that are inserted with **ng-include**
+* /public/modules/core/layout/sidenav.html 
+* /public/modules/core/layout/header.html
+
+So   **footer.html** is at **main/templates/bit**   
+But **header.html** is at **main/public/modules/core/layout**
+
+
+
+
+
+
+This seems to be working ok, although there are many SO posts expalining that you have to change the delimiters 
+of one side, so that they dont conflict.  Both engines use **{{ ... }}** by default, but can be configured otherwise.
+
+
 # GAE Angular Material Starter
 ##### Easiest way to start Google App Engine Angular Material project on Earth & Mars!
 As a base for this I've used starter projects [gae-init] and [MEANJS], so big thanks to them!

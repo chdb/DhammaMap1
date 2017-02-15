@@ -1,18 +1,19 @@
 # coding: utf-8
 # pylint: disable=too-few-public-methods, no-self-use, missing-docstring, unused-argument
-from flask_restful import Resource
+# from flask_restful import Resource
 
-from main import API
-from flask import request
+# from main import API
+# from flask import request
 from model.config import CONFIG_DB
 #from model import Config
 import util
-from api.helpers import ok
-from api.decorators import admin_required
+from handlers.api.helpers import ok
+from handlers.api.decorators import admin_required
 import logging
+from handlers.basehandler import HBase
 
-@API.resource('/api/v1/config') 
-class AdminConfigAPI(Resource):
+# @API.resource('/api/v1/config') 
+class AdminConfigAPI(HBase):
     @admin_required
     def get(self):
         return CONFIG_DB.toDict(nullVals=True)

@@ -4,63 +4,69 @@
 
 import logging
 import kryptoken
-import utils as u
-import debug as d
-from models import User
+import util as u
+#import debug as d
+from model.user import User
 
-from flask import request
-# from midstore import MidStore
-
-def loadConfig(app):
-
-    default_config ={ 'maxIdleAnon' : None
-                    , 'maxIdleAuth' : 60 * 60 # 1 hour
-                    , 'cookieName'  : 'dm_session'
-                                     # for effect of cookieArgs see defn of Response.set_cookie() at ...\google_appengine\lib\webob-1.2.3\webob\response.py line 690
-                    , 'cookieArgs'  : { 'max_age' : None  # for persistent cookies - but use expires instead for IE 8
-                                      , 'domain'  : None
-                                      , 'path'    : '/'
-                                      , 'secure'  : not app.debug
-                                      , 'httponly': True
-                                      }
-                    } 
-    #default_config.update(app.config)
-    #app.config = default_config
-    app.config.load_config ( key=__name__
-                           , default_values=default_config
-                           #, user_values 
-                           #, required_keys =('secret_key',)
-                           )
-
-# def cfg(handler):
-    # return handler.app.config [__name__]
-    
 # # # # # # # # # # # # # # # # # # # # 
 
-class CookieMgr (object):
-    def __init__(_s, handler):
-        _s.handler = handler
-        _s.cfg = u.config(__name__)
-        _s.name = _s.cfg['cookieName']    
+class CookieNameError(ValueError):
+    pass
 
-    def set (_s, val):
-        args = _s.cfg['cookieArgs']
-        _s.handler.response.set_cookie (_s.name, val, **args)
+class Cookie (object):
+    def __init__(_s, handler, cookieName):
+        _s.handler = handler       
+        _s.cfg = { 'key'     : cookieName
+                 , 'path'    : '/'
+                 , 'secure'  : not handler.app.debug
+                 , 'httponly': True
+                 }
+  
+    def set       (_s, val): _s._set(val, checkExists=True , resetting=False) # exception if already exists
+    def reset     (_s, val): _s._set(val, checkExists=True , resetting=True ) # exception if doesnt exist
+    def setOrReset(_s, val): _s._set(val, checkExists=False) # force a cookie to set or reset - you dont care which
+    
+    def _set (_s, val, checkExists, resetting=False):
+        # NB webOb treats cookie-name as a unique key called 'key' and uses a dict for a key-value map. 
+        # This is similar to other frameworks but it hides a peculiarity of cookies. 
+        # There can be multiple cookies with same name in the request's cookie header, because for the client, Cookie-name is not the full key;    
+        # The client identifies cookies by (name, path, domain) IE a different path or domain identifies a different cookie. 
+        # This is why we need path and domain from our cfg for delete() and reset() to work properly. 
+        # For each request (for a given url - ie domain + path) the client will send all cookies matching a given name and url.
+        # However webOb, like most server frameworks, will only read first one from the cookie header. 
+        # The cookie which had longest url, ie most specific, *should* be the first one but might not be.
+        # MORAL -- if, in same domain, you are using various cookies for different paths or sub-domains, be sure to use different cookie names for each.
+        exists = bool(_s.get())
+        if checkExists:
+            if resetting:
+                if exists:
+                    raise CookieNameError('This cookie name is not in use.')
+            else:
+                if not exists:
+                    raise CookieNameError('This cookie name is already in use.')
+        
+        n = len(val)
+        if n > 4093: #some browsers will accept more but this is about the lowest browser limit
+            raise ValueError('Cookie size is %d bytes and exceeds max: 4093', n)
+        #todo:what to do? too big for cookie!!!
+        #logging.debug ('setting cookieMgr = %r', val)
+                
+        _s.handler.response.set_cookie (value=val, **_s.cfg)
         
     def get (_s):
-        val = _s.handler.request.cookies.get (_s.name)
+        val = _s.handler.request.cookies.get (_s.cfg['key'])
         if val:
             val = val.encode('utf-8') #from unicode to bytes
         #logging.debug ('cookieMgr data = %r', val)
         return val
         
     def delete (_s):
-        args= _s.cfg['cookieArgs']
-        path  = args.get('path')
-        domain= args.get('domain')
-        _s.handler.response.delete_cookie (_s.name, path, domain)
+        # As close as possible to a delete of browser cookie. (Browsers provide no deleteCookie method - you must overwrite setting expiry to zero or negative lifespan) 
+        # When client gets the response, only the cookie value is immediately deleted IE overwritten with empty string.
+        # The expiry is set to zero and the name will usually remain visible intil cookie itself is deleted when the browser window closes. 
+        _s.handler.response.delete_cookie (**_s.cfg)
                   
-# # # # # # # # # # # # # # # # # #        
+# # # # # # # # # # # # # # # # # #
 
 class _UpdateDictMixin (object):
     """A dict which calls `_s.on_update` on all modifying function calls."""
@@ -99,14 +105,24 @@ class SessionVw (_UpdateDictMixin, dict):
     def __init__ (_s, handler):  # container, , new=False
         logging.debug('#################### SessionVw __init__ called')  
         _s.modified = False
-        _s.handler = handler
-        token = handler.request.headers.get('authentication')
-        data = kryptoken.decodeToken (token, 'session') if token else {}
-        if data:
-            assert type(data) is dict
-        if not '_created' in data:
-            data['_created'] = u.sNow()          
-        dict.update (_s, data)
+        _s.cookie = Cookie(handler, 'dm_session')
+        cookieVal = _s.cookie.get()
+#        token = handler.request.headers.get('authentication')
+       # data = kryptoken.decodeToken (token, 'session') if token else {}
+        if cookieVal:
+            # n = len(_s.cookieVal)
+            # if n < cryptoken.MinTokenLen:
+                # if n != _s.nonceLen:
+                    # logging.warning('cookieMgr has unexpected length: %d', n)
+                # data = _s.midStore.get(_s.cookieVal)
+                # #todo get expired from data
+            # else:
+            data = kryptoken.decodeToken (cookieVal, 'session')
+            if data:
+                assert type(data) is dict
+            if not '_created' in data:
+                data['_created'] = u.sNow()          
+            dict.update (_s, data)
 
     def expired (_s): 
         if _s.isLoggedIn(): 
@@ -114,11 +130,12 @@ class SessionVw (_UpdateDictMixin, dict):
         return False # ANON sessions do not expire
 
     def save (_s):
-        ssn = _s.handler.ssn
-        if ssn and ssn.modified:
-            val = kryptoken.encodeSessionToken (ssn) #, user
-            _s.handler.response.headers['authentication'] = val
-        
+        if _s.modified:
+            val = kryptoken.encodeSessionToken (_s) #, user
+            #_s.handler.response.headers['authentication'] = val
+            logging.debug('£££££££££££££££££')
+            _s.cookie.reset(val)
+            
     def on_update (_s):
         _s.modified = True
         
@@ -146,11 +163,11 @@ class SessionVw (_UpdateDictMixin, dict):
         '''
         _s.setdefault ('_flash', []).append((msg, level))  # append to duple list:  [(msg, level), ...]
 
-    def logIn (_s, user, ip):
-        logging.debug('1 uid = %r', user.id())
+    def signIn (_s, user, ipa, remember ):
+        logging.debug('user = %r', user)
         _s['_userID' ]= user.id()
         _s['_logInTS']= u.sNow()
-        _s['_sessIP' ]= ip
+        _s['_sessIP' ]= ipa
         
        # _s['_sessID'] = sid = utils.newSessionToken()
        # user.token = sid
@@ -158,14 +175,14 @@ class SessionVw (_UpdateDictMixin, dict):
         logging.debug('just logged in ssn = %r',_s)
         logging.debug('just logged in ssn id = %r',id(_s))
         
-    def logOut (_s):
+    def signOut  (_s):
         # if user:
             # user.token = ''
             # user.modified = True
         # _s.pop('_userID' , None) # default arg (None) to avoid KeyError
         # _s.pop('_logInTS', None)
         # _s.pop('_sessIP' , None) 
-        d.logStackTrace(3)
+      #  d.logStackTrace(3)
         logging.debug('about to logout ssn = %r',_s)
         logging.debug('about to logout  ssn id = %r',id(_s))
         uid = _s.pop('_userID', None)# default arg (None) to avoid KeyError

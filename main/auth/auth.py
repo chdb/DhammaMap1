@@ -11,7 +11,7 @@ from google.appengine.ext import ndb  # pylint: disable=import-error
 import flask
 import unidecode
 from flask_restful import inputs
-from api.helpers   import rqArg, rqParse
+from api.helpers   import rqParse
 import model.user  as u
 import task
 import util
@@ -134,7 +134,8 @@ def save_request_params():
     # p = reqparse.RequestParser()
     # p.add_argument('remember', type=inputs.boolean, default=False)
     # args = p.parse_args()
-    args = rqParse(rqArg('remember',  type=inputs.boolean, default=False)) 
+    args = rqParse( _s.request.uriData
+                  , ('remember',  toBool, False)) 
     flask.session['auth-params'] = { 'remember': args.remember }
 
 

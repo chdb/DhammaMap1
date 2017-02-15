@@ -1,27 +1,27 @@
 # coding: utf-8
 # pylint: disable=too-few-public-methods, no-self-use, missing-docstring, unused-argument
-from flask_restful import reqparse, Resource
-from flask import abort
-from main import API
+# from flask_restful import reqparse, Resource
+# from flask import abort
+# from main import API
 import task
 from model.config import CONFIG_DB
-from api.helpers import ok, rqArg, rqParse
-from api.decorators import verify_captcha
+from handlers.api.helpers import ok#, rqParse
+from handlers.api.decorators import verify_captcha
 import validators as vdr
+from handlers.basehandler import HBase
 
-
-@API.resource('/api/v1/feedback')
-class FeedbackAPI(Resource):
+# @API.resource('/api/v1/feedback')
+class FeedbackAPI(HBase):
     
     @verify_captcha('feedbackForm')
-    def post(self):
+    def post(_s):
         """Sends feedback email to admin"""
         if not CONFIG_DB.admin_email_:
-            return abort(418)
+            return _s.abort(418)
         
-        args = rqParse( rqArg('message', vdr=vdr.feedback_span, required=True)
-                      , rqArg('fromEma', vdr=vdr.email_rx)
-                      )
+        args = args = _s.parseJson(('message', vdr.feedback_span)
+                                  ,('fromEma', vdr.email_rx)
+                                  )
         MaxSubjLen = 50  # Construct Subject from first MaxSubjLen chars of message. Adjust this if you want.            
         if len(args.message) > MaxSubjLen:
             subject ='%s...' % args.message[:(MaxSubjLen-3)].strip()
