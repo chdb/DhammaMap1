@@ -1,33 +1,37 @@
 <form name="profileEditForm">
     <md-input-container>
         <label>Name</label>
-        <input ng-model="editedUser.name"
-               type="text"
-               validator="name_span"
-               tabindex="1"
-               name="name">
-        <div ng-if="profileEditForm.name.$dirty" ng-messages="profileEditForm.name.$error">
-            <div ng-message="maxlength">Your name is too long</div>
+        <input	ng-model="user2.name"
+				type="text"
+				validator="name_span"
+				tabindex="1"
+				name="name"
+        ><div 	ng-if="profileEditForm.name.$dirty" 
+				ng-messages="profileEditForm.name.$error"
+        >   <div ng-message="maxlength">Your name is too long</div>
         </div>
     </md-input-container>
-    <ga-email ng-model="editedUser.email_" input-tabindex="2"></ga-email>
+    <ga-email 
+		ng-model="user2.email_" 
+		input-tabindex="2"
+	></ga-email>
     <md-input-container>
         <label>Bio</label>
-        <input ng-model="editedUser.bio"
-               name="bio"
-               validator="bio_span"
-               show-counter="true"
-               tabindex="3">
-    </md-input-container>
+        <input 	ng-model="user2.bio"
+				name="bio"
+				validator="bio_span"
+				show-counter="true"
+				tabindex="3"
+	></md-input-container>
     <md-input-container>
         <label>Location</label>
-        <input ng-model="editedUser.location"
-               name="location"
-               validator="location_span"
-               tabindex="4">
-    </md-input-container>
+        <input	ng-model="user2.location"
+				name="location"
+				validator="location_span"
+				tabindex="4"
+	></md-input-container>
     <!--div ng-repeat="(socKey, soc) in socialAccounts" layout="row" layout-align="start center"-->
-    <div ng-repeat="aid in editedUser.authIds" >
+    <div ng-repeat="aid in user2.authIds" >
 		<div style='display:inline-block; vertical-align:top; width:20%'>
 			<i class="fa fa-{{auth.authProviderName(aid)}}"></i>
 			{{ auth.authProviderName(aid) }}
@@ -36,20 +40,14 @@
 			{{ authUserId(aid) }}
 		</md-input-container>		
 		<button ng-click="removeAuthProv($index)" style='float:right;'>
-			delete
-			<i class="fa fa-{{auth.name}}"></i>
-			{{auth.name}}
-			<i class="fa fa-times fa-lg" style='color:red;'>
-			</i>
+			delete 		 <i class="fa fa-{{auth.name}}"></i>
+			{{auth.name}}<i class="fa fa-times fa-lg" style='color:red;'></i>
 		</button>
-			
-		
-		
 		<!--{{aid.substr(0,2)}}
         <span class="mar-rig-5">{{aid.substr(0,2)}}/</span>
         <md-input-container flex>
             <label>Your {{soc.name}}</label>
-            <input ng-model="editedUser[socKey]"
+            <input ng-model="user2[socKey]"
                    type="text"
                    tabindex="{{ $index + 5}}"
                    ng-maxlength="validators.social[1]"
@@ -60,13 +58,13 @@
         </md-input-container-->
     </div>
     <div ng-if="auth.is_admin()">
-        <md-checkbox ng-model="editedUser.isVerified_">
+        <md-checkbox ng-model="user2.isVerified_">
             Verified
         </md-checkbox>
-        <md-checkbox ng-model="editedUser.isActive_">
+        <md-checkbox ng-model="user2.isActive_">
             Active
         </md-checkbox>
-        <md-checkbox ng-model="editedUser.isAdmin_">
+        <md-checkbox ng-model="user2.isAdmin_">
             Admin
         </md-checkbox>
     </div>
@@ -75,12 +73,12 @@
 			Cancel
 		</md-button>
         <md-button flex
-                   ng-click="save()"
-                   ng-disabled="!profileEditForm.$valid || isLoading || !profileEditForm.$dirty"
-                   type="submit"
-                   tabindex="11"
-                   class="md-primary">
-			Save
+			ng-click="save()"
+			ng-disabled="!profileEditForm.$valid || isLoading || !profileEditForm.$dirty"
+			type="submit"
+			tabindex="11"
+			class="md-primary"
+		>	Save
 		</md-button>
     </div>
 </form>

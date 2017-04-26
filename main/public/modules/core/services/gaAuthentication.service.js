@@ -14,21 +14,20 @@
 		return { avatarUrl : function(user, size)
 					{	
 						if (user)
-							return '//gravatar.com/avatar/'+user.hash+'?d=identicon&r=x&s='+size;
+							return '//gravatar.com/avatar/'+user.emaHash+'?d=identicon&r=x&s='+size;
 						return undefined;
 					}
-
 			   }
 	});
 
     module.factory('gaAuth', function(gaAuthUser, gaAuthNames, Restangular) 
-	{	
+	{	console.log('gaAU = ' + gaAuthUser);
 		var u =	
-		{ user 	   : gaAuthUser
-		, loggedIn : function() 	
+		{ user 	  : gaAuthUser
+		, loggedIn: function() 	
 					{ 	return !! u.user; 
 					}
-		, is_admin : function() 	
+		, is_admin: function() 	
 					{ 	if (! u.user)
 							return false;
 						if (u.user.isAdmin_ === undefined) 
@@ -40,7 +39,7 @@
 					{ 	u.user = Restangular.restangularizeElement(null, user, 'users');
 						// u.user.avatarUrl = function(size)
 						// {	console.log (u);
-							// return '//gravatar.com/avatar/'+u.hash+'?d=identicon&r=x&s='+size;
+							// return '//gravatar.com/avatar/'+u.emaHash+'?d=identicon&r=x&s='+size;
 						// }
 						
 						//localStorage.setItem('dwsession', authToken);
@@ -56,7 +55,7 @@
 						return gaAuthNames[shortname];
 					}
 		// , avatarUrl : function(user, size)
-					// {	return '//gravatar.com/avatar/'+user.hash+'?d=identicon&r=x&s='+size;
+					// {	return '//gravatar.com/avatar/'+user.emaHash+'?d=identicon&r=x&s='+size;
 					// }
 		};
 		return u;  

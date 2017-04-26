@@ -4,22 +4,32 @@
 
 # from main import API
 # from flask import request
-from model.config import CONFIG_DB
+from config import appCfg
 #from model import Config
-import util
-from handlers.api.helpers import ok
-from handlers.api.decorators import admin_required
-import logging
-from handlers.basehandler import HBase
+#import util
+#from handlers.api.helpers import ok
+from handlers.api.decorators import adminOnly
+#import logging
+from handlers.basehandler import HAjax
+#from config import getInstances
+from app import app
 
-# @API.resource('/api/v1/config') 
-class AdminConfigAPI(HBase):
-    @admin_required
-    def get(self):
-        return CONFIG_DB.toDict(nullVals=True)
-
-    @admin_required
-    def put(self):#, key):
-        CONFIG_DB.populate(request.json)
-        CONFIG_DB.put()
-        return ok()
+@app.api1Route('config') 
+class HConfig(HAjax):
+   
+    @adminOnly
+    def get(_s):
+        return appCfg.toDict(nullVals=True)
+        
+    @adminOnly
+    def put(_s):
+        #todo in production we need multi instance code
+        #   insts = getInstances()
+        #   thisInst = getThisInstance()
+        #   for i in insts:
+        #       if i != thisInst:
+        #           i.send(url=put2each, data=_s.request.body)      
+        appCfg.populate(_s.request.json)    
+   
+    def put2each(_s):
+        appCfg.update(_s.json())

@@ -13,7 +13,7 @@
     {	
 		return 	{ show : function (content, opts) 
 					{	opts = opts || {};
-						opts.delay = _.isNumber(opts.delay) ? opts.delay : 20000;
+						opts.delay = _.isNumber(opts.delay) ? opts.delay : 10000;
 						var toast = $mdToast.simple()
 							.content(content)
 							.hideDelay(opts.delay);

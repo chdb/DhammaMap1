@@ -1,20 +1,17 @@
-(function() {
-    'use strict';
+(function() 
+{	'use strict';
     var module = angular.module('users');
 
-    module.controller('ProfileEditController', function($scope, gaBrowserHistory
-									 , gaAuth, gaToast, _, gaValidators, gaTracking) 
-	{
-		//console.log ('edit scope: ', $scope);
-        if (!$scope.hasAuthorization()) {
-            gaBrowserHistory.back();
+    module.controller('ProfileEditController'
+	, function($scope, gaBrowserHistory, gaAuth, gaToast, _, gaValidators, gaTracking) 
+	{	//console.log ('edit scope: ', $scope);
+        if (!$scope.hasAuthorization()) 
+        {	gaBrowserHistory.back();
         }
-
         $scope.validators = gaValidators.user;
-
-        $scope.$watch('user', function(newVal) {
-            if (newVal) {
-                $scope.editedUser = $scope.user.clone();
+        $scope.$watch('user', function(newVal) 
+        {	if (newVal) 
+            {	$scope.user2 = $scope.user.clone();
             }
         });
 		
@@ -36,16 +33,15 @@
 		};
 		
 		$scope.removeAuthProv = function(i) 
-		{			
-			$scope.editedUser.authIds.splice (i, 1); // at position i remove 1 element with no replacements
+		{	$scope.user2.authIds.splice (i, 1); //remove i-th authId (at position i remove 1 element with no replacements)
 			$scope.profileEditForm.$setDirty()
         };
 
-
-        $scope.save = function() {
-            $scope.editedUser.save().then(function() {
-                _.extend($scope.user, $scope.editedUser);
-                gaTracking.eventTrack('Profile edit', $scope.editedUser.username);
+        $scope.save = function() 
+        {	$scope.user2.put() //restangular call: http// PUT /<user2.route>/<user2.id>
+			.then(function() 
+            {	_.extend($scope.user, $scope.user2);
+                gaTracking.eventTrack('Profile edit', $scope.user2.username);
                 gaBrowserHistory.back();
                 gaToast.show('A profile was successfully updated');
             });

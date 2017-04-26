@@ -4,30 +4,35 @@
 			<md-content class="md-padding">
 				<md-input-container>
 					<label>Site name</label>
-					<input ng-model="cfg.site_name"
-							tabindex="1"
-							name="site_name"
-							required>
-				</md-input-container>
+					<input 
+						ng-model="cfg.site_name"
+						tabindex="1"
+						name="site_name"
+						required
+				></md-input-container>
 				<md-input-container>
 					<label>Description</label>
-					<textarea ng-model="cfg.description"
-							tabindex="2"
-							name="description"
-							></textarea>
+					<textarea 
+						ng-model="cfg.description"
+						tabindex="2"
+						name="description"
+					></textarea>
 				</md-input-container>
 				<md-input-container>
 					<label>Feedback email</label>
-					<input ng-model="cfg.admin_email_"
-							tabindex="3"
-							name="admin_email_">
-				</md-input-container>
-				<md-checkbox ng-model="cfg.notify_on_new_user_" tabindex="5">
-					Send email notification when a user signs up
+					<input 
+						ng-model="cfg.admin_email_"
+						tabindex="3"
+						name="admin_email_"
+				></md-input-container>
+				<md-checkbox 
+					ng-model="cfg.notify_on_new_user_" 
+					tabindex="5"
+					>Send email notification to ADMIN when a user signs up
 				</md-checkbox>
-				<md-checkbox ng-model="cfg.verify_email" tabindex="6">
+				<!-- <md-checkbox ng-model="cfg.verify_email" tabindex="6">
 					Verify user emails
-				</md-checkbox>
+				</md-checkbox> -->
 			</md-content>
 		</md-tab>
 		<md-tab label="Auth">
@@ -49,19 +54,23 @@
 					<div style='display:inline-block;'>	
 						<md-input-container style='padding-bottom:0;'>
 							<label>public key </label>
-							<input ng-model="auth.id"
-									tabindex="$index * 2"
-									name="{{auth.id}}">
-						</md-input-container>
+							<input 
+								ng-model="auth.id"
+								tabindex="$index * 2"
+								name="{{auth.id}}"
+						></md-input-container>
 						<md-input-container>
 							<label>secret key </label>
-							<input ng-model="auth.secret_"
-									tabindex="$index * 2 + 1"
-									name="{{auth.secret_}}">
-						</md-input-container>
+							<input 
+								ng-model="auth.secret_"
+								tabindex="$index * 2 + 1"
+								name="{{auth.secret_}}"
+						></md-input-container>
 					</div>
-					<button ng-click="removeAuthProv($index)" style='float:right;'>
-						delete
+					<button 
+						ng-click="removeAuthProv($index)" 
+						style='float:right;'
+						>delete
 						<i class="fa fa-{{auth.name}}"></i>
 						{{auth.name}}
 						<i class="fa fa-times fa-lg"
@@ -71,21 +80,20 @@
 				</div>
 			</md-content>
 			<hr>
-				Add a new Auth Provider
-				<br>
-				<md-input-container style='display:inline-block; '>
-					<label>name</label>
-					<input ng-model="newauth.name"
-							todo-tabindex="last $index + 1 "
-							name="{{newauth.name}}"
-							style='display:inline-block; '>
-					<button ng-click="addAuthProv()" style='float:right;'>
-						<i 	class="fa fa-{{newauth.name}}"></i>
-						<i 	class="fa fa-plus-circle fa-lg"
-							style='color:green;'>
-						</i>
-					</button>
-				</md-input-container>
+			Add a new Auth Provider
+			<br>
+			<md-input-container style='display:inline-block; '>
+				<label>name</label>
+				<input ng-model="newauth.name"
+						todo-tabindex="last $index + 1 "
+						name="{{newauth.name}}"
+						style='display:inline-block; '>
+				<button ng-click="addAuthProv()" style='float:right;'>
+					<i 	class="fa fa-{{newauth.name}}"></i>
+					<i 	class="fa fa-plus-circle fa-lg"
+						style='color:green;'></i>
+				</button>
+			</md-input-container>
 			<hr>
 		</md-tab>
 		<md-tab label="Security">

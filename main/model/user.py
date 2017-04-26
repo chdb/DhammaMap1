@@ -11,6 +11,7 @@ import logging
 import validators as vdr
 import random
 from security import pwd
+import webapp2 as wa2
 
 ##############################################################################
 """Define CUSTOM validators for user properties. For SPECIFIED user validators see Validator"""
@@ -22,26 +23,24 @@ def _userExists (aId, errmsg, flip=False):
     """Validates that at least one User entity exists with given value for given property-name """
     ref = AuthId.get_by_id (aId) 
     if (ref is None) != flip:
-        raise ValueError(errmsg)
+        wa2.abort(422, errmsg)
     return _Id (aId)
     
 def _noUserExists (aId, errmsg) : return _userExists(aId, errmsg, flip=True) 
 
 #def tokenExistsVdr (token)   : return _userExists  ('token'     , token        ,'Sorry, your token is invalid or expired.') # not called in current codebase
-def emailExistsVdr (ema)   : return _userExists  (emailId(ema)  ,'This email address is not recognised. Please try again')
-def emailUniqueVdr (ema)   : return _noUserExists(emailId(ema)  ,'Sorry, this email address is already taken.')
-def usrnameUniqueVdr(uname): return _noUserExists(unameId(uname),'Sorry, this username is already taken.')
+def emailExistsVdr (ema)   : return _userExists  (emailId(ema)  ,'That email address is not recognised. Please try again')
+def emailUniqueVdr (ema)   : return _noUserExists(emailId(ema)  ,'Sorry, that email address is already taken.')
+def usrnameUniqueVdr(uname): return _noUserExists(unameId(uname),'Sorry, that username is already taken.')
 
 ############################################################################
 class NotUnique (ValueError): 
     pass
  
 class AuthId (ndb.Model):
-    """AuthID holds a user's auth idStr - an identifying string used for login.
-    But the string is saved as the idStr of the entity's key - not in a property.
-    We model a many to one relationship - one user may have multiple authIDs, 
-    but each will have the same userId property 
-    and each authId key string must have different prefix (before ':') as specified by config.authNames 
+    """A user's authId key string, an identifying string used for login, held as the idStr of the entity's key - not in a property.
+    One user may have multiple authIDs, so this represents a many-to-one relationship - AuthId to User. Each AuthId having the same 
+    userId property. Each authId key string must have a different prefix (before ':') as specified by config.authNames 
     Examples:
           _u:myusername
           _e:myemail@example.com
@@ -79,13 +78,14 @@ def unameId (username): return _authId ('_u:', username)
 def emailId (ema):      return _authId ('_e:', ema.lower()) #NB we convert to lower so searches are case-insensitive
                                                             # ...otoh User.email_ is case-sensitive and we use this for sending emails etc
     
-def _byAuthId (aId):      
-    aId = AuthId.get_by_id (aId)
+def _byAuthId (authId):      
+    aId = AuthId.get_by_id (authId)
     if aId:
         #logging.debug('uid = %r', uid)
         return User.get_by_id (aId.userId)
     return None
-    
+        #wa2.abort(404, 'No user found for "%s"' % authId)
+     
 def byEmail    (ema):      return _byAuthId (emailId (ema))
 def byUsername (userName): return _byAuthId (unameId (userName))
         
@@ -108,15 +108,17 @@ def byCredentials(email_or_username, password):
     return None
 
 def getHash(ema):
-    #todo why not 1) just pass the hash to client? and put the url template code in the client
-    #     and/or  2) store the hash in user model 
+    #todo md5 is recommended by gravatar but has poor reputation - 
+    #   so if this means an attacker could possibly reverse the hash to extract email address  
+    #   then can we not replace md5 with a better algorithm but of course the gravatar icon would be different  
+    
     """Returns hash created from user's email or username for the gravatar url,"""
     return hashlib.md5(ema.lower().encode('utf-8')).hexdigest()
     
         
 def randomAuthIds():
     aps = []
-    for ap in config.CONFIG_DB.authProviders:
+    for ap in config.appCfg.authProviders:
         if random.choice((True, False)):
             #aps.append( AuthProvider(name=ap.name, id=util.randomB64()))
             aps.append( config.authNames[ap.name]+util.randomB64())
@@ -134,12 +136,12 @@ class User(base.ndbModelBase):
 #    permissions_= ndb.StringProperty (repeated=True)                                                   #private
     isActive_   = ndb.BooleanProperty(indexed=False, default= True)                                                   #private
     isAdmin_    = ndb.BooleanProperty(indexed=False, default=False)   #todo: replace with a entry in permissions_ ?   #private
-    isVerified_ = ndb.BooleanProperty(indexed=False, default=False)                                                   #private
+ #   isVerified_ = ndb.BooleanProperty(indexed=False, default=False)                                                   #private
     token__     = ndb.StringProperty (indexed=False)                                                       #hidden
     pwdhash__   = ndb.StringProperty (indexed=False)    # None for users with only 3rd party auth                                                   #hidden
     bio         = ndb.StringProperty (indexed=False, validator=vdr.bio_span.fn)
     location    = ndb.StringProperty (indexed=False, validator=vdr.location_span.fn)
-    hash        = ndb.StringProperty (indexed=False)
+    emaHash     = ndb.StringProperty (indexed=False)
     authIds     = ndb.StringProperty (indexed=False, repeated=True) # list of IDs. EG for third party auth, eg 'google:userid'. UNIQUE.
     
 
@@ -155,14 +157,16 @@ class User(base.ndbModelBase):
         ''' Use this method. Dont simply call    User(**ka).put()
             Otherwise DataStore becomes incoherent '''
         #assert 'email_' in ka, 'all accounts must be created with an email' 
-        util.debugDict(ka, 'ka')
+  #      util.debugDict(ka, 'ka')
         ids = ka.get('authIds',[])
         ema = ka['email_']
         un  = ka['username']
         ids.append(emailId(ema))
         ids.append(unameId(un))
         ka['authIds'] = ids
-        ka['hash'] = getHash(ema)
+        ka['emaHash'] = getHash(ema)
+        ka['pwdhash__'] = pwd.encrypt(ka.pop('password'))
+        
         #if 'username' in ka:
         user = User (**ka)
         key = user.put()
@@ -234,19 +238,19 @@ class User(base.ndbModelBase):
         # return cls.get_by('username', username) is None
 
 
-    def toDict(_s, publicOnly=True):
+    def toDict(_s, privates=True):
     
-        d = _s.toDict_(publicOnly)
+        d = _s.toDict_(privates)
         d['_k'] = _s.key.urlsafe() #needed for client calls to Restangular.one(...).get()
         
         # i = next(i for i in d['authIds'] if i.startswith('_u:'))
         # if i: 
             # d['username'] = i[3:]
             
-        util.debugDict(d, 'user dict 1 ')
+       # util.debugDict(d, 'user dict 1 ')
         ids = d.get('authIds',[])
         d['authIds'] = [ i for i in ids if not i.startswith('_')]
                                 
-        util.debugDict(d, 'user dict ')
+    #    util.debugDict(d, 'user dict ')
         return d
 

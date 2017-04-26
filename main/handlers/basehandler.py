@@ -2,24 +2,26 @@ import webapp2 as wa2
 from jinja_env import Jinja
 import util
 import logging
-import json
-#import model.user as users
+#import json
+from model.user import User
 #from model.config import CONFIG_DB
-import model.user as user 
+
 import config
 import validators as vdr
 #from handlers.api.helpers import rqParse
 from session import SessionVw
 
-def getFlashMessages(): return None #todo
+#def getFlashMessages(): return None #todo
+try:  import simplejson as json
+except ImportError: import json
 
 
 class Namespace(dict):
-    ''' a dictionary with an alternative class attribute interface
-        eg  >>> ns = Namespace({'abc':123})
-            >>> ns['abc']
+    ''' a dictionary with class attribute interface as an alternative 
+        EG  >>> ns = Namespace({'abc':123})
+            >>> ns['abc'] # as dict
             123
-            >>> ns.abc
+            >>> ns.abc    # as class attribute
             123
     '''
     def __getattr__(_s, name):
@@ -31,14 +33,13 @@ class Namespace(dict):
     def __setattr__(_s, name, value):
         _s[name] = value
         
-
+        
 class Required():pass
 required = Required()
 
 class Optional():pass
 optional = Optional()
     
-
 
 class HBase (wa2.RequestHandler):
 
@@ -48,31 +49,59 @@ class HBase (wa2.RequestHandler):
         # Provide sensible aliases for misleading attribute names "request.GET" "request.POST"
         # "request.GET"  has data from the uri's query string. Request could have used any HTTP method: GET, POST, PUT etc
         # "request.POST" has data from the request body, IE from any form whether sent with POST or PUT or even CONNECT, OPTIONS or PATCH
-        _s.request.uriData  = _s.request.GET  # data could be from any http verb (not just get) 
+        _s.request.urlData  = _s.request.GET  # data could be from any http verb (not just get) 
         _s.request.formData = _s.request.POST # data could be from http put etc   (not just post)  
         
  #       _s.view = ViewClass()
  #       _s.localeStrings = i.getLocaleStrings(_s) # getLocaleStrings() must be called before setting path_qs in render_template()
 
-    def handle_exception(_s, exception, debug):
-        logging.exception(exception)
-        _s.response.write('Oops! An error occurred.')
-        if isinstance(exception, wa2.HTTPException):
-            _s.response.set_status(exception.code)
-        else:
-            _s.response.set_status(500)
+    def dispatch (_s):
+        try: 
+        # try:# csrf protection
+            if (_s.request.method == "POST" 
+            and not _s.request.path.startswith('/tq')): # tq indicates a TaskQueue handler: they are internal therefore not required to have csrf token
+                ssnTok  = _s.ssn.get('_csrf_token')
+                postTok = _s.request.get('_csrf_token')
+                if (not ssnTok  # toks differ or if both are the same falsy
+                or  ssnTok != postTok):
+                    logging.warning('path = %r',_s.request.path)
+                    logging.warning('ssn  csrf token = %r',ssnTok)
+                    logging.warning('post csrf token = %r',postTok)
+                    logging.warning('CSRF attack or bad or missing csrf token?')
+  #                  wa2.abort(403) # 'Forbidden'
+                    
+            rv = wa2.RequestHandler.dispatch (_s) # NB use super if multiple inheritance. Dispatch the request.this is needed for wa2 sessions to work
+        finally:
+            # u = _s.user
+            # if u and u.modified:
+                # u.put() # lazy put() to not put user more than once per request 
+            _s.ssn.save() # Save ssn after every request
+        # except: # an exception in TQ handler causes the TQ to try again which loops
+            # logging.exception('unexpected exception in dispatch')
+        # if isinstance(rv, basestring):
+            # rv = webapp2.Response(rv)
+        return rv
+            
+          
+    # def handle_exception(_s, exception, debug):
+        # logging.exception(exception)
+        # _s.response.write('Oops! An error occurred.')
+        # if isinstance(exception, wa2.HTTPException):
+            # _s.response.set_status(exception.code)
+        # else:
+            # _s.abort(500, detail=str(exception))
             
             
     def pageResponse (_s, filename, **ka):
-        ka['user'      ] = None # _s.user
+     #   ka['user'      ] = None # _s.user
     #    ka['locale_strings'] = _s.localeStrings
-     #   ka['app_config'] = CONFIG_DB.toDict(not auth.is_admin())
+     #   ka['app_config'] = CONFIG_DB.toDict(auth.is_admin())
         ka['authNames' ] = config.authNames
         ka['validators'] = vdr.to_dict(vdr)    
         ka['request'   ] = { 'host'     : _s.request.host
                            , 'host_url' : _s.request.host_url
                            }
-        ka['get_flashed_messages'] = getFlashMessages   
+        ka['get_flashed_messages'] = _s.ssn.getFlashes  
        # ka['config'] = CONFIG_DB.toDict()   
                 
         ka['current_user_isAdmin_'] = True
@@ -83,101 +112,123 @@ class HBase (wa2.RequestHandler):
         logging.debug('XXXXXXXXXXXXX')
         _s.response.write (Jinja().render (filename, ka))
 
-    def ajaxResponse (_s, **ka):
-        '''use this for ajax responses'''
-        ka['msgs'] = _s.get_fmessages()
-        resp = json.dumps (ka)
-        _s.response.write (resp)
+    # def respond (_s, d=None): # ajaxResponse
+        # '''use this for ajax responses'''
+        # if d:
+            # d['msgs'] = _s.get_fmessages()
+           ## resp = json.dumps (d)
+           ## _s.response.write (resp)
+            # _s.response.json = d
+        # else:
+            # assert d is None,'dont pass an empty object to respond()'
+            # assert not _s.response.body
+            # _s.response.status_int = 204
+    
+    # def ok(_s):
+        # """Returns OK response with empty body"""
+        # _s.response.status_int = 204
+
         
     @wa2.cached_property
     def apiName (_s):
-        assert _s.__class__.__name__.endswith('API')
-        return _s.__class__.__name__[:-3]
+        assert _s.__class__.__name__.startswith('H')
+        return _s.__class__.__name__[1:]
 
       
     def setLock (_s, lockname, duration):
-        def lockOn (kStr, mode, msg): 
-            m.Lock.set (kStr, duration, _s.apiName)
-            _s.flash ('Too many %s failures: %s for %s.' % ( _s.apiName, msg, u.hoursMins(duration)))
+        def lockOn (kStr, msg): 
+            m.Lock.set (kStr, duration)
+            _s.flash ('Too many %s failures: %s for %s.' % (_s.apiName, msg, u.hoursMins(duration)))
         
         logging.debug('xxxxxxxxxxxxxxxxxxxxxxxxxxx LOCK XXXXXXXXXXXXXXXX')
-        if name == 'ipa': # repeated bad attempts with same ipa but diferent ema's
-            lockOn (ipa,'Local','you are now locked out')
-        elif name == 'ema_ipa':# repeated bad attempts with same ema and ipa
-            lockOn (ema,'Local','this account is now locked')
-        elif name == 'ema': # repeated bad attempts with same ema but diferent ipa's
-            lockOn (ema,'Distributed','this account is now locked')
+        if name == 'ipa': 
+            mode, gloss = 'Local', "repeated bad attempts with same ipa but diferent ema's"
+            lockOn(ipa,'you are now locked out')
+        elif name == 'ema_ipa':
+            mode, gloss = 'Local', "repeated bad attempts with same ema and ipa"
+            lockOn(ema,'this account is now locked')
+        elif name == 'ema': 
+            mode, gloss = 'Distributed', "repeated bad attempts with same ema but diferent ipa's"
+            lockOn(ema,'this account is now locked')
         
         # todo this password stuff is not generic to other handlers
-        pwd = _s.request.get('password')
-        logging.warning('%s BruteForceAttack! on %s page: start lock on %s: ema:%s pwd:%s ipa:%s',mode, hlr, name, ema, pwd, ipa)
+        #pwd = _s.request.get('password')
+        logging.warning('%s BruteForceAttack! on %s page: %s' , mode, _s.apiName, gloss)
+        logging.warning('Start lock on %s: ema:%s pwd:%s ipa:%s', name, ema, pwd, ipa)
 
     
-    def parseJson (_s, *pa, **ka):
-                
-        def parseArg (unparsed, name, vdr=None, deflt=required):
-            #global unparsed
+ #   def json (_s): 
+#        return json.loads(_s.request.body)
+    
+    def parse (_s, dataLoc, *pa, **ka):
+        assert dataLoc == 'json' or 'urlData' or 'formData'
+        
+        def validate(vdr, val):
+            return (vdr   (val) if callable(vdr) else
+                    vdr.fn(val))
+        
+        def parseArg (unparsed, name, vdr=None, dflt=required):
             if vdr is None:
-                vdr = lambda x:x  # no-op
+                vdr = lambda x:x  # no-op validator: always valid, does not throw 
             logging.debug('name : %r',name)
             if name in args:
-                res[name] = ( vdr(args[name]) if callable(vdr) else
-                              vdr.fn(args[name]) )
-            # if name in reqLoc:
-                # values = reqLoc.getall(name)
-                # res[name] = (vdr(values[0])  if len(values)==1 else
-                            # [vdr(v) for v in values] )       
-            elif deflt is required:
-                #logging.debug('args reqLoc: %r', reqLoc)
+                if dataLoc == 'json':
+                    res[name] = validate(vdr, args[name])
+                else:
+                    values = args.getall(name)
+                    res[name] = (validate(vdr, values[0])  if len(values)==1 else
+                                [validate(vdr, v) for v in values] )   
+            
+            elif dflt is required:
                 _s.abort (400, detail='"%s" not found in the request data'%name)
-            elif deflt is not optional:
-                res[name] = deflt
+            elif dflt is not optional:
+                res[name] = dflt
             #else: name is not in request but its optional, so do nothing
             if strict:
                 if name in unparsed:
-                    #unparsed = [a for a in unparsed if a != name]
                     unparsed.remove(name)
-                    
             return res, unparsed
             
         res = Namespace()
         strict = ka.get('strict', True)
-        args = json.loads(_s.request.body)
-        assert type(args) is dict
-        unparsed = args.keys()
-        logging.debug('body args : %r',args)
-        logging.debug('ka: %r',ka)
-        for t in pa:
-            logging.debug('tuple t: %r',t)
-            #logging.debug('args *a: %r',*a)
-            res, unparsed = parseArg(unparsed, *t)
-     
-        if strict and unparsed:
-            _s.abort (400, detail='Unexpected unparsed args: %s' % str(unparsed))
-        return res
-            
-
-    def usrByCredentials (_s):
-        """Parses credentials posted by client and loads appropriate user from datastore"""
-        logging.debug('uriData: %r', _s.request.uriData)
+        #args = _s.json()
+        logging.debug('urlData: %r', _s.request.urlData)
         logging.debug('formData: %r', _s.request.formData)
         logging.debug('body: %r', _s.request.body)
+       
+        args = getattr(_s.request, dataLoc) # _s.request.json
+        #assert type(args) is dict
+        unparsed = args.keys()
+        for t in pa:
+            logging.debug('tuple t: %r',t)
+            res, unparsed = parseArg(unparsed, *t)     
+        if strict and unparsed:
+            _s.abort (400, 'Unparsed args: %s' % str(unparsed))
+        return res
+        
 
-        a = _s.parseJson(('loginId',  vdr.loginId_span)
-                        ,('password', vdr.password_span)
-                        ,('remember', vdr.toBool, False)
-                        ) 
-        return user.byCredentials(a.loginId, a.password) , a.remember
-
+    def parseJson (_s, *pa, **ka):
+        return _s.parse ('json', *pa, **ka)
+    
+    def parseUrl (_s, *pa, **ka):
+        return _s.parse ('urlData', *pa, **ka)
+        
+    #@rateLimit
+    def credentials (_s):
+        """Parses credentials posted by client and loads appropriate user from datastore"""
+        return _s.parseJson( ('loginId',  vdr.loginId_span)
+                           , ('password', vdr.password_span)
+                           , ('remember', vdr.toBool, False)
+                           ) 
 
         
-    def signIn (_s, user, remember=False):
+    def logIn (_s, user, remember=False):
         logging.debug('$$$$$$$$$$$$$$$$$$$$$')
-        _s.ssn.signIn (user, _s.request.remote_addr, remember)
+        _s.ssn.logIn (user, _s.request.remote_addr, remember)
         logging.debug('%%%%%%%%%%%%%%%%%%%%%%%%')
          
-    def signOut (_s):
-        return _s.ssn.signOut()
+    def logOut (_s):
+        return _s.ssn.logOut()
         
     @property
     def ssn (_s):
@@ -198,9 +249,9 @@ class HBase (wa2.RequestHandler):
     @wa2.cached_property
     def user (_s):
         uid = _s.ssn.get('_userID')
-        logging.debug('xxxxxxxxxx ssn = %r',_s.ssn)
+       # logging.debug('xxxxxxxxxx ssn = %r',_s.ssn)
         if uid:
-            return m.User.byUid (uid)
+            return User.get_by_id (uid)
         return None
 
     def flash(_s, msg):
@@ -221,7 +272,34 @@ class HBase (wa2.RequestHandler):
             fmsgs_html = fmsgsTmpl.render (fmessages=flist) # _s.ssn.getFlashes())
             # logging.info('>>>>>>>>>>>>> ok tmplate fmsgs: %r' % fmsgs_html)  
             # logging.info('>>>>>>>>>>>>> ok tmplate fmsgs: %r' %  str(fmsgs_html))  
-        return util.utf8(fmsgs_html)
+            return util.utf8(fmsgs_html)
+        return None
 
 
 #------------------------------------
+
+
+class HAjax (HBase):
+
+    def __init__(_s, request, response):
+        super(HAjax,_s).__init__(request, response)
+    
+    def dispatch (_s):
+        rv = super(HAjax,_s).dispatch() # rv is the AJAX response
+       # fmsgs = _s.ssn.getFlashes()
+        if rv is None:# and fmsgs is None:
+            if _s.response.body:
+                logging.warning('Body not empty: %r',_s.response.body)
+            _s.response.status_int = 204
+        else:
+            # assert type(rv) is dict,'ajax response has to be jsonifyable'
+           # rv['get_flashed_messages'] = _s.get_fmessages()
+            try:
+                json.loads(rv)          # test whether rv is a json string...
+                _s.response.body = rv   # ... yes, no need to jsonify, write directly to body
+            except TypeError:
+                _s.response.json = rv   # ... no, must use response.json which calls json.dumps() to jsonise rv
+        # if isinstance(rv, basestring):
+        # rv = webapp2.Response(rv)
+      # ka['get_flashed_messages'] = _s.getFlashes()   
+

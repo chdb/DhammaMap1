@@ -7,19 +7,20 @@
 	
 	* config is defined in config.py constants and also in model/config.py   
 	then imported into config module rethink and simplify this!
+	Some config setting should not be visible or readonly in the client eg crypto ones.
+
 	What goes into config?
 		* constants that might be changed but possibly saved and returned to.
 		* data that is sensitive so cannot be in source control eg crypto keys
 		* data that is shared over different modules   
 It is simple and convenient to create some hard-coded configuration data in a config file  
-But some config data is stored in ndb DataStore because  
+But other config data is stored in ndb DataStore because  
 		1) main Source Code is not a secure location for cryptographic keys and other secrets because our code base is 
 		open-source	(Even closed-source code has access issues because its inevitably and habitually saved to a cvs with 
 		different/lower security than the DataStore)    
 		2) Its convenient to change some config settings eg throttle settings, via the client, or the GAE dashboard, 
 		without having to deploy modified application code
-		(However while some secure data should only be in DataStore, it should never be modifiable especially in the Client eg Salt, 
-		because if Salt is modified then all passwords become invalid and so we could lose all the users) 
+		(However while some secure data may be in DataStore, it should not be modifiable in the Client eg private keys
 		
 		* create 2 config files : config-dev in source control, config-prod in gitignore 
 		* use datastore only for config items needing dynamic adjustment IE without uploading restarting instance - therefore needs to be in datastore   
@@ -31,12 +32,13 @@ But some config data is stored in ndb DataStore because
 		* remove any others (non-secure single-module data) from config altogether and define in a local module, any item that is 
 	
 *  ##### Idle Instances
-It seems (from SO posts) to take 1 - 10 seconds to spin up a new instance and we have no control over it. One second is ok but 10 means a bad 'unresponsive' user experience. 
-We have free quota of 28 instance hours per day. So for our low-traffic site we obviously want to keep one running 24 hours per day.
-(The other 4 hours are available for a second instance at peak times.)   
-However from SO posts, it seems that Google makes this difficult.
-Setting automatic-scaling to true and  min-idle-instances to 1 does not seem to prevent the 1 instance shutting down (after 5 or 15 minutes?)    
-Solution:  Create a low-traffic keep-alive Cron job that calls an api method but otherwise does nothing, every config seconds (10 minutes?)
+It seems (from SO posts) to take 1 - 10 seconds to spin up a new instance and we have no control over that. One second is ok but 10 means a bad 'unresponsive' user experience. 
+We have free quota of 28 instance hours per day. So for a low-traffic site we obviously want to keep one instance running 24 hours per day.
+Then the other 4 hours are available for a second instance to spin up at peak times.
+   
+However from SO posts, it seems that Google makes this slightly difficult. Setting automatic-scaling to true and min-idle-instances to 1 does not seem to prevent the 1 instance shutting down (after 5 or 15 minutes?)
+
+Solution:  Create a low-traffic keep-alive Cron job that calls an api method but otherwise does nothing, every X seconds (configurable EG 10 minutes?)
 This is said to prevent the runtime from shutting the instance.
 
 * ##### throttling  
@@ -76,7 +78,19 @@ This is said to prevent the runtime from shutting the instance.
 		* she has to close, then delete, then reopen the app 
 		* she has to pay a (smallish because its paid by the true first-timers) time penalty
 		* she cannot efectively exploit this in a botnet attack because global token issuing is limited
-		
+
+* ##### Validation
+Implement multiple input validation feedback. Currently if there are multiple input fields, user gets feedback only on the first firld to fail.
+and she has to go through multiple subnissions to iron them all out. We want an error message with each failed field.
+So one of these -   
+1 instead of throwing an exception in the loop, we need the loop to populate eg a dict : 'fieldName' -> 'errorMessage' and then raise the exception after the loop ends 	
+2 have a separate ajax call  and validation for each input.  Need to fire the call on ngBlur for input losing focus
+
+* ##### features
+* provide gs host support for uploading email lists
+* provide gs host support for managing One Day Course bookings 
+* provide gs host support for email - canned responses 
+
 	----
 	* Lock.\_keystr needs to adapted
 		* remove hdr. We should not separate out locks by handler
@@ -124,25 +138,24 @@ Currently * isAdmin\_ * is a private property of User.  Thats why it ends with _
 Therefore the non-admin user cannot even see explicitly that she is not an admin (However it will be obvious from lack of features eg get User List)
 But an admin user can remove admin status from self or others. Once it is removed then it can only be replaced by another admin or by using the Google Cloud Dashboard aka Console
 
-Some config setting should not be visible or readonly in the client eg crypto ones, especially Salt .
-Changing salt invalidates all user passwords.
 
 #### template rendering
 We are currently using 2 templating engines - 
-* jinja2 server-side rendering of all html files in **main/templates** and **main/templates/bit**
-* angular client-side rendering of all html files in **main/public**
+* jinja2  server-side
+* angular client-side
 
-The jinja2 engine is just doing the rendering for most of the home page. Angular does the rest 
-but also (oddly) some bits of home page that are inserted with **ng-include**
+The locations are different
+* jinja2  html files are in **main/templates** and **main/templates/bit**
+* angular html files are in **main/public**
+
+Since this is a Single Page App, jinja2 engine is just only rendering **most of** the home page. Angular does the rest 
+but also (oddly) Angular also renders those bits of home page that are inserted with **ng-include**
 * /public/modules/core/layout/sidenav.html 
 * /public/modules/core/layout/header.html
 
-So   **footer.html** is at **main/templates/bit**   
-But **header.html** is at **main/public/modules/core/layout**
-
-
-
-
+This is why some files locations seem inconsistent:- 
+*  **footer.html** is at **main/templates/bit**    			(for jinja2  rendering)
+*  **header.html** is at **main/public/modules/core/layout**	(for angular rendering)
 
 
 This seems to be working ok, although there are many SO posts expalining that you have to change the delimiters 

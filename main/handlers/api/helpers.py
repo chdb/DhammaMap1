@@ -66,23 +66,23 @@ def handle_error(err):
     # raise exceptions.BadRequest(message)
 
 
-def ok():
-    """Returns OK response with empty body"""
-    return '', 204
+# def ok():
+    # """Returns OK response with empty body"""
+    # return '', 204
 
 
-def list_response(response_list, cursor=None, more=False, total_count=None):
+def listResponse(responseList, cursor=None, more=False, totalCount=None):
     """Creates response with list of items and also meta data used for pagination
-    Args    : response_list (list)      : list of items to be in response
-              cursor (Cursor, optional) : ndb query cursor
-              more (bool, optional)     : whether there's more items in terms of pagination
-              total_count(int, optional): Total number of items
+    Args    : responseList (list)      : list of items to be in response
+              cursor (Cursor, optional): ndb query cursor
+              more (bool, optional)    : whether there's more items in terms of pagination
+              totalCount(int, optional): Total number of items
     Returns : (dict)   : the response to be serialized and sent to client
     """
-    return { 'list' : response_list
+    return { 'list' : responseList
            , 'meta' : { 'nextCursor': cursor.urlsafe() if cursor else ''
                       , 'more'      : more
-                      , 'totalCount': total_count
+                      , 'totalCount': totalCount
            }          }
 
 # def rqArg(argName, **ka):

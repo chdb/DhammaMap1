@@ -23,8 +23,8 @@ def inject_user():
     """Inject 'user' variable into jinja template, so it can be passed into angular. See base.html"""
     user = False
     if auth.is_logged_in():
-        user = auth.currentUser().toDict(publicOnly=False)
-    util.debugDict(user, "auth.currentUser" )
+        user = auth.currentUser().toDict()
+#    util.debugDict(user, "auth.currentUser" )
     logging.debug('inject user')
     return { 'user': user }
 
@@ -33,7 +33,7 @@ def inject_user():
 def inject_config():
     """Inject 'app_config' variable into jinja template, so it can be passed into angular. See base.html"""
     #config_properties = Config.get_all_properties() if auth.is_admin() else Config.get_public_properties()
-    app_config = CONFIG_DB.toDict(not auth.is_admin())
+    app_config = CONFIG_DB.toDict(auth.is_admin())
     logging.debug('inject config')
     return { 'app_config': app_config 
            , 'authNames' : config.authNames

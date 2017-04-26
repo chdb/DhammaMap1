@@ -40,7 +40,7 @@ def user_verify(token):
         usr.token__ = '' # util.randomB64()
         usr.isVerified_ = True
         usr.put()
-        auth.signIn(usr)
+        auth.logIn(usr)
         flask.flash('Welcome on board %s!' % usr.username)
     else:
         flask.flash('Sorry, activation link is either invalid or expired.')

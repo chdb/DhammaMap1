@@ -6,23 +6,53 @@ from google.appengine.api import memcache
 from config import cfg_
 import util as ut
 #from werkzeug import exceptions as exc
-from webapp2 import abort
+#from webapp2 import abort
+from functools import wraps
+
+def credentials(fn):
+    @wraps(fn)
+    def decorator(handler, *pa, **ka):
+        '''parse credentials and pass in as args to handler'''
+        args = handler.credentials()
+        ka.update(args)
+        r = fn (handler, *pa, **ka) 
+        # if 'user' in r: 
+            # usr = r['user'] 
+            # if usr is None:
+                # handler.abort(401, detail='These credentials are invalid')
+            
+            # r['user'] = usr.toDict() # user can see her own privates - others cannot
+            # if usr.isAdmin_:
+                # r['adminCfg'] = CONFIG_DB.toDict()
+
+        return r
+    return decorator
+
+
         
 def rateLimit (fn): # decorator
-    #@cookies 
-    def _rateLimit (handler, *pa, **ka):
-        ipa = request.remote_addr
-        ema = g.args.loginId 
-        rlt = RateLimiter (ema, ipa, handler)
+    #@cookies
+    @wraps(fn)
+    def decorator(handler, *pa, **ka):
+        #args = getattr(handler, argsFn)()
+        logging.debug('££££££££££££ ka %r',ka)
+        logging.debug('££££££££££££ pa %r',pa)
+        lid = ka.get('loginId')  # if 
+        c = 'e:' if '@' in lid else 'l:'
+        ema = c+lid
+        rlt = RateLimiter (ema, handler)
         if not rlt.ready ():
-            return {'delay': rlt.delay}
-        resp = fn (handler, *pa, **ka) # CALL THE HANDLER
-        if rlt.tryLock (resp): 
-            abort(401, detail='These credentials are invalid')
-        return resp
+            return {'delay':rlt.delay}
+        #ka.update(args)
+        logging.debug('££££££££££££ ka: %r', ka)
+        
+        usr = fn (handler, *pa, **ka) # CALL THE HANDLER
+        
+        logging.debug('WWWWWWWWWWWWWWWWW usr %r',usr)
+        rlt.tryLock (bool(usr))
+        return {'user':usr}  
         #todo: instead of auto unlock after n=locktime seconds, after n send user and email with unlock link 
-
-    return _rateLimit
+    return decorator
 #..................................................................
 # NB 'bad' in context of the RateLimiter means a request will count towards the lockout count.
 # The handler determines which requests are 'bad'. 
@@ -32,7 +62,7 @@ def rateLimit (fn): # decorator
 
 class RateLimiter (object):
     
-    def __init__(_s, ema, ipa, handler):
+    def __init__(_s, ema, handler):
         
         def _initDelay (minWait):
             _s.delay = minWait #milliseconds
@@ -55,7 +85,8 @@ class RateLimiter (object):
         
             def _insert (name, keybase):
                 assert name in lCfg
-                _s.monitors[name] = ('L:'+_s.handler.apiName+':'+keybase, lCfg[name])
+                lkey = 'L:'+_s.handler.apiName+':' + keybase
+                _s.monitors[name] = (lkey, lCfg[name])
 
             cfg = cfg_[_s.handler.apiName]
             lCfg = cfg.lockCfg
@@ -67,6 +98,7 @@ class RateLimiter (object):
             return cfg
         
         _s.handler = handler
+        ipa = handler.request.remote_addr
         _s.ei = ema + ipa
         _s.mc = memcache.Client()        
         cfg = _initMonitors (ema, ipa)

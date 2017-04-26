@@ -13,7 +13,7 @@
 
         ctrl.resetForm = function() {
             $scope.feedback = {
-                email : gaAuth.user.email || ''
+                email_ : gaAuth.user.email || ''
             };
         };
 

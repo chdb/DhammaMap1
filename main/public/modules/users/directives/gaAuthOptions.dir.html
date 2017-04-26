@@ -3,7 +3,7 @@
 <div layout="row" layout-wrap layout-align="center center" class="mar-bot-20">
     <md-button ng-repeat="opt in authOptions"
                class="md-fab md-primary md-accent hmar-5 mar-bot-10"
-               ng-href="/signin/{{ opt }}?remember={{ remember ? 'true' : 'false' }}"
+               ng-href="/login/{{ opt }}?remember={{ remember ? 'true' : 'false' }}"
                aria-label="Login with {{opt}}">
         <md-icon class="mar-top-10" md-font-icon="fa fa-{{ opt }}"></md-icon>
     </md-button>

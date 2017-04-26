@@ -21,3 +21,11 @@ else:
     stubs.FakeFile._skip_files = re_ # pylint: disable=protected-access
     sys.path.insert(0, 'lib')
 sys.path.insert(0, 'libx')
+
+
+
+# appengine_config.py
+#from google.appengine.ext import vendor
+
+# Add any libraries install in the "lib" folder.
+#vendor.add('lib')

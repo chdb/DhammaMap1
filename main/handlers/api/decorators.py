@@ -12,7 +12,7 @@ import model.user as user
 #from werkzeug import exceptions
 import validators as vdr
 import logging
-from model.config import CONFIG_DB
+from config import appCfg
 from webapp2 import abort
 
 
@@ -22,13 +22,13 @@ def verify_captcha(form_name):
     Args    : form_name (string): captcha for this form is enabled iff form_name is in CONFIG_DB.recaptcha_forms
     Raises  : ValueError        : if captcha is invalid.
     """
-    def decorator(func):  # pylint: disable=missing-docstring
-        @functools.wraps(func)
-        def decFunc(handler, *pa, **ka):  # pylint: disable=missing-docstring
-            if form_name in CONFIG_DB.recaptcha_forms:
+    def decorator(fn):  # pylint: disable=missing-docstring
+        @functools.wraps(fn)
+        def decFn(handler, *pa, **ka):  # pylint: disable=missing-docstring
+            if form_name in appCfg.recaptcha_forms:
                 handler.args = _s.parseJson(('captcha', vdr.captchaVdr))
-            return func(handler, *pa, **ka)
-        return decFunc
+            return fn(handler, *pa, **ka)
+        return decFn
     return decorator
 
     
@@ -47,15 +47,15 @@ def entByKey(func):
     return decorator
     
 
-def usrByUsername(func):
-    """Gets User model by username in URL and assigns it into g.usr"""
-    @functools.wraps(func)
-    def decorator(*pa, **ka): # pylint: disable=missing-docstring
-        g.usr = user.byUsername(ka['username'])
-        if g.usr:
-            return func(*pa, **ka)
-        raise exceptions.NotFound() #return make_not_found_exception()
-    return decorator
+# def usrByUsername(func):
+    # """Gets User model by username in URL and assigns it into g.usr"""
+    # @functools.wraps(func)
+    # def decorator(*pa, **ka): # pylint: disable=missing-docstring
+        # g.usr = user.byUsername(ka['username'])
+        # if g.usr:
+            # return func(*pa, **ka)
+        # raise exceptions.NotFound() #return make_not_found_exception()
+    # return decorator
 
 
 # def usrByCredentials (func):
@@ -81,22 +81,27 @@ def login_required(func):
     """Returns 401 error if user is not logged-in when requesting the given API URL"""
     @functools.wraps(func)
     def decorator(handler, *pa, **ka): # pylint: disable=missing-docstring
-        if auth.is_logged_in():
-            return func(*pa, **ka)
+        if handler.ssn.isLoggedIn():
+            return func(handler, *pa, **ka)
         return abort(401)
     return decorator
 
-
-def admin_required(func):
+#
+def adminOnly(func):
     """Returns 401 response if user is not logged-in when requesting the given API URL
     or returns 403 response if user is not admin     when requesting the given API URL
     """
     @functools.wraps(func)
-    def decorator(*pa, **ka): # pylint: disable=missing-docstring
-        if auth.is_admin():
-            return func(*pa, **ka)
-        if not auth.is_logged_in():
-            return abort(401)
+    @login_required
+    def decorator(handler, *pa, **ka): # pylint: disable=missing-docstring
+        
+        #if auth.is_admin():
+        
+         # usr = u.User.get_by_id(_s.ssn['_userID'])
+        if handler.user.isAdmin_:
+            return func(handler, *pa, **ka)
+        # if not auth.is_logged_in():
+            # return abort(401)
         return abort(403)
     return decorator
 

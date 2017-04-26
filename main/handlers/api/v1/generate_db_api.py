@@ -8,11 +8,11 @@ import random
 from security import pwd
 import model.user as u
 from google.appengine.ext import ndb #pylint: disable=import-error
-from handlers.api.helpers import ok
+#from handlers.api.helpers import ok
 import logging
-from handlers.basehandler import HBase
+from handlers.basehandler import HAjax
 #@API.resource('/api/v1/generate_database')
-class GenerateDatabaseAPI(HBase):
+class GenerateDatabaseAPI(HAjax):
     @ndb.toplevel
     def post(self):
         """Deletes all users and re-generates mock users for development purposes"""
@@ -28,7 +28,7 @@ class GenerateDatabaseAPI(HBase):
                           , email_     ='admin@xyz.com' 
                           , pwdhash__  =pwd.encrypt('123456')
                           , isAdmin_   =True
-                          , isVerified_=True
+                        #  , isVerified_=True
                           , isActive_  =True
                           , authIds    =u.randomAuthIds()
                           )
@@ -40,7 +40,7 @@ class GenerateDatabaseAPI(HBase):
                           , email_     =name+'@xyz.com'
                           , pwdhash__  =pwd.encrypt('123456')
                           , isAdmin_   =False
-                          , isVerified_=random.choice((True, False))
+                      #    , isVerified_=random.choice((True, False))
                           , isActive_  =random.choice((True, False))
                           , bio        =random.choice(('All component', 'things are', 'impermanent: work', 'out your', 'own salvation', 'with diligence.'))
                           , authIds    =u.randomAuthIds()

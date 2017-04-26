@@ -1,0 +1,66 @@
+<div layout="row" class="w-100" layout-align="center start">
+    <div flex flex-gt-md="80" flex-gt-lg="70">
+        <md-toolbar class="md-accent">
+            <h1 class="md-toolbar-tools">Sign up</h1>
+        </md-toolbar>
+        <md-content class="md-padding md-whiteframe-z1">
+            <form name="signupForm">
+                <ga-email 
+					ng-model="credentials.email_" 
+					disabled
+					input-tabindex="1"
+				></ga-email>
+                <md-input-container>
+                    <label>Username</label>
+                    <input ng-model="credentials.username"
+						validator="username_span"
+						tabindex="2"
+						disabled
+						name="username_span" 
+						type="text"
+					>
+                    <!-- <div ng-if="signupForm.username_span.$dirty" 
+						ng-messages="signupForm.username_span.$error">
+						 	  <div ng-message="minlength">Username needs to be at least {{ usernameMinLen }} characters long
+						</div><div ng-message="maxlength">Username can be up to {{ usernameMaxLen }} characters long
+						</div><div ng-message="required" >Username is required
+                    </div></div>  -->
+                </md-input-container>
+                <ga-password 
+					ng-model="credentials.password"
+					input-tabindex="3"
+					name="password"
+				></ga-password>
+                <!-- <ga-password 
+					ng-model="credentials.repeatPwd"
+					repeat-password="credentials.password"
+					name="repeatPwd"
+					label="Repeat Password"
+					input-tabindex="4"
+				></ga-password> -->
+                <ga-captcha 
+					ng-model="credentials.captcha" 
+					ng-required="true" 
+					control="captchaControl"
+				></ga-captcha>
+                <div class="mar-top-20" layout="column" layout-gt-sm="row" layout-margin>
+                    <md-button flex flex-order-sm="2"
+						ui-sref="signin"
+					>	Already have an account?
+					</md-button>
+                    <md-button class="md-raised md-primary" flex flex-order-sm="1"
+						ng-disabled="!signupForm.$valid || isLoading"
+						ng-click="signup()"
+						tabindex="5"
+						type="submit"
+					>	<i class="fa fa-sign-in btn-icon"></i>
+						Sign Up
+                    </md-button>
+                </div>
+            </form>
+            <ga-auth-options 
+				remember="credentials.remember"
+			></ga-auth-options>
+        </md-content>
+    </div>
+</div>

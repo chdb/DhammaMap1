@@ -6,7 +6,7 @@
 from webapp2_extras import jinja2
 #import session
 import util
-
+from config import appCfg
 import logging
 import json
 
@@ -46,7 +46,7 @@ class Jinja (object):
         # j.environment.autoescape=bAutoescape        # overrides True, set in webapp2_extras.jinja2
         # j.environment.filters.update({  # Set filters  ...
                                     #  })
-        j.environment.globals.update({ 'config' : app.config #{'config':} 
+        j.environment.globals.update({ 'config' : appCfg.toDict() #{'config':} 
                                      # , 'uri_for': wa2.uri_for
                                      # , 'csrf_token': generate_csrf_token
                                      # , 'getattr': getattr

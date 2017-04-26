@@ -4,8 +4,8 @@
 # from flask import abort
 # from main import API
 import task
-from model.config import CONFIG_DB
-from handlers.api.helpers import ok#, rqParse
+from config import appCfg
+#from handlers.api.helpers import ok#, rqParse
 from handlers.api.decorators import verify_captcha
 import validators as vdr
 from handlers.basehandler import HBase
@@ -16,7 +16,7 @@ class FeedbackAPI(HBase):
     @verify_captcha('feedbackForm')
     def post(_s):
         """Sends feedback email to admin"""
-        if not CONFIG_DB.admin_email_:
+        if not appCfg.admin_email_:
             return _s.abort(418)
         
         args = args = _s.parseJson(('message', vdr.feedback_span)

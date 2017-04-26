@@ -5,9 +5,9 @@
     module.controller('AdminAppConfigController'
 	, function($scope, Restangular, _, gaToast, gaAppConfig) 
     {	var cfg0 = {};
-		Restangular.one('config').get()
+		Restangular.one('config').get()  // this should be all() not one() ???
 		.then(function(cfg) 
-        {	$scope.cfg = cfg;
+        {	$scope.cfg = cfg.plain();		
             $scope.newauth = {name:''};
 			$scope.appConfigForm.unchanged = true;
 			copyCfg();
@@ -33,17 +33,20 @@
 			myObj.populate(json)
 */		
 		var copyCfg = function()
-		{	if ($scope.cfg)
-				angular.copy($scope.cfg.plain(), cfg0);
+		{	if ($scope.cfg)// && $scope.cfg.plain)
+				angular.copy($scope.cfg, cfg0); //copy from cfg to cfg0
 		};
 		
 		$scope.reset = function() 
-		{	copyCfg();
+		{	//copyCfg();
+			angular.copy(cfg0, $scope.cfg); //copy from cfg0 to cfg
+			if ($scope.appConfigForm)
+				$scope.appConfigForm.unchanged = true;
 		};
 			
 		$scope.$watch(function() 
-		{	if ($scope.cfg)
-			{	var same = angular.equals($scope.cfg.plain(), cfg0);
+		{	if ($scope.cfg && $scope.appConfigForm)
+			{	var same = angular.equals($scope.cfg, cfg0);
 				$scope.appConfigForm.unchanged = same;
 			}
 		/*	if (! same)
@@ -109,9 +112,9 @@
 		$scope.toggle = function (formName) //on user toggling checkbox, determine whether to add or remove
 		{	var idx = $scope.cfg.recaptcha_forms.indexOf(formName);
 			if (idx > -1) 				
-				$scope.cfg.recaptcha_forms.splice(idx, 1);//found, so remove
+				$scope.cfg.recaptcha_forms.splice(idx, 1);//found formName, so remove
 			else 						
-				$scope.cfg.recaptcha_forms.splice(idx, 0, formName);//not found, so insert at right position to preserve order
+				$scope.cfg.recaptcha_forms.splice(idx, 0, formName);//not found, so insert at position 0 to preserve order
 		};
 		
 		$scope.save = function() 
@@ -120,7 +123,7 @@
 			   Although isEqual is deep, only top level traversal is done. 
 			   So, unlike the top level, a substructure EG authIds is either sent wholesale or not at all. 
 			*/
-			var cfg = $scope.cfg.plain();
+			var cfg = $scope.cfg;
 			
 			// for (var key in validation_messages) {
 				// if (!validation_messages.hasOwnProperty(key)) continue;
@@ -131,10 +134,10 @@
 				// }
 			// }
 			
-			var ng = angular;
 			
+			// remove everything from cfg that is unchanged from cfg0
 			var diff = function (cfg, cfg0)
-			{ 	ng.forEach(cfg, function(v,k)
+			{ 	angular.forEach(cfg, function(v,k)
 				{ 	
 					var v0 = cfg0[k];
 					if (_.isEqual(v, v0)) 
@@ -142,15 +145,15 @@
 						delete cfg[k];
 						//console.log('deleted: '+k); 
 					}			
-					else if(ng.isObject(v))
+					else if(angular.isObject(v))
 					 	diff(v, v0); 
 				});
 			};
 			//console.log('cfg0: ',cfg0); 
 			diff(cfg, cfg0);
 			//console.log('cfg: ',cfg); 
-			
-			cfg = Restangular.restangularizeElement (null, cfg, 'config');
+												// (parent,element,route)
+			cfg = Restangular.restangularizeElement(null,  cfg, 'config');
 			
 			// var keys = _.keys(cfg);
 			// var sameKeys = [];
@@ -169,8 +172,8 @@
            // $scope.cfg.save()
             cfg.put()
 			.then(function() 
-			{	_.extend(gaAppConfig, cfg);
-				gaToast.show('Application configuration was successfully saved.');
+			{	_.extend(gaAppConfig, cfg); //update gaAppConfig with cfg
+				gaToast.show('Application configuration was successfully updated.');
 				copyCfg();
             });
         };

@@ -7,26 +7,28 @@ import kryptoken
 import util as u
 #import debug as d
 from model.user import User
-
+import webapp2
 # # # # # # # # # # # # # # # # # # # # 
 
 class CookieNameError(ValueError):
     pass
 
 class Cookie (object):
-    def __init__(_s, handler, cookieName):
-        _s.handler = handler       
+    def __init__(_s, cookieName, path='/', domain=None, secure=None, httponly=True):
+        if secure is None:
+            secure = not webapp2.get_app().debug
         _s.cfg = { 'key'     : cookieName
-                 , 'path'    : '/'
-                 , 'secure'  : not handler.app.debug
-                 , 'httponly': True
+                 , 'path'    : path
+                 , 'domain'  : domain
+                 , 'secure'  : secure #not handler.app.debug
+                 , 'httponly': httponly
                  }
   
-    def set       (_s, val): _s._set(val, checkExists=True , resetting=False) # exception if already exists
-    def reset     (_s, val): _s._set(val, checkExists=True , resetting=True ) # exception if doesnt exist
-    def setOrReset(_s, val): _s._set(val, checkExists=False) # force a cookie to set or reset - you dont care which
+    def set       (_s, handler, val): _s._set(handler, val, checkExists=True , resetting=False) # exception if already exists
+    def reset     (_s, handler, val): _s._set(handler, val, checkExists=True , resetting=True ) # exception if doesnt exist
+    def setOrReset(_s, handler, val): _s._set(handler, val, checkExists=False) # force a cookie to set or reset - you dont care which
     
-    def _set (_s, val, checkExists, resetting=False):
+    def _set (_s, handler, val, checkExists, resetting=False):
         # NB webOb treats cookie-name as a unique key called 'key' and uses a dict for a key-value map. 
         # This is similar to other frameworks but it hides a peculiarity of cookies. 
         # There can be multiple cookies with same name in the request's cookie header, because for the client, Cookie-name is not the full key;    
@@ -36,13 +38,13 @@ class Cookie (object):
         # However webOb, like most server frameworks, will only read first one from the cookie header. 
         # The cookie which had longest url, ie most specific, *should* be the first one but might not be.
         # MORAL -- if, in same domain, you are using various cookies for different paths or sub-domains, be sure to use different cookie names for each.
-        exists = bool(_s.get())
+        exists = bool(_s.get(handler))
         if checkExists:
             if resetting:
-                if exists:
+                if not exists:
                     raise CookieNameError('This cookie name is not in use.')
             else:
-                if not exists:
+                if exists:
                     raise CookieNameError('This cookie name is already in use.')
         
         n = len(val)
@@ -51,20 +53,22 @@ class Cookie (object):
         #todo:what to do? too big for cookie!!!
         #logging.debug ('setting cookieMgr = %r', val)
                 
-        _s.handler.response.set_cookie (value=val, **_s.cfg)
+        handler.response.set_cookie (value=val, **_s.cfg)
         
-    def get (_s):
-        val = _s.handler.request.cookies.get (_s.cfg['key'])
+    def get (_s, handler):
+        val = handler.request.cookies.get (_s.cfg['key'])
         if val:
             val = val.encode('utf-8') #from unicode to bytes
         #logging.debug ('cookieMgr data = %r', val)
         return val
         
-    def delete (_s):
+    def delete (_s, handler):
         # As close as possible to a delete of browser cookie. (Browsers provide no deleteCookie method - you must overwrite setting expiry to zero or negative lifespan) 
         # When client gets the response, only the cookie value is immediately deleted IE overwritten with empty string.
         # The expiry is set to zero and the name will usually remain visible intil cookie itself is deleted when the browser window closes. 
-        _s.handler.response.delete_cookie (**_s.cfg)
+        cfg = {k:_s.cfg[k] for k in ('key','path','domain')}
+        # logging.debug('cfg = %r', cfg)
+        handler.response.delete_cookie (**cfg)
                   
 # # # # # # # # # # # # # # # # # #
 
@@ -105,8 +109,9 @@ class SessionVw (_UpdateDictMixin, dict):
     def __init__ (_s, handler):  # container, , new=False
         logging.debug('#################### SessionVw __init__ called')  
         _s.modified = False
-        _s.cookie = Cookie(handler, 'dm_session')
-        cookieVal = _s.cookie.get()
+        _s.handler = handler
+        _s.cookie = Cookie('dm_session')
+        cookieVal = _s.cookie.get(handler)
 #        token = handler.request.headers.get('authentication')
        # data = kryptoken.decodeToken (token, 'session') if token else {}
         if cookieVal:
@@ -133,8 +138,8 @@ class SessionVw (_UpdateDictMixin, dict):
         if _s.modified:
             val = kryptoken.encodeSessionToken (_s) #, user
             #_s.handler.response.headers['authentication'] = val
-            logging.debug('£££££££££££££££££')
-            _s.cookie.reset(val)
+            logging.debug('saving session                                        £££££££££££££££££')
+            _s.cookie.setOrReset(_s.handler, val)
             
     def on_update (_s):
         _s.modified = True
@@ -163,7 +168,7 @@ class SessionVw (_UpdateDictMixin, dict):
         '''
         _s.setdefault ('_flash', []).append((msg, level))  # append to duple list:  [(msg, level), ...]
 
-    def signIn (_s, user, ipa, remember ):
+    def logIn (_s, user, ipa, remember ):
         logging.debug('user = %r', user)
         _s['_userID' ]= user.id()
         _s['_logInTS']= u.sNow()
@@ -175,7 +180,7 @@ class SessionVw (_UpdateDictMixin, dict):
         logging.debug('just logged in ssn = %r',_s)
         logging.debug('just logged in ssn id = %r',id(_s))
         
-    def signOut  (_s):
+    def logOut (_s):
         # if user:
             # user.token = ''
             # user.modified = True
@@ -183,10 +188,11 @@ class SessionVw (_UpdateDictMixin, dict):
         # _s.pop('_logInTS', None)
         # _s.pop('_sessIP' , None) 
       #  d.logStackTrace(3)
-        logging.debug('about to logout ssn = %r',_s)
-        logging.debug('about to logout  ssn id = %r',id(_s))
+        # logging.debug('about to logout ssn = %r',_s)
+        # logging.debug('about to logout  ssn id = %r',id(_s))
+        _s.cookie.delete(_s.handler)
         uid = _s.pop('_userID', None)# default arg (None) to avoid KeyError
-        logging.debug('2 uid was = %r', uid)
+        # logging.debug('2 uid was = %r', uid)
         if uid is not None:
             del _s['_logInTS']
             del _s['_sessIP' ]            

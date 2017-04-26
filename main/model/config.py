@@ -38,10 +38,9 @@ class Config(base.ndbModelBase):
     admin_email_       = ndb.StringProperty(default='abc@xyz')    # private: Admin's email, where feedback will be sent
 #    flask_secret       = ndb.StringProperty(default=util.randomB64()) 
     recaptcha_forms    = ndb.StringProperty(repeated=True) # List of form names where recaptcha is enabled
-#    recaptcha_secret   = ndb.StringProperty()
-#    recaptcha_id       = ndb.StringProperty()
-#    salt_              = ndb.StringProperty(default=util.randomB64()) # todo Arent we stuffed if old value gets overwritten ? protest from overwriting or Instead keep old vals as entities Model:Salt (val, date )
-    verify_email       = ndb.BooleanProperty(default=True) # Whether to verify emails of newly registered users
+    recaptcha_secret   = ndb.StringProperty() # was recaptcha_private_key 
+    recaptcha_id       = ndb.StringProperty() # was recaptcha_public_key 
+#    verify_email       = ndb.BooleanProperty(default=True) # Whether to verify emails of newly registered users
     notify_on_new_user_= ndb.BooleanProperty(default=True) # Whether to send email to admin if user signs up
     
 #    authProviders   = ndb.StructuredProperty(AuthProvider, repeated=True) 
@@ -51,11 +50,11 @@ class Config(base.ndbModelBase):
         return bool(self.recaptcha_secret) # and bool(self.recaptcha_id)
 
     @classmethod
-    def get_master_db(cls):
+    def getCfg(_C):
         """Get config - if entity doesn't exist, it creates new one.
         There's need only for one config - master"""
         
-        key = ndb.Key(cls, 'master')
+        key = ndb.Key(_C, 'master')
         ent = key.get()
         if ent: 
             return ent # ok found it but if we are in dev - then we must have some test authProviders
@@ -71,29 +70,30 @@ class Config(base.ndbModelBase):
                                                 # , id     =util.randomB64() 
                                                 # , secret_=util.randomB64() 
                                                 # ))  
-        ent = cls()
+        ent = _C()
         ent.key = key
         ent.put()
         return ent
 
     #def toDict(self, *args, **kwargs):
-    def toDict(self, nullVals=False):
-        """Creates dict representation of config model plus some other config props """        
-        d = self.toDict_(publicOnly=False, nullprops=nullVals)
-    #    d['development'] = util.DEVT
-        d['has_feedback']= bool(self.admin_email_) 
+    # def toDict(_s, nullVals=False):
+        """_s dict representation of config model plus some other config props """        
+        # d = _s.toDict_(privates=True, nullprops=nullVals)
+      #    d['development'] = util.DEVT
+        # d['has_feedback']= bool(_s.admin_email_) 
       #  d['authProviders'] = _apDict(d['authProviders'])
         
-        return d
+        # return d
 
-    def populate(_s, **ka):
+    def populate_ (_s, **ka):
         
         if 'authProviders' in ka:
             d1 = ka['authProviders']
             d0 = _apDict(_s.authProviders)
             ka['authProviders'] = _apList(d0.update(d1))
         
-        super(Config, _s).populate(**ka)
+        _s.populate(ka)
+        #super(Config, _s).populate(**ka)
 
-CONFIG_DB = Config.get_master_db()
+#CONFIG_DB = Config.get_master_db()
     

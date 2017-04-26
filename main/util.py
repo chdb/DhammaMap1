@@ -10,13 +10,13 @@ import time as tim
 import traceback
 #from datetime import datetime
 
-# The conde in index.py sends this serverside email regex to clientside along with other validators 
+# The code in index.py sends a serverside email regex to clientside along with other validators 
 # Note that currently, email fields on clientside forms dont use it.  Instead they will use the regex provided by AngularJS
-#var EMAIL_REGEXP = /^[a-z0-9!#$%&'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
+# var EMAIL_REGEXP = /^[a-z0-9!#$%&'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
 #  python str =    r'^[a-z0-9!#$%&\'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$'
 # This is broadly similar except for allowing the domain-part to be just a single TLD   eg joebloggs@com    
 # it is also lowercase only for use with a case-insensitive search
-#and does not allow domain part to start with '-'
+# and does not allow domain part to start with '-'
 def getEmailRegex():   
     #Use as a pre-validator, to be followed by proper live validation by mailgun service 
     #Note that it is currently too strict a) does not allow new forms i18n email addresses. And b) weird and outdated forms that are permissed by the RFC and possibly by some mail servers  
@@ -65,9 +65,8 @@ def getEmailRegex():
 
 #todo provide a raw token - they will be b64-encoded again 
 #because the token is part of the Kryptoken 
-def randomB64(n=15):
-    '''a base64 string representing n random bytes (so string has length = ceil(n/3)*4 )
-       Is 15 enough to create a good nonce?  - should be plenty eg if we just want to avoid a clash on same machine '''
+def randomB64(n):
+    '''a base64 string representing n random bytes (so string has length = ceil(n/3)*4 ) '''
     #n = config('NonceBytes')
     r = os.urandom(n) 
     #return os.urandom(8) 
@@ -155,19 +154,19 @@ def utf8 (uStr):
     # return c
     
     
-def fib(n):
-    if n == 0:
-        return 0
-    elif n == 1:
-        return 1
-    else:
-        return fib(n-1) + fib(n-2)
+# def fib(n):
+    # if n == 0:
+        # return 0
+    # elif n == 1:
+        # return 1
+    # else:
+        # return fib(n-1) + fib(n-2)
 
-memo = {0:0, 1:1}
-def fibm(n):
-    if not n in memo:
-        memo[n] = fibm(n-1) + fibm(n-2)
-    return memo[n]
+# memo = {0:0, 1:1}
+# def fibm(n):
+    # if not n in memo:
+        # memo[n] = fibm(n-1) + fibm(n-2)
+    # return memo[n]
 
 def deepFilter (c, filterFn, updateFn=None):
     '''c is a json object - ie consisting of elements of type string, number, bool or None in nested lists and dicts.

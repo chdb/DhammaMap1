@@ -7,24 +7,26 @@ from google.appengine.datastore import datastore_query#.Cursor #pylint: disable=
 import re
 import util
 import config
+import webapp2  
+
+def abort(s):
+    logging.debug('abort detail = %r',s)
+    webapp2.abort(422, s)
         
 
 def limit_string(string, ls2):
     """impose minimal and maximal lengths of string.
-    NB maxlen = 0 indicate there is no max length  (not that the max is zero)
+    NB maxlen == 0 indicates there is no max length (not that the max is zero)
     """
     assert len(ls2) == 2 ,'specifier v should be a 2 member list'
     minlen = ls2[0]
     maxlen = ls2[1]
-    assert minlen >= 0
-    assert maxlen >= 0
-    assert maxlen == 0 or maxlen > minlen
     n = len(string) 
     if n < minlen:
-        raise ValueError('At least %s characters long' % minlen)
+        abort('At least %s characters long' % minlen)
     if maxlen > 0:
         if n > maxlen:
-            raise ValueError('Maximum of %s characters long' % maxlen)
+            abort('Maximum of %s characters long' % maxlen)
     return string
 
 
@@ -33,7 +35,7 @@ def match_regex(string, regex):
     """
     h = re.compile(regex, re.IGNORECASE)        # todo store h in g or app.registry ?
     if not h.match(string):
-        raise ValueError('Incorrect regex format')
+        abort('Incorrect regex format')
     return string
 
     
@@ -57,10 +59,17 @@ class Vdr(object):
         _s.specifier = spec
      
 class regexVdr(Vdr):   
-    def __init__(_s, spec):  _s.init(spec, match_regex)
+    def __init__(_s, spec):  
+        _s.init(spec, match_regex)
         
 class lengthVdr(Vdr):   
-    def __init__(_s, spec):  _s.init(spec, limit_string)
+    def __init__(_s, spec):  
+        _s.init(spec, limit_string)
+        minlen = spec[0]
+        maxlen = spec[1]
+        assert minlen >= 0
+        assert maxlen >= 0
+        assert maxlen == 0 or maxlen >= minlen
     
     
 def to_dict(module):
@@ -94,6 +103,9 @@ location_span = lengthVdr([0, 70])
 social_span   = lengthVdr([0, 50])
 arithExpr_span= lengthVdr([0, 50])
 
+n = config.appCfg.NonceLEN()
+token_span    = lengthVdr([n, n+5])
+
 email_rx  = regexVdr(util.getEmailRegex())
 
 
@@ -104,7 +116,7 @@ def toBool (v):
     v = v.lower()
     if v == 'yes'or v == 'true' : return True
     if v == 'no' or v == 'false': return False
-    raise ValueError ('Sorry, "%s" is not a valid boolean'% v) 
+    abort('Sorry, "%s" is not a valid boolean'% v) 
     
 
 def captchaVdr (captchaStr):
@@ -114,8 +126,8 @@ def captchaVdr (captchaStr):
     """
     # todo: this code does not seem right - register to get keys, test and rewrite?
     
-    if config.CONFIG_DB.has_recaptcha():
-        params = { 'secret'  : config.CONFIG_DB.recaptcha_secret
+    if config.appCfg.has_recaptcha():
+        params = { 'secret'  : config.appCfg.recaptcha_secret
                  , 'remoteip': request.remote_addr
                  , 'response': captchaStr
                  }
@@ -127,7 +139,7 @@ def captchaVdr (captchaStr):
                                )
         success = json.loads(result.content)['success']
         if not success:
-            raise ValueError('Sorry, invalid captcha')
+            abort('Sorry, invalid captcha')
     return captchaStr
 
 def toCursor (cursor):
@@ -140,11 +152,10 @@ def toCursor (cursor):
     #logging.debug('xxxxxxxxx cursor = %r',cursor)
     if not cursor:
         return None
-    try:
-        cursorObj = datastore_query.Cursor(urlsafe=cursor)
+    try: cursorObj = datastore_query.Cursor(urlsafe=cursor)
     except:
         logging.exception('cursor string failed in validator')
-        raise ValueError('Sorry, invalid cursor.')
+        abort('Sorry, invalid cursor.')
     return cursorObj
 
 def simpleArithmeticExpr (expr):
@@ -179,13 +190,12 @@ def maxIntermediate (max_=None):
         @functools.wraps(func)
         def wrapper(*pa, **ka):
             ret = func(*pa, **ka)
-            try:
-                mag = abs(ret) 
+            try: mag = abs(ret) 
             except TypeError:
                 pass    # ret is a branch node, so limit() is not applicable 
             else:       # ret is a leaf node IE a number
                 if mag > max_:
-                    raise ValueError('overflow: %d'%ret)
+                    abort('overflow: %d'%ret)
             return ret
         return wrapper
     return decorator
@@ -213,9 +223,9 @@ def eval_expr (expr, vals):
     def limited_power(a, b):
         '''to limit input arguments for a**b:'''
         if abs(b) > 20:
-            raise ValueError('excessive exponent: %r' %b)
+            abort('excessive exponent: %r' %b)
         if abs(a) > 100:
-            raise ValueError('excessive mantissa: %r' %a)
+            abort('excessive mantissa: %r' %a)
         return operator.pow(a, b)
 
     #def getOp(x):
@@ -241,11 +251,11 @@ def eval_expr (expr, vals):
             if isinstance(x, ast.Name):
                 if x.id in vals:
                     return vals[x.id]
-                raise ValueError("Unrecognised name: %s" % x.id) 
-            raise ValueError("Unrecognised symbol: %s" % x.id) 
+                abort("Unrecognised name: %s" % x.id) 
+            abort("Unrecognised symbol: %s" % x.id) 
         if isinstance(x, ast.Call):
-            raise ValueError("Unrecognised function: %s" % x.func.id) #)
-        raise ValueError("Unrecognised node at: %s" % expr[x.col_offset : x.col_offset+4])
+            abort("Unrecognised function: %s" % x.func.id) #)
+        abort("Unrecognised node at: %s" % expr[x.col_offset : x.col_offset+4])
         
     return eval_(ast.parse(expr, mode='eval').body)
        

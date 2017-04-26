@@ -65,10 +65,12 @@
             , './lib/lrInfiniteScroll/lrInfiniteScroll.js'
             , './lib/angulartics/src/angulartics.js'
             , './lib/angulartics/src/angulartics-ga.js'
+            , './lib/angular-block-ui/dist/angular-block-ui.js'
+            , './lib/spinner.js'
 			]
 	, scripts :
 			[ './application.js'
-            , './modules/**/*.js'
+            , './modules/**/*.js'	
             , '!./modules/**/tests/**/*.js'
 			]
     };
@@ -134,13 +136,14 @@
     	console.log('manifestLessFile ',manifestLessFile);
     	console.log('lessPaths ',lessPaths);
 		
-		return gulp.src ( cssFiles.concat(manifestLessFile) 
-						, {	cwd : publicDir }
-	   ).pipe(sourcemaps.init())
-	    .pipe(less({ paths : lessPaths }))
-	    .pipe(sourcemaps.write())
-	    .pipe(concatCss('style.css'))
-	    .pipe(gulp.dest(distDir));
+		return gulp.src( cssFiles.concat(manifestLessFile) 
+					 , {	cwd : publicDir }
+					   )
+					.pipe(sourcemaps.init())
+					.pipe(less({ paths : lessPaths }))
+					.pipe(sourcemaps.write())
+					.pipe(concatCss('style.css'))
+					.pipe(gulp.dest(distDir));
     });
 
     gulp.task('watch-less', function() 

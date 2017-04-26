@@ -23,20 +23,20 @@ class ndbModelBase(ndb.Model):
     modified_r = ndb.DateTimeProperty(auto_now=True)             # when model instance was last modified
     version_r  = ndb.IntegerProperty (default=ENV['CURRENT_VERSION_TIMESTAMP']) # app version number 
     
-    def toDict_(_s, publicOnly, nullprops=False):
+    def toDict_(_s, privates, nullprops=False):
         """Return a dict containing the entity's property values, to be passed to client
-        publicOnly:	true excludes hidden and private properties
-                    false includes private but not hidden properties
+        privates:	false excludes hidden and private properties
+                    true  includes private but not hidden properties
         nullProps:  whether to include properties with value None (useful if client need property names)
         """
-        suffix = '_' if publicOnly else '__'
+        excludeSuffix = '__' if privates else '_'
               
         data, filtrate = util.deepFilter ( _s.to_dict() # defined in ndb.Model 
-            , lambda k,v: not k.endswith(suffix)
+            , lambda k,v: not k.endswith(excludeSuffix)
                           and (v or nullprops or isinstance(v, bool))   # unless nullprops or boolean, exclude items with falsy values EG '' or None
             , lambda k,v: v.isoformat() if isinstance(v, date) else v   # convert date type values to a string repr
             )
-        util.debugDict(filtrate, 'filtered out these:')
+   #     util.debugDict(filtrate, 'filtered out these:')
         return data
 
     def populate(_s, ka):
@@ -44,7 +44,7 @@ class ndbModelBase(ndb.Model):
         """
         #todo add publicOnly param - if true  and client has tried to modify private prop. throw 403
 
-        util.debugDict(ka, 'populating: ')
+ #       util.debugDict(ka, 'populating: ')
         
         ka.pop('_k',None)
         bad = [k for k in ka if k not in _s._properties]

@@ -5,9 +5,11 @@
     module.controller('ForgotController', function($scope, Restangular, gaToast, gaBrowserHistory, gaTracking) {
 
         $scope.askForNewPassword = function() {
-            Restangular.all('auth/forgot').post($scope.credentials).then(function() {
-                gaToast.show('Your password has been reset. Please check your email');
-                gaTracking.eventTrack('Forgot password', $scope.credentials.email);
+            Restangular.all('auth/forgot-password').post($scope.credentials)
+			.then(function() 
+			{
+                gaToast.show('Please check your email for instructions to reset your password.');
+                gaTracking.eventTrack('Forgot password', $scope.credentials.email_);
                 gaBrowserHistory.back();
             });
         };

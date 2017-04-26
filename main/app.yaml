@@ -13,10 +13,10 @@ inbound_services:
 - warmup
 
 libraries:
-- { name: webapp2  , version: latest }
-- { name: webob    , version: latest }
-- { name: jinja2   , version: latest }
-# - { name: numpy    , version: latest }
+- { name: webapp2  , version: "latest" }
+- { name: webob    , version: "latest" }
+- { name: jinja2   , version: "latest" }
+# - { name: numpy    , version: "latest" }
 
 handlers:
 - url: /_ah/warmup

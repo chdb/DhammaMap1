@@ -1,17 +1,24 @@
 # non-api handlers
 import basehandler as bh
+import logging
+from app import app
 
-class H_home (bh.HBase):
+@app.route('', name='home' )
+class HHome (bh.HBase):
+
     def get(_s):
-    #def index():
         """Render index template"""
-        _s.pageResponse ('index.html')
+        u = _s.user
+        _s.pageResponse ('index.html', user=u.toDict() if u else None )
+    
 
-           
-class H_warmup (bh.HBase):
+@app.route('_ah/warmup', name='warmup')           
+class HWarmup (bh.HBase):
+
     def get(_s):
         """Warmup request to load application code into a new instance before any live requests reach that instance.
         For more info see GAE docs"""
+        logging.debug('self2 = %r',_s) 
         _s.response.headers['Content-Type'] = 'text/plain'
         _s.response.write('Warmup successful')
         
