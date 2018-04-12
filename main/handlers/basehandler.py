@@ -3,8 +3,8 @@ from jinja_env import Jinja
 import util
 import logging
 #import json
-from model.user import User
-#from model.config import CONFIG_DB
+from model.mUser import MUser
+#from model.mConfig import CONFIG_DB
 
 import config
 import validators as vdr
@@ -41,7 +41,7 @@ class Optional():pass
 optional = Optional()
     
 
-class HBase (wa2.RequestHandler):
+class HBase(wa2.RequestHandler):
 
     def __init__(_s, request, response):
         _s.initialize(request, response)
@@ -49,20 +49,20 @@ class HBase (wa2.RequestHandler):
         # Provide sensible aliases for misleading attribute names "request.GET" "request.POST"
         # "request.GET"  has data from the uri's query string. Request could have used any HTTP method: GET, POST, PUT etc
         # "request.POST" has data from the request body, IE from any form whether sent with POST or PUT or even CONNECT, OPTIONS or PATCH
-        _s.request.urlData  = _s.request.GET  # data could be from any http verb (not just get) 
-        _s.request.formData = _s.request.POST # data could be from http put etc   (not just post)  
+        _s.request.urlData  = _s.request.GET  # data could be from any http verb(not just get) 
+        _s.request.formData = _s.request.POST # data could be from http put etc  (not just post)  
         
  #       _s.view = ViewClass()
  #       _s.localeStrings = i.getLocaleStrings(_s) # getLocaleStrings() must be called before setting path_qs in render_template()
 
-    def dispatch (_s):
+    def dispatch(_s):
         try: 
         # try:# csrf protection
-            if (_s.request.method == "POST" 
+            if(_s.request.method == "POST" 
             and not _s.request.path.startswith('/tq')): # tq indicates a TaskQueue handler: they are internal therefore not required to have csrf token
                 ssnTok  = _s.ssn.get('_csrf_token')
                 postTok = _s.request.get('_csrf_token')
-                if (not ssnTok  # toks differ or if both are the same falsy
+                if(not ssnTok  # toks differ or if both are the same falsy
                 or  ssnTok != postTok):
                     logging.warning('path = %r',_s.request.path)
                     logging.warning('ssn  csrf token = %r',ssnTok)
@@ -70,7 +70,7 @@ class HBase (wa2.RequestHandler):
                     logging.warning('CSRF attack or bad or missing csrf token?')
   #                  wa2.abort(403) # 'Forbidden'
                     
-            rv = wa2.RequestHandler.dispatch (_s) # NB use super if multiple inheritance. Dispatch the request.this is needed for wa2 sessions to work
+            rv = wa2.RequestHandler.dispatch(_s) # NB use super if multiple inheritance. Dispatch the request.this is needed for wa2 sessions to work
         finally:
             # u = _s.user
             # if u and u.modified:
@@ -92,7 +92,7 @@ class HBase (wa2.RequestHandler):
             # _s.abort(500, detail=str(exception))
             
             
-    def pageResponse (_s, filename, **ka):
+    def pageResponse(_s, filename, **ka):
      #   ka['user'      ] = None # _s.user
     #    ka['locale_strings'] = _s.localeStrings
      #   ka['app_config'] = CONFIG_DB.toDict(auth.is_admin())
@@ -110,14 +110,14 @@ class HBase (wa2.RequestHandler):
 
         util.debugDict(ka, 'params')
         logging.debug('XXXXXXXXXXXXX')
-        _s.response.write (Jinja().render (filename, ka))
+        _s.response.write(Jinja().render(filename, ka))
 
-    # def respond (_s, d=None): # ajaxResponse
+    # def respond(_s, d=None): # ajaxResponse
         # '''use this for ajax responses'''
         # if d:
             # d['msgs'] = _s.get_fmessages()
-           ## resp = json.dumps (d)
-           ## _s.response.write (resp)
+           ## resp = json.dumps(d)
+           ## _s.response.write(resp)
             # _s.response.json = d
         # else:
             # assert d is None,'dont pass an empty object to respond()'
@@ -130,15 +130,15 @@ class HBase (wa2.RequestHandler):
 
         
     @wa2.cached_property
-    def apiName (_s):
+    def apiName(_s):
         assert _s.__class__.__name__.startswith('H')
         return _s.__class__.__name__[1:]
 
       
-    def setLock (_s, lockname, duration):
-        def lockOn (kStr, msg): 
-            m.Lock.set (kStr, duration)
-            _s.flash ('Too many %s failures: %s for %s.' % (_s.apiName, msg, u.hoursMins(duration)))
+    def setLock(_s, lockname, duration):
+        def lockOn(kStr, msg): 
+            m.Lock.set(kStr, duration)
+            _s.flash('Too many %s failures: %s for %s.' %(_s.apiName, msg, u.hoursMins(duration)))
         
         logging.debug('xxxxxxxxxxxxxxxxxxxxxxxxxxx LOCK XXXXXXXXXXXXXXXX')
         if name == 'ipa': 
@@ -157,17 +157,17 @@ class HBase (wa2.RequestHandler):
         logging.warning('Start lock on %s: ema:%s pwd:%s ipa:%s', name, ema, pwd, ipa)
 
     
- #   def json (_s): 
+ #   def json(_s): 
 #        return json.loads(_s.request.body)
     
-    def parse (_s, dataLoc, *pa, **ka):
+    def parse(_s, dataLoc, *pa, **ka):
         assert dataLoc == 'json' or 'urlData' or 'formData'
         
         def validate(vdr, val):
-            return (vdr   (val) if callable(vdr) else
+            return(vdr  (val) if callable(vdr) else
                     vdr.fn(val))
         
-        def parseArg (unparsed, name, vdr=None, dflt=required):
+        def parseArg(unparsed, name, vdr=None, dflt=required):
             if vdr is None:
                 vdr = lambda x:x  # no-op validator: always valid, does not throw 
             logging.debug('name : %r',name)
@@ -176,11 +176,11 @@ class HBase (wa2.RequestHandler):
                     res[name] = validate(vdr, args[name])
                 else:
                     values = args.getall(name)
-                    res[name] = (validate(vdr, values[0])  if len(values)==1 else
+                    res[name] =(validate(vdr, values[0])  if len(values)==1 else
                                 [validate(vdr, v) for v in values] )   
             
             elif dflt is required:
-                _s.abort (400, detail='"%s" not found in the request data'%name)
+                _s.abort(400, detail='"%s" not found in the request data'%name)
             elif dflt is not optional:
                 res[name] = dflt
             #else: name is not in request but its optional, so do nothing
@@ -203,73 +203,73 @@ class HBase (wa2.RequestHandler):
             logging.debug('tuple t: %r',t)
             res, unparsed = parseArg(unparsed, *t)     
         if strict and unparsed:
-            _s.abort (400, 'Unparsed args: %s' % str(unparsed))
+            _s.abort(400, 'Unparsed args: %s' % str(unparsed))
         return res
         
 
-    def parseJson (_s, *pa, **ka):
-        return _s.parse ('json', *pa, **ka)
+    def parseJson(_s, *pa, **ka):
+        return _s.parse('json', *pa, **ka)
     
-    def parseUrl (_s, *pa, **ka):
-        return _s.parse ('urlData', *pa, **ka)
+    def parseUrl(_s, *pa, **ka):
+        return _s.parse('urlData', *pa, **ka)
         
     #@rateLimit
-    def credentials (_s):
+    def credentials(_s):
         """Parses credentials posted by client and loads appropriate user from datastore"""
-        return _s.parseJson( ('loginId',  vdr.loginId_span)
-                           , ('password', vdr.password_span)
-                           , ('remember', vdr.toBool, False)
+        return _s.parseJson(('loginId',  vdr.loginId_span)
+                           ,('password', vdr.password_span)
+                           ,('remember', vdr.toBool, False)
                            ) 
 
         
-    def logIn (_s, user, remember=False):
+    def logIn(_s, user, remember=False):
         logging.debug('$$$$$$$$$$$$$$$$$$$$$')
-        _s.ssn.logIn (user, _s.request.remote_addr, remember)
+        _s.ssn.logIn(user, _s.request.remote_addr, remember)
         logging.debug('%%%%%%%%%%%%%%%%%%%%%%%%')
          
-    def logOut (_s):
+    def logOut(_s):
         return _s.ssn.logOut()
         
     @property
-    def ssn (_s):
+    def ssn(_s):
         #import traceback
-        #logging.debug ('@@@@@@@@@ 1 rq registry: %r',_s.request.registry)
+        #logging.debug('@@@@@@@@@ 1 rq registry: %r',_s.request.registry)
         sn = _s.request.registry.get('session')
         if not sn:
             # try:
             sn = SessionVw(_s)
-            _s.request.registry['session'] = sn#logging.debug ('@@@@@@@@@ 2 rq registry: %r',_s.request.registry)
+            _s.request.registry['session'] = sn#logging.debug('@@@@@@@@@ 2 rq registry: %r',_s.request.registry)
             # raise RuntimeError
         # except:
             #logging.exception('@@@@@@@@@')
             #stacktrace = ''.join(traceback.format_stack()[-3:])
-            #logging.info ("TRACE last 3:\n %s", stacktrace)
+            #logging.info("TRACE last 3:\n %s", stacktrace)
         return sn
 
     @wa2.cached_property
-    def user (_s):
+    def loggedInUser(_s):
         uid = _s.ssn.get('_userID')
        # logging.debug('xxxxxxxxxx ssn = %r',_s.ssn)
         if uid:
-            return User.get_by_id (uid)
+            return MUser.get_by_id(uid)
         return None
 
     def flash(_s, msg):
         #logging.info('>>>>>>>>>>>>> msg: %r' % msg)  
-        _s.ssn.addFlash (msg)
+        _s.ssn.addFlash(msg)
          
-    def get_fmessages (_s):
+    def get_fmessages(_s):
         fmsgs_html = u''
         flist = _s.ssn.getFlashes()
         #logging.info('>>>>>>>>>>>>> ok added fmsgs: %r' % f)  
         if flist:
-            fmsgsTmpl = Template (  '{%- if fmessages -%}'
+            fmsgsTmpl = Template(  '{%- if fmessages -%}'
                                         '{%- for fmsg in fmessages -%}'
                                             '<li>{{ fmsg.0 }}</li>'
                                         '{%- endfor -%}'
                                     '{%- endif -%}'
                                  )
-            fmsgs_html = fmsgsTmpl.render (fmessages=flist) # _s.ssn.getFlashes())
+            fmsgs_html = fmsgsTmpl.render(fmessages=flist) # _s.ssn.getFlashes())
             # logging.info('>>>>>>>>>>>>> ok tmplate fmsgs: %r' % fmsgs_html)  
             # logging.info('>>>>>>>>>>>>> ok tmplate fmsgs: %r' %  str(fmsgs_html))  
             return util.utf8(fmsgs_html)
@@ -279,12 +279,12 @@ class HBase (wa2.RequestHandler):
 #------------------------------------
 
 
-class HAjax (HBase):
+class HAjax(HBase):
 
     def __init__(_s, request, response):
         super(HAjax,_s).__init__(request, response)
     
-    def dispatch (_s):
+    def dispatch(_s):
         rv = super(HAjax,_s).dispatch() # rv is the AJAX response
        # fmsgs = _s.ssn.getFlashes()
         if rv is None:# and fmsgs is None:
@@ -295,9 +295,10 @@ class HAjax (HBase):
             # assert type(rv) is dict,'ajax response has to be jsonifyable'
            # rv['get_flashed_messages'] = _s.get_fmessages()
             try:
+                #logging.debug('rv=%r',rv)
                 json.loads(rv)          # test whether rv is a json string...
                 _s.response.body = rv   # ... yes, no need to jsonify, write directly to body
-            except TypeError:
+            except (ValueError, TypeError):
                 _s.response.json = rv   # ... no, must use response.json which calls json.dumps() to jsonise rv
         # if isinstance(rv, basestring):
         # rv = webapp2.Response(rv)

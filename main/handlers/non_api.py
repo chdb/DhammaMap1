@@ -4,16 +4,16 @@ import logging
 from app import app
 
 @app.route('', name='home' )
-class HHome (bh.HBase):
+class HHome(bh.HBase):
 
     def get(_s):
         """Render index template"""
         u = _s.user
-        _s.pageResponse ('index.html', user=u.toDict() if u else None )
+        _s.pageResponse('index.html', user=u.toDict() if u else None )
     
 
 @app.route('_ah/warmup', name='warmup')           
-class HWarmup (bh.HBase):
+class HWarmup(bh.HBase):
 
     def get(_s):
         """Warmup request to load application code into a new instance before any live requests reach that instance.

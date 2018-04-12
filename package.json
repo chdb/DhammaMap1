@@ -25,8 +25,8 @@
     "gulp-htmlhint": "0.3.1",
     "gulp-inject": "^4.1.0",
     "gulp-install": "^0.6.0",
-    "gulp-jscs": "^4.0.0",
-    "gulp-jshint": "^2.0.1",
+    "gulp-jscs": "^4.1.0",
+    "gulp-jshint": "^2.1.0",
     "gulp-jslint-simple": "^1.0.0",
     "gulp-less": "^3.0.0",
     "gulp-livereload": "~3",
@@ -38,6 +38,7 @@
     "gulp-uglifyjs": "^0.6.0",
     "gulp-watch": "^4.1.1",
     "gulp-zip": "^3.2.0",
+    "jshint": "^2.9.5",
     "jshint-stylish": "^2.2.1"
   },
   "dependencies": {

@@ -18,7 +18,7 @@ class Locked(ex.HTTPException):
     Used if the resource that is being accessed is locked.
     """
     code = 423
-    description = ('The account is locked.'  )
+    description =('The account is locked.'  )
 
 
 # flask.abort.mapping.update({ 423: Locked })

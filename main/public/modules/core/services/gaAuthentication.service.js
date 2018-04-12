@@ -13,7 +13,7 @@
 	{	
 		return { avatarUrl : function(user, size)
 					{	
-						if (user)
+						if(user)
 							return '//gravatar.com/avatar/'+user.emaHash+'?d=identicon&r=x&s='+size;
 						return undefined;
 					}
@@ -28,9 +28,9 @@
 					{ 	return !! u.user; 
 					}
 		, is_admin: function() 	
-					{ 	if (! u.user)
+					{ 	if(! u.user)
 							return false;
-						if (u.user.isAdmin_ === undefined) 
+						if(u.user.isAdmin_ === undefined) 
 							console.log('unknown admin status!', u.user);
 						//console.log(' admin status: ', u.user.isAdmin_);
 						return u.user.isAdmin_
@@ -38,7 +38,7 @@
 		, setUser : function(user) 
 					{ 	u.user = Restangular.restangularizeElement(null, user, 'users');
 						// u.user.avatarUrl = function(size)
-						// {	console.log (u);
+						// {	console.log(u);
 							// return '//gravatar.com/avatar/'+u.emaHash+'?d=identicon&r=x&s='+size;
 						// }
 						
@@ -47,10 +47,10 @@
 						return u.user;
 					}
 		, authProviderName : function(authId)
-					{	if (authId[2] !== ':')
+					{	if(authId[2] !== ':')
 							throw "invalid authId: missing colon"
 						var shortname = authId.substr(0, 3);
-						if (! shortname in gaAuthNames)
+						if(! shortname in gaAuthNames)
 							throw "missing shortname in authNames";
 						return gaAuthNames[shortname];
 					}

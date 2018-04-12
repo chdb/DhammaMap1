@@ -24,14 +24,14 @@ import json
 
     # def handle_error(self, err):
         # """Specifies error handler for REST API which is called when exception is raised during request processing
-        # Args:    err (Exception): the raised Exception object
+        # Args:    err(Exception): the raised Exception object
         # """
         # return handle_error(err)
 
 #todo 
 def handle_error(err):
     """This error handler logs exception and provides a response with error message and error code
-    Args:   err (Exception): the raised Exception object
+    Args:   err(Exception): the raised Exception object
     """
     logging.exception(err)
     message = ''
@@ -73,11 +73,11 @@ def handle_error(err):
 
 def listResponse(responseList, cursor=None, more=False, totalCount=None):
     """Creates response with list of items and also meta data used for pagination
-    Args    : responseList (list)      : list of items to be in response
-              cursor (Cursor, optional): ndb query cursor
-              more (bool, optional)    : whether there's more items in terms of pagination
+    Args    : responseList(list)      : list of items to be in response
+              cursor(Cursor, optional): ndb query cursor
+              more(bool, optional)    : whether there's more items in terms of pagination
               totalCount(int, optional): Total number of items
-    Returns : (dict)   : the response to be serialized and sent to client
+    Returns :(dict)   : the response to be serialized and sent to client
     """
     return { 'list' : responseList
            , 'meta' : { 'nextCursor': cursor.urlsafe() if cursor else ''
@@ -87,8 +87,8 @@ def listResponse(responseList, cursor=None, more=False, totalCount=None):
 
 # def rqArg(argName, **ka):
     '''syntax sugar to simplify calling RequestParser functions
-    EG  rqArg('name', vdr=vdr.specifiedVdr)   ->   ('name', {'vdr' : specifiedVdr.fn})
-        rqArg('name', vdr=User.myCustomVdr)   ->   ('name', {'vdr' : myCustomVdr    })
+    EG  rqArg('name', vdr=vdr.specifiedVdr)   ->  ('name', {'vdr' : specifiedVdr.fn})
+        rqArg('name', vdr=MUser.myCustomVdr)   ->  ('name', {'vdr' : myCustomVdr    })
     '''
     # vdr = None
     # if 'vdr' in ka:

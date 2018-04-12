@@ -2,7 +2,7 @@ import env
 import logging
 from passlib.context import CryptContext
 
-defRounds_sha512 = (10000 if env.ENV['development'] else 
+defRounds_sha512 =(10000 if env.ENV['development'] else 
                     80000)
 logging.info('@@@@@@@ default rounds sha512 = %d @@@@@@@@', defRounds_sha512)
 
@@ -23,8 +23,8 @@ pwd = CryptContext( schemes = ['sha512_crypt'
 
 #instead of samestr use this:-
 #       from passlib.utils import consteq
-# def sameStr (a, b): 
-    # def _sameStr (a, b): # a version of this is in python 3 and 2.7.7 as hmac.compare_digest
+# def sameStr(a, b): 
+    # def _sameStr(a, b): # a version of this is in python 3 and 2.7.7 as hmac.compare_digest
         # """Checks if two strings, a, b have identical content. 
         # The running time of this algorithm is more or less independent of the length of the common substring.
         # The standard implementation ie a == b is subject to timing attacks, because the execution time is
@@ -40,7 +40,7 @@ pwd = CryptContext( schemes = ['sha512_crypt'
             # # logging.debug('r: %s', r)
         # return r == 0
 
-    # r = _sameStr (a, b)
+    # r = _sameStr(a, b)
     # if not r:
         # logging.debug('different XXXXXXXXXXXXXXXXXXXXXXXXX a: %r ', a) 
         # logging.debug('different XXXXXXXXXXXXXXXXXXXXXXXXX b: %r ', b) 

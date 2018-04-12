@@ -10,7 +10,7 @@
 				  , $state
 				  , gaTracking
 				  ) 
-		{ 	if (gaAuth.loggedIn())
+		{ 	if(gaAuth.loggedIn())
 				$state.go('home'); //todo: first we should logout()? But - why? Should we do it programatically? Shouldn't we tell user what is happenning?
 
 			$scope.credentials = { token : $stateParams.token };

@@ -4,7 +4,7 @@
 
     module.controller('SignupController', function($scope, Restangular, gaAppConfig, gaToast, gaBrowserHistory,
                                                    gaAuth, _, gaTracking, $state, gaValidators) {
-        if (gaAuth.loggedIn()) {
+        if(gaAuth.loggedIn()) {
             gaBrowserHistory.back();
         }
 
@@ -24,7 +24,7 @@
         {   $scope.loading = true;
             Restangular.all('auth/signup').post($scope.credentials).then
 			( function(user) 
-				// {   if ($scope.cfg.verify_email) 
+				// {   if($scope.cfg.verify_email) 
 				{	//jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 					gaToast.show('We have sent you an email! Please open it.  Then click the link to confirm your email address.');
 					$state.go('home');

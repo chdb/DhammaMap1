@@ -20,7 +20,7 @@
 		{	//jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 			scope.isEnabled =  gaAppConfig.recaptcha_id
 							&& gaAppConfig.recaptcha_id.length > 0;
-			if (scope.isEnabled) 
+			if(scope.isEnabled) 
 			{	// gaAppConfig.recaptcha_forms contains list of form names e.g 'signinForm' from '<form name="signinForm">'
 				// which should display captcha.  If the form name is not in the list, captcha won't be enabled even
 				// if this directive is in the form

@@ -29,34 +29,38 @@
 				name="location"
 				validator="location_span"
 				tabindex="4"
-	></md-input-container>
-    <!--div ng-repeat="(socKey, soc) in socialAccounts" layout="row" layout-align="start center"-->
-    <div ng-repeat="aid in user2.authIds" >
-		<div style='display:inline-block; vertical-align:top; width:20%'>
-			<i class="fa fa-{{auth.authProviderName(aid)}}"></i>
-			{{ auth.authProviderName(aid) }}
-		</div>
-		<md-input-container style='display:inline-block;font-family: monospace; font-size: larger;' readonly="true">
-			{{ authUserId(aid) }}
-		</md-input-container>		
-		<button ng-click="removeAuthProv($index)" style='float:right;'>
-			delete 		 <i class="fa fa-{{auth.name}}"></i>
-			{{auth.name}}<i class="fa fa-times fa-lg" style='color:red;'></i>
-		</button>
-		<!--{{aid.substr(0,2)}}
-        <span class="mar-rig-5">{{aid.substr(0,2)}}/</span>
-        <md-input-container flex>
-            <label>Your {{soc.name}}</label>
-            <input ng-model="user2[socKey]"
-                   type="text"
-                   tabindex="{{ $index + 5}}"
-                   ng-maxlength="validators.social[1]"
-                   name="{{socKey}}">
-            <div ng-if="profileEditForm[socKey].$dirty" ng-messages="profileEditForm[socKey].$error">
-                <div ng-message="maxlength">This seems to be too long for {{ soc.name }} page</div>
+    ></md-input-container>
+    <br>
+    <md-card>
+        <md-card-title>Authorisation Providers</md-card-title>
+        <!--div ng-repeat="(socKey, soc) in socialAccounts" layout="row" layout-align="start center"-->
+        <div ng-repeat="aid in user2.authIds" >
+            <div style='display:inline-block; vertical-align:top; width:20%'>
+                <i class="fa fa-{{auth.authProviderName(aid)}}"></i>
+                {{ auth.authProviderName(aid) }}
             </div>
-        </md-input-container-->
-    </div>
+            <md-input-container style='display:inline-block;font-family: monospace; font-size: larger;' readonly="true">
+                {{ authUserId(aid) }}
+            </md-input-container>		
+            <button ng-click="removeAuthProv($index)" style='float:right;'>
+                delete 		 <i class="fa fa-{{auth.name}}"></i>
+                {{auth.name}}<i class="fa fa-times fa-lg" style='color:red;'></i>
+            </button>
+            <!--{{aid.substr(0,2)}}
+            <span class="mar-rig-5">{{aid.substr(0,2)}}/</span>
+            <md-input-container flex>
+                <label>Your {{soc.name}}</label>
+                <input ng-model="user2[socKey]"
+                    type="text"
+                    tabindex="{{ $index + 5}}"
+                    ng-maxlength="validators.social[1]"
+                    name="{{socKey}}">
+                <div ng-if="profileEditForm[socKey].$dirty" ng-messages="profileEditForm[socKey].$error">
+                    <div ng-message="maxlength">This seems to be too long for {{ soc.name }} page</div>
+                </div>
+            </md-input-container-->
+        </div>
+    </md-card>
     <div ng-if="auth.is_admin()">
         <md-checkbox ng-model="user2.isVerified_">
             Verified

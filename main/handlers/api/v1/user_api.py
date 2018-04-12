@@ -7,17 +7,20 @@ Provides API logic relevant to users
 #import auth
 from security import pwd
 #from main   import API
-from model.user import User#, UserVdr
+from model.mUser import MUser#, UserVdr
 #from flask  import request, g
 from handlers.api.decorators import entByKey, authorization_required, adminOnly
 from handlers.api.helpers    import listResponse#, ok, rqParse
-import util
+#import util
 import validators as vdr
 import logging
 from handlers.basehandler import HAjax
 from app import app
+#from config import appCfg
+from google.appengine.ext import ndb
 
-@app.api1Route('users')
+
+@app.API_1('users')
 class HUsers(HAjax):
     """Get list of users with ndb Cursor for pagination. Obtaining users is executed
     in parallel with obtaining total count via *_async functions
@@ -25,63 +28,64 @@ class HUsers(HAjax):
     @adminOnly
     def get(_s):
         args = _s.parseUrl(('cursor', vdr.toCursor)) 
-        usersQuery = User.query()  \
-            .order(-User.created_r) \
+        usersQuery = MUser.query()  \
+            .order(-MUser.created_r) \
             .fetch_page_async(page_size=10, start_cursor=args.cursor)
-        
-        totalQuery = User.query().count_async(keys_only=True)
+        totalQuery = MUser.query().count_async(keys_only=True)
         users, nextCursor, more = usersQuery.get_result()
         users = [u.toDict() for u in users]
         return listResponse(users, nextCursor, more, totalQuery.get_result())
-
         
-@app.api1Route('num_users')
+@app.API_1('num_users')
 class HNumUsers(HAjax):
     """Get number of users."""
     def get(_s):
-        if not util.DEVT:
+        #logging.info('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ env = %r', appCfg.env)
+        if not app.devt:
             abort(404) 
-        return User.query().count(); # if number gets large, should we be using sharded counter for this?
+        return MUser.query().count(); # if number gets large, should we be using sharded counter for this?
 
-@app.api1Route('users/<string:username>')
+@app.API_1('users/<username:[a-zA-Z]\w+>')
 class UserByUsernameAPI(HAjax):
     @adminOnly
    # @usrByUsername
     def get(_s, username):
-        """Loads user's properties. If logged user is admin it loads also non public properties"""
+        """Load user's properties. If logged user is admin it loads also non public properties"""
        # args = _s.parseUrl(('cursor', vdr.toCursor)) 
-        usr = user.byUsername(username)
+        usr = MUser.byUsername(username)
         return usr.toDict (privates=usr.isAdmin_)
 
 
-@app.api1Route('users/<string:key>')
+@app.API_1('users/<uid:\d+>')
 class UserByKeyAPI(HAjax):
-    @adminOnly
+    #@adminOnly
     @authorization_required
   #  @entByKey
-    def put(_s, key):
+    def put(_s, uid):
         """Update user properties"""
-        usr = ndb.Key(urlsafe=key).get() #todo replace urlsafe key with id
-        usr.populate(request.json)
+        #logging.debug('_s: %r',_s)
+        #logging.debug('uid: %r',uid)
+        #usr = ndb.Key(urlsafe=key).get() #todo replace urlsafe key with id
+        usr = MUser.get_by_id(int(uid)) 
+        usr.populate(_s.request.json)
         usr.put()
- 
        
     @adminOnly
     #@entByKey
-    def delete(_s, key):
+    def delete(_s, uid):
         """Delete user"""
-        ndb.Key(urlsafe=key).delete()
+        ndb.Key(MUser,int(uid)).delete()
 
 
-@app.api1Route('users/<string:key>/password')
+@app.API_1('users/<uid:\d+>/password')
 class UserPasswordAPI(HAjax):
     @authorization_required
     #@entByKey
-    def post(_s, key):
-        """Changes user's password"""
-        usr = ndb.Key(urlsafe=key).get()
+    def post(_s, uid):
+        """Change user's password"""
+        usr = ndb.Key(MUser,int(uid)).get()
         if not usr:
-             wa2.abort(404, 'No user found for "%s"' % key)
+            wa2.abort(404, 'No user found for "%s"' % uid)
              
         args = _s.parseJson(('currentPassword', vdr.password_span)
                            ,('newPassword'    , vdr.password_span)

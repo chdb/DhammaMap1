@@ -10,7 +10,7 @@
         {	return gaAuth.loggedIn() && $stateParams.username === gaAuth.user.username;
         };
 
-        if ($scope.isMyProfile()) 
+        if($scope.isMyProfile()) 
         	$scope.user = gaAuth.user;
         else 
         	Restangular.one('users', $stateParams.username).get()
@@ -19,7 +19,7 @@
 					});
 
         $scope.getAvailableSocialAccounts = function() 
-        {	if ($scope.user) 
+        {	if($scope.user) 
 				return _.pick($scope.socialAccounts, function(val, key) 
 					{	/*jslint unparam:true*/
 						return !! $scope.user[key];

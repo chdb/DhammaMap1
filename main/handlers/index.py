@@ -6,7 +6,7 @@ import flask
 from main import app
 import auth
 import model.user as users
-from model.config import CONFIG_DB
+from model.mConfig import CONFIG_DB
 import config
 import validators
 import util
@@ -24,7 +24,7 @@ def inject_user():
     user = False
     if auth.is_logged_in():
         user = auth.currentUser().toDict()
-#    util.debugDict(user, "auth.currentUser" )
+    util.debugDict(user, "auth.currentUser" )
     logging.debug('inject user')
     return { 'user': user }
 

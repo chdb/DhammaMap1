@@ -22,10 +22,10 @@
 			};
 			
 			Restangular.all('num_users').customGET().then(function(n)
-			{	if (n > 0) 	
+			{	if(n > 0) 	
 				{	var confirm = $mdDialog.confirm()
 						.title('There are currently '+ n +' users.')
-						.content('Do you really want to delete all these users? (Deletions are irreversible.)')
+						.content('Do you really want to delete all these users?(Deletions are irreversible.)')
 						.ariaLabel('Delete all existing Users and generate new Database')
 						.ok('OK')
 						.cancel('Cancel')

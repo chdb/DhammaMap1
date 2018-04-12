@@ -11,7 +11,7 @@
      * Also inserts 'remember me' checkbox, which can be binded by remember="myModel"
      */
 
-    module.directive('gaAuthOptions', function(gaAppConfig) 
+    module.directive('gaAuthOptions', function(gaAppConfig, _) 
     {	var link = function(scope) 
         {	scope.authOptions = _.keys(_.pick(gaAppConfig, function(cfg, cfgName) 
             {	return _.startsWith(cfgName, 'auth_') && cfg;

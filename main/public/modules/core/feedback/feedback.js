@@ -7,7 +7,7 @@
         var ctrl = this;
         //$scope.cfg = gaAppConfig;
 
-        if (! $scope.cfg.has_feedback) {//jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+        if(! $scope.cfg.has_feedback) {//jscs:disable requireCamelCaseOrUpperCaseIdentifiers
             gaBrowserHistory.back();
         }
 

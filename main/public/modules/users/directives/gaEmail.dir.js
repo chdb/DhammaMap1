@@ -10,9 +10,9 @@
      * throughout the app
      */
 
-    module.directive('gaEmail', function ($http, Restangular) 
+    module.directive('gaEmail', function($http, Restangular) 
     {    /*jslint unparam:true*/
-        var linker = function (scope, el, attrs, form ) 
+        var linker = function(scope, el, attrs, form ) 
 		{	//console.log('gaEmail scope --- ', scope)
 			console.log('gaEmail el --- ', el);
 			console.log('gaEmail attrs --- ', attrs);

@@ -30,8 +30,8 @@ class FeedbackAPI(HBase):
         
         ka = {'reply_to': args.fromEma} if args.fromEma else {}
         task.sendEmail( subject
-                      , body= '%s\n\nfrom: %s' % (args.message, args.fromEma)
+                      , body= '%s\n\nfrom: %s' %(args.message, args.fromEma)
                       , subjTag='Feedback'
                       , **ka
                       )
-        return ok()
+        return '', 204

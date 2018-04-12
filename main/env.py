@@ -17,7 +17,7 @@ def initEnv():
     
     logging.debug('####################################################### cur ver id: %r'      , VERid)
     logging.debug('####################################################### cur ver name: %r'    , VERname)
-    logging.debug('####################################################### cur ver timestamp: %r',VERtimeStamp)
+    logging.debug('####################################################### cur ver timestamp:%r', VERtimeStamp)
     logging.debug('####################################################### cur ver datetime: %r', VERdateTime)
     return  { 'development' : DEVT
             , 'CURRENT_VERSION_ID' : VERid
@@ -32,7 +32,7 @@ ENV = initEnv()
 # not needed
 # _env_ = None
 
-# def env (key=None):
+# def env(key=None):
     # def getEnv():
         # global _env_    
         # if _env_:

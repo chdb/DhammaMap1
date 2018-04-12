@@ -24,14 +24,14 @@ def bAutoescape(filename):
         n = filename.rfind('.') + 1
         if n:
             ext = filename[n:] 
-            return ext in ('html', 'htm', 'xml')
+            return ext in('html', 'htm', 'xml')
     return False
     
-class Jinja (object):
+class Jinja(object):
 
-    def __init__ (_s):
+    def __init__(_s):
         # instance is cached -  factory is used only if nothing in app-registry at key: 'webapp2_extras.jinja2'        
-        _s.instance = jinja2.get_jinja2 (_s._jinja2_factory)
+        _s.instance = jinja2.get_jinja2(_s._jinja2_factory)
     
     @staticmethod
     def _jinja2_factory(app):
@@ -51,7 +51,7 @@ class Jinja (object):
                                      # , 'csrf_token': generate_csrf_token
                                      # , 'getattr': getattr
                                      })
-        j.environment.tests.update  ({  # Set test  ...
+        j.environment.tests.update ({  # Set test  ...
                                      })
         #util.debugDict(j.environment.globals, 'globals')                        
         # logging.debug('***********************************')
@@ -66,6 +66,6 @@ class Jinja (object):
 
         return j
 
-    def render (_s, template, params): 
-        return _s.instance.render_template (template, **params)
+    def render(_s, template, params): 
+        return _s.instance.render_template(template, **params)
 

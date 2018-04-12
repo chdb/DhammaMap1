@@ -14,17 +14,17 @@ from signup_q import Midstore
 
 def sendEmail(subject, body, toEma=None, subjTag=None, **ka):
     """send email using GAE's mail and deferred modules
-    Args  : subject (string)            : Email subject
-            body    (string)            : Email body
-            toEma   (string, optional)  : Email to, if omitted will send email to admin ema
+    Args  : subject(string)            : Email subject
+            body   (string)            : Email body
+            toEma  (string, optional)  : Email to, if omitted will send email to admin ema
             **kwargs                    : Arbitrary keyword arguments.
     """
     if appCfg.admin_email_:
         site_name = appCfg.site_name
-        adminEma  = '%s <%s>' % (site_name, appCfg.admin_email_)
+        adminEma  = '%s <%s>' %(site_name, appCfg.admin_email_)
         toEma = toEma or adminEma
-        subject = '[%s: %s] %s' % (site_name, subjTag, subject) if subjTag else\
-                  '[%s] %s'     % (site_name, subject)
+        subject = '[%s: %s] %s' %(site_name, subjTag, subject) if subjTag else\
+                  '[%s] %s'     %(site_name, subject)
         
         if appCfg.development:
             logging.info( '\n######### Deferring to send this email: #############################'
@@ -41,7 +41,7 @@ def sendEmail(subject, body, toEma=None, subjTag=None, **ka):
                           , body
                           )
         #todo - shouldn't we use the task queue here - perhaps for more control of max rate of sending
-        deferred.defer  ( mail.send_mail
+        deferred.defer ( mail.send_mail
                         , adminEma # from ema
                         , toEma
                         , subject
@@ -51,15 +51,15 @@ def sendEmail(subject, body, toEma=None, subjTag=None, **ka):
 
 def sendNewUserEmail(usr):
     """Sends notification to admin about newly registered user, iff notify_on_new_user_ is true in config database
-    Args :  usr (model.User): newly registered user
+    Args :  usr(model.User): newly registered user
     """
-    url = '%s#!/user/%s' % (wa2.uri_for('home', _full=True), usr.email_)
-    body = ('New User Signed Up'
+    url = '%s#!/user/%s' %(wa2.uri_for('home', _full=True), usr.email_)
+    body =('New User Signed Up'
             '\nname: %s'
             '\nemail: %s'
         #    '\n%s'
             '\nurl: %s' 
-             %  ( usr.name
+             % ( usr.name
                 , usr.email_
          #       , '\n'.join([': %s' % a for a in usr.authIds])
                 , url
@@ -70,14 +70,14 @@ def sendNewUserEmail(usr):
     
 def sendResetEmail(usr):
     """Sends email with url, which user can use to reset his password
-    Args : usr (model.User): User, who requested password reset
+    Args : usr(model.MUser): User, who requested password reset
     """
     if not usr.email_:
         return
     usr.token__ = util.randomB64()
     usr.put()
 
-    toEma = '%s <%s>' % (usr.name, usr.email_)
+    toEma = '%s <%s>' %(usr.name, usr.email_)
     body = reset_text % { 'name': usr.name
                         , 'link': wa2.uri_for('user_reset', token=usr.token__, _full=True)
                         , 'siteName': appCfg.site_name
@@ -86,7 +86,7 @@ def sendResetEmail(usr):
 
 def sendVerifyEmail(ema, nonce, tag):
     """Sends email, which user can use to verify his email address
-    Args :  usr (model.User): user, who should verify his email
+    Args :  usr(model.User): user, who should verify his email
     """
     # logging.debug('vvvvvvvvvvvvvvvvvvv')
     # ema = usr.pop('email_')

@@ -5,7 +5,7 @@
 # from main import API
 # from flask import request
 from config import appCfg
-#from model import Config
+#from model import MConfig
 #import util
 #from handlers.api.helpers import ok
 from handlers.api.decorators import adminOnly
@@ -14,7 +14,7 @@ from handlers.basehandler import HAjax
 #from config import getInstances
 from app import app
 
-@app.api1Route('config') 
+@app.API_1('config') 
 class HConfig(HAjax):
    
     @adminOnly

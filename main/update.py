@@ -16,7 +16,7 @@ def prettyList(ls):
     txt = txt.replace(']'  ,  '\n        ]' )
     return txt
     
-def update (addNew, purge):
+def update(addNew, purge):
     assert addNew or purge
     n = 0 # number of purged keys
     with open('secret.py', 'r+') as f:
@@ -32,8 +32,8 @@ def update (addNew, purge):
             n -= len(secret.keys)
         if addNew:   
             secret.keys.append(newKey())          
-        f.seek(0)           # go back to start ( read() has moved us to end )
-        f.write ( txt[:p]    
+        f.seek(0)           # go back to start( read() has moved us to end )
+        f.write( txt[:p]    
                 +'keys =  ' + prettyList(secret.keys)
                 + txt[q:]
                 )           # overwrite
@@ -45,13 +45,13 @@ def run():
     if nArgs == 2:
         a = sys.argv[1]
         if a == '-addNew':
-            update (True, False)
+            update(True, False)
             return True,'new key added'     
         if a == '-purge':
-            n = update (False, True)
+            n = update(False, True)
             return True,'%d outdated keys purged' % n    
         if a == '-both':
-            n = update (True, True)
+            n = update(True, True)
             return True,'new key added and %d outdated keys purged' % n 
         return False,'invalid option argument'
     if nArgs == 1:

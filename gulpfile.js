@@ -50,10 +50,13 @@
 	
     var htmlViews = ['modules/**/*.html'];
     var manifestLessFile = 'modules/core/less/manifest.less';
-    var cssFiles =  [ 'lib/angular-material/angular-material.css'];
+    var cssFiles =  [ 'lib/angular-material/angular-material.css'
+                    , 'p/customStyle.css'
+                    ];
 
     var jsFiles = 
-	{ lib : [ './lib/angular/angular.js'
+	{ lib : [ './lib/lodash/lodash.js'
+            , './lib/angular/angular.js'
             , './lib/angular-ui-router/release/angular-ui-router.js'
             , './lib/angular-animate/angular-animate.js'
             , './lib/angular-messages/angular-messages.js'
@@ -74,174 +77,135 @@
             , '!./modules/**/tests/**/*.js'
 			]
     };
+
     gulp.task('bower-install', function() 
     {	return $.bower();
     });
-
     gulp.task('reload', function() 
     {	$.livereload.listen();
-        gulp.watch( jsFiles.scripts.concat(htmlViews)
-				  , { cwd : publicDir }
-				  )
+        gulp.watch( jsFiles.scripts.concat(htmlViews), { cwd : publicDir } )
 		.on('change', $.livereload.changed);
     });
 
     function injectScripts() 
 	{   
-		var target  = gulp.src ( templatesDir + '/bit/script.html');
-        var sources = gulp.src ( jsFiles.lib.concat(jsFiles.scripts)
-							   , { read : false		
-								 , cwd  : __dirname + '/main/public/'  // rootDir //  publicDir + '/'
-							   } );
-        return target.pipe ( inject ( sources
-								   , { relative	: true // added
-								     , addPrefix: '/p'
-									 , ignorePath: '../../public'
-								   } ) ) 
-					 .pipe ( gulp.dest (templatesDir)); // was publicDir
+		var target  = gulp.src  ( templatesDir + '/bit/script.html');
+        var sources = gulp.src  ( jsFiles.lib.concat(jsFiles.scripts)
+							    , { read : false		
+								  , cwd  : __dirname + '/main/public/'  // rootDir //  publicDir + '/'
+							    } );
+        return target.pipe( inject(sources, { relative: true // added
+                                            , addPrefix: '/p'
+                                            , ignorePath: '../../public'
+                                            } ) ) 
+	    .pipe( gulp.dest(templatesDir)); // was publicDir
     }
 
     gulp.task('inject-scripts', injectScripts);
-
     gulp.task('watch-new-scripts', function() 
     {	watch([modulesDir + '/**/*.js', publicDir + '/*.js'], function(e) 
-        {	if (e.event === 'add' || e.event === 'unlink') 
+        {	if(e.event === 'add' || e.event === 'unlink') 
             {	injectScripts();
             }
         });
     });
-
     gulp.task('uglify', ['less'], function() 
-    {	gulp.src( jsFiles.lib
-				, {	cwd : publicDir }
-				)
-			.pipe(uglify('libs.min.js'))
-			.pipe(gulp.dest(distDir));
-		gulp.src(jsFiles.scripts 
-				, {	cwd : publicDir }
-				)
-			.pipe(ngAnnotate())
-			.pipe(uglify('scripts.min.js'))
-			.pipe(gulp.dest(distDir));
-        gulp.src( 'style.css'
-				, {	cwd : distDir }
-				)
-			.pipe(minifyCSS())
-			.pipe(rename({ suffix : '.min'}))
-			.pipe(gulp.dest(distDir));
+    {	gulp.src( jsFiles.lib, {cwd : publicDir})
+        .pipe( uglify('libs.min.js'))
+        .pipe( gulp.dest (distDir));
+        gulp.src( jsFiles.scripts, {cwd : publicDir})
+        .pipe( ngAnnotate())
+        .pipe( uglify ('scripts.min.js'))
+        .pipe( gulp.dest (distDir));
+        gulp.src( 'style.css', {cwd : distDir})
+        .pipe( minifyCSS())
+        .pipe( rename ({ suffix : '.min'}))
+        .pipe( gulp.dest( distDir));
     });
-
     gulp.task('less', function() 
     {	console.log('cssFiles ',cssFiles);
     	console.log('manifestLessFile ',manifestLessFile);
     	console.log('lessPaths ',lessPaths);
 		
-		return gulp.src( cssFiles.concat(manifestLessFile) 
-					 , {	cwd : publicDir }
-					   )
-					.pipe(sourcemaps.init())
-					.pipe(less({ paths : lessPaths }))
-					.pipe(sourcemaps.write())
-					.pipe(concatCss('style.css'))
-					.pipe(gulp.dest(distDir));
+		return gulp.src ( cssFiles.concat(manifestLessFile), { cwd : publicDir })
+        .pipe(sourcemaps.init())
+        .pipe(less({ paths : lessPaths }))
+        .pipe(sourcemaps.write())
+        .pipe(concatCss('style.css'))
+        .pipe(gulp.dest(distDir));
     });
-
     gulp.task('watch-less', function() 
     {	gulp.watch(appLessPaths + '/*.less', ['less']);
     });
-
     gulp.task('jshint', function() 
-    {	return gulp.src ( jsFiles.scripts 
-						, {	cwd : publicDir }
-						)
+    {	return gulp.src ( jsFiles.scripts, { cwd : publicDir } )
 		.pipe(jshint())
 		.pipe(jshint.reporter(stylish));
     });
-
     gulp.task('jslint', function() 
-    {	return gulp.src	( jsFiles.scripts
-						, {	cwd : publicDir }
-						)
+    {	return gulp.src	( jsFiles.scripts, { cwd : publicDir } )
 		.pipe(jslint.run(jslintrc))
 		.pipe(jslint.report({ reporter : stylish.reporter }));
         
     });
-
     gulp.task('jscs', function() 
     {	return gulp.src([modulesDir + '/**/*.js', './*.js']).pipe(jscs());
     });
-
     gulp.task('htmlhint', function() 
-    {	return gulp.src(htmlViews 
-						, {	cwd : publicDir }
-						)
+    {	return gulp.src(htmlViews, { cwd : publicDir } )
 		.pipe(htmlhint({ htmlhintrc : 'htmlhintrc.json'}))
 		.pipe(htmlhint.reporter());
     });
-
     gulp.task('lint', ['jshint', 'jslint', 'jscs', 'htmlhint', 'grunt-pylint']);
-
     gulp.task('template-cache', function() 
-    {	gulp.src( 'modules/**/*.html' 
-				, {	cwd : publicDir }
-				)
-		.pipe ( templateCache('templates.js'
-			  , { standalone : false
-				, root       : '/p/modules'
-				, module     : 'Dhamma Map'
-			  } ) )
+    {	gulp.src( 'modules/**/*.html', { cwd : publicDir } )
+		.pipe( templateCache('templates.js', { standalone : false
+                                             , root       : '/p/modules'
+                                             , module     : 'Dhamma Map'
+                                             } ) )
 		.pipe(gulp.dest(distDir));
     });
-
     gulp.task('copy-fonts', function() 
-    {	gulp.src('font-awesome/fonts/*'
-				, {	cwd : publicLibDir } // + '/font-awesome/fonts'
-				)
-		.pipe(gulp.dest(distDir + '/fonts'))
+    {	gulp.src('font-awesome/fonts/*', { cwd : publicLibDir } )// + '/font-awesome/fonts'
+		.pipe(gulp.dest(distDir + '/fonts2'))
     });
-
     gulp.task('clean-js', function() 
     {	del([publicLibDir, distDir]);
     });
-
     gulp.task('clean-cache', function(callback) 
     {	del([rootDir + '/**/*.pyc', rootDir + './**/*.pyo', rootDir + './**/.*~'], callback);
     });
-
     gulp.task('zip-lib', ['clean-cache'], function() 
     {	gulp.src(pyLibDir + '/**/*')
-            .pipe(zip(pyLib + '.zip'))
-            .pipe(gulp.dest(rootDir));
+        .pipe(zip(pyLib + '.zip'))
+        .pipe(gulp.dest(rootDir));
     });
-
     gulp.task('clean-storage', function() 
     {	del([storageDir]);
     });
-
     gulp.task('clean-python', function() 
     {	del([venvDir, pyLibDir]);
     });
-
     gulp.task('clean-all', ['clean-cache', 'clean-python'], function() 
     {	del(['bower_compenents', 'node_modules', publicLibDir, distDir, venvDir, pyLibDir]);
     });
 	
-	var getArg = function (key) 
-	{	if (key[0] !== '-') throw 'invalid key name';
+	var getArg = function(key) 
+	{	if(key[0] !== '-') throw 'invalid key name';
 		var index = process.argv.indexOf(key);
 		var next  = process.argv[index + 1];
-		return (index < 0) ? null : (!next || next[0] === "-") ? true : next;
+		return(index < 0) ? null :(!next || next[0] === "-") ? true : next;
 	};
 	
 	var runServer_ = function(skipChecks) 
     {	
-		for (var i = 0; i < process.argv.length; i++)
+		for(var i = 0; i < process.argv.length; i++)
 			gutil.log(i + ': ' + process.argv[i]);
 		var execStr = 'python -u run.py';
-		if (skipChecks)
+		if(skipChecks)
 			execStr	+= ' --skip-checks';
 		execStr	+= ' --appserver-args';
-		for (var i = 3; i < process.argv.length; i++)
+		for(var i = 3; i < process.argv.length; i++)
 			execStr	+= ' ' + process.argv[i];
 
 		var proc = exec(execStr);
@@ -252,19 +216,16 @@
         {	process.stdout.write(data);
         });
     };
-	
+
     gulp.task(  'run-server', function() {runServer_(false)});
     gulp.task('rerun-server', function() {runServer_(true )});
-
     gulp.task('watch', 	[ 'reload'
 						, 'watch-less'
 						, 'watch-new-scripts'
 						]);
-
     gulp.task('rerun',	[ 'watch'
 						, 'rerun-server'
 						]);
-
 	gulp.task('run',	[ 'clean-cache'
 						, 'bower-install'
 						, 'inject-scripts'
@@ -273,7 +234,6 @@
 						, 'copy-fonts'
 						, 'run-server'
 						]);
-
     gulp.task('build', 	[ 'lint'
 						, 'zip-lib'
 						, 'uglify'
@@ -281,7 +241,5 @@
 						, 'template-cache'
 						, 'copy-fonts'
 						]);
-
     gulp.task('default', ['run']);
-
 }());

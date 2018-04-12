@@ -15,14 +15,14 @@
 			  , $stateParams
 			  , gaValidators
 			  ) 
-    {	if (gaAuth.loggedIn()) 
+    {	if(gaAuth.loggedIn()) 
         	gaBrowserHistory.back();
         
 		console.log($stateParams);
 		Restangular.one('auth/verify', $stateParams.token).get()
 		.then( function(data) 
 		{	var d = angular.fromJson(data);
-			if (!!data && ('email_' in d) && ('username' in d))
+			if(!!data &&('email_' in d) &&('username' in d))
 			{	$scope.credentials.email_ = d.email_;
 				$scope.credentials.username = d.username;
 				

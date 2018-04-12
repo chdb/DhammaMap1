@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-# pylint: disable=global-statement
+# Xpylint: disable=global-statement
 """This module runs dev_appserver.py, creates virtualenv, performs requirements check,
 creates necessary directories
 """
@@ -28,11 +28,11 @@ PARSER = argparse.ArgumentParser()
 	# , )
 PARSER.add_argument(
     '--skip-checks', dest='skip', action='store_true'
-	,     help='skip the checks before calling dev_appserver.py'
+	, help='skip the checks before calling dev_appserver.py'
 	, )
 PARSER.add_argument(
     '--appserver-args', dest='args', nargs=argparse.REMAINDER, default=[]
-	,     help='all following args are passed to dev_appserver.py'
+	, help='all following args are passed to dev_appserver.py'
 	, )
 
 ARGS = PARSER.parse_args()
@@ -71,7 +71,7 @@ def os_execute(executable, args, source, target, append=False):
     """Executes OS command
     """
     operator = '>>' if append else '>'
-    os.system('%s %s %s %s %s' % (executable, args, source, operator, target))
+    os.system('%s %s %s %s %s' %(executable, args, source, operator, target))
 
 
 def listdir(directory, split_ext=False):
@@ -98,7 +98,7 @@ def create_virtualenv():
     """Creates virtialenv into temp folder if it doesn't exists"""
     if not os.path.exists(FILE_VENV):
         os.system('virtualenv --no-site-packages %s' % DIR_VENV)
-        os.system('echo %s >> %s' % (
+        os.system('echo %s >> %s' %(
             'set PYTHONPATH=' if IS_WINDOWS else 'unset PYTHONPATH', FILE_VENV
         ))
         pth_file = os.path.join(site_packages_path(), 'gae.pth')
@@ -106,9 +106,14 @@ def create_virtualenv():
         os.system(echo_to % find_gae_path())
         os.system(echo_to % os.path.abspath(DIR_LIBX))
         fix_path_cmd = 'import dev_appserver; dev_appserver.fix_sys_path()'
-        os.system(echo_to % (
+        
+        print fix_path_cmd
+        print '!!!!'
+        os.system(echo_to %(
             fix_path_cmd if IS_WINDOWS else '"%s"' % fix_path_cmd
         ))
+    else: print 'exists'
+    print 'okok'
     return True
 
 
@@ -137,10 +142,8 @@ def install_py_libs():
 
     exclude_ext = ['.pth', '.pyc', '.egg-info', '.dist-info']
     exclude_prefix = ['setuptools-', 'pip-', 'Pillow-']
-    exclude = [
-        'test', 'tests', 'pip', 'setuptools', '_markerlib', 'PIL'
-	,         'easy_install.py', 'pkg_resources.py'
-    ]
+    exclude = ['test', 'tests', 'pip', 'setuptools', '_markerlib', 'PIL'
+	            ,'easy_install.py', 'pkg_resources.py']
 
     def _exclude_prefix(pkg): # pylint: disable=missing-docstring
         for prefix in exclude_prefix:
@@ -174,14 +177,16 @@ def install_py_libs():
 def install_dependencies():
     """Installs python dependencies"""
     make_dirs(DIR_TEMP)
+    print 'start install py libs'
     install_py_libs()
+    print 'end install py libs'
 
 
 # Doctor ###############################################################################
 
 def check_requirement(check_func):
     """Executes check function for given requirement
-    Args: check_func (function): check function, which should return True if requirement is satisfied
+    Args: check_func(function): check function, which should return True if requirement is satisfied
     Returns:    bool: True if requirement is OK
     """
     result, name = check_func()
@@ -195,7 +200,9 @@ def find_gae_path():
     """Tries to find GAE's dev_appserver.py executable
     Returns:   string: Absolute path of dev_appserver.py or empty string
     """
-    return r'C:\Users\colin\AppData\Local\Google\Cloud SDK\google-cloud-sdk\platform\google_appengine'
+    # return r'C:\Users\colin\AppData\Local\Google\Cloud SDK\google-cloud-sdk\platform\google_appengine'
+    #return r'/home/cb/google-cloud-sdk/bin/'
+    return r'/home/cb/google-cloud-sdk/platform/google_appengine/'
     # global GAE_PATH
     # if GAE_PATH:
         # return GAE_PATH
@@ -261,22 +268,26 @@ def run():
     os.chdir(os.path.dirname(os.path.realpath(__file__)))    
     make_dirs(DIR_STORAGE)
    # port = int(ARGS.port)
-    cmds =  [ '"%s"'                % os.path.join(find_gae_path(), 'dev_appserver.py')
-            , DIR_MAIN
+    #cmds =  [ 'python %s'                % os.path.join(find_gae_path(), 'dev_appserver.py')
+    cmds =  [ 'dev_appserver.py'
+            #, DIR_MAIN
            # , '--host=%s'           % ARGS.host
            # , '--port=%s'           % port
-          # , '--admin_port=%s'     % (port + 1)
+          # , '--admin_port=%s'     %(port + 1)
             , '--storage_path=%s'   % DIR_STORAGE
-           # , '--clear_datastore=%s'% ('yes' if ARGS.flush else 'no')
+           # , '--clear_datastore=%s'%('yes' if ARGS.flush else 'no')
            # , '--skip_sdk_update_check'
-            ] + ARGS.args
+            ] + ARGS.args + ['main/app.yaml']
     print 'cmd line:'
     n=0
     for a in cmds:
-        print '%d: %s'%(n,a)
+        print '%d: "%s"'%(n,a)
         n+=1
+    print 'end'
+    
+    print ' '.join(cmds)
     os.system(' '.join(cmds))
-
+    print 'end33'
 
 if __name__ == '__main__':
     run()

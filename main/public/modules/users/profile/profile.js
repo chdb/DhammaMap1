@@ -3,7 +3,7 @@
     angular
 		.module('users')
 		.controller('ProfileController', 
-	function ($scope, Restangular, gaAppConfig, gaAuth, gaX, $stateParams, $mdDialog, gaToast, $state)
+	function($scope, Restangular, gaAppConfig, gaAuth, gaX, $stateParams, $mdDialog, gaToast, $state)
     {	$scope.cfg = gaAppConfig;
         $scope.avatarUrl = gaX.avatarUrl;
 		$scope.auth = gaAuth;
@@ -12,7 +12,7 @@
         {	return gaAuth.loggedIn() && $stateParams.username === gaAuth.user.username;
         };
 
-        if ($scope.isMyProfile()) 
+        if($scope.isMyProfile()) 
         	$scope.user = gaAuth.user;
         else 
         	Restangular.one('users', $stateParams.username).get()

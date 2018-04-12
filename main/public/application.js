@@ -3,7 +3,7 @@
  */
 
 // Init the application configuration module for AngularJS application
-var AppConfig = (function() 
+var AppConfig =(function() 
     { 	'use strict';
 		// Init module configuration options
 		var applicationModuleName = 'Dhamma Map';
@@ -51,7 +51,7 @@ angular.module(AppConfig.applicationModuleName).config(
 angular.element(document).ready(function() 
     { 	'use strict';
 		//Fixing facebook bug with redirect
-		if (window.location.hash === '#_=_') 
+		if(window.location.hash === '#_=_') 
 			{ window.location.hash = '#!';
 			}
 

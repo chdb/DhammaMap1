@@ -26,8 +26,8 @@ NewKeysDELAY = 30       #todo: pass delay from a config setting
 # and therefore minimising datastore reads
 #otherwise implement memcache calls
 
-class W (model.Model):
-    data = model.BlobProperty (repeated=True, indexed=False)
+class W(model.Model):
+    data = model.BlobProperty(repeated=True, indexed=False)
     ID = 'xxx'
     list = []
     TSLen = 4
@@ -39,26 +39,26 @@ class W (model.Model):
         ts = util.sNow()
         if delay:
             ts += delay # new keys come into effect after delay seconds
-        return ts, os.urandom (W.KLen)
+        return ts, os.urandom(W.KLen)
 
     @staticmethod
     def _put():
-        d = [_i16s.pack (i[0], i[1]) for i in W.list]
-        #logging.info('type (d) is %s', type (d))
-        #logging.info('type (d[0]) is %s', type (d[0]))
-        assert type (d)    is list
-        assert type (d[0]) is str
+        d = [_i16s.pack(i[0], i[1]) for i in W.list]
+        #logging.info('type(d) is %s', type(d))
+        #logging.info('type(d[0]) is %s', type(d[0]))
+        assert type(d)    is list
+        assert type(d[0]) is str
         W(id=W.ID, data=d).put()
 
     @staticmethod
     def _get():
-        d = W.get_by_id (W.ID)
+        d = W.get_by_id(W.ID)
         if d:
             W.list = [_i16s.unpack(i) for i in d.data]
         else:    
             W.list = [W._newkeys()]
             W._put()
-        assert all (len(i[1]) == W.KLen for i in W.list)
+        assert all(len(i[1]) == W.KLen for i in W.list)
         assert W.list == sorted(W.list)
         
         #Todo: test only - delete in prod code!
@@ -69,10 +69,10 @@ class W (model.Model):
 
     # @staticmethod
     # def keysNow():
-        # return W.keys (utils.sNow())
+        # return W.keys(utils.sNow())
         
     @staticmethod
-    def keys (ts):
+    def keys(ts):
         W._get()
         if len(W.list) == 1:
             return W.list[0][1]
@@ -83,7 +83,7 @@ class W (model.Model):
     @staticmethod
     def addNewKeys(): 
         W._get()
-        W.list.insert (0, W._newkeys(NewKeysDELAY))  
+        W.list.insert(0, W._newkeys(NewKeysDELAY))  
         W._put()
         logging.info('################################################')
         for i in W.list:
@@ -92,7 +92,7 @@ class W (model.Model):
 
       
     @staticmethod
-    def purge (maxAge):
+    def purge(maxAge):
         '''remove all items older than maxAge'''
         W._get()
         t = utils.sNow() - maxAge

@@ -3,7 +3,7 @@
     var module = angular.module('users');
 
     module.controller('ProfilePasswordController', function($scope, gaToast, $state, gaBrowserHistory, gaTracking) {
-        if (!$scope.hasAuthorization()) {
+        if(!$scope.hasAuthorization()) {
             gaBrowserHistory.back();
         }
 

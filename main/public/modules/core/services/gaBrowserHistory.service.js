@@ -7,7 +7,7 @@
      * @description
      * Keeps track of states user navigates
      */
-    module.factory ( 'gaBrowserHistory' 
+    module.factory( 'gaBrowserHistory' 
 		, function( $state
 			      , $rootScope
 				  , _, gaAuth
@@ -21,8 +21,8 @@
 								$rootScope.$on('$stateChangeStart'
 									, function(event, toState, toParams, fromState, fromParams) 
 									{
-										if (fromState.abstract 
-										|| _.some (ignoredStates, fromState.name)) 
+										if(fromState.abstract 
+										|| _.some(ignoredStates, fromState.name)) 
 											return;
 										history.push( { state  : fromState
 													  , params : fromParams

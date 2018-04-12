@@ -14,7 +14,7 @@
 		
         RestangularProvider
             .setBaseUrl('/api/v1')
-            .setRestangularFields({ id : '_k' }) //used in calls to Restangular.one(...).get()
+            .setRestangularFields({ id : 'uid' }) //used in calls to Restangular.one(...).get()
 			.setDefaultHeaders({ Accept: 'application/json, text/plain'})
 			;
 		
@@ -35,7 +35,7 @@
 						, width		: 38		// The line thickness
 						, radius	: 36		// The radius of the inner circle
 						, scale		: 1			// Scales overall size of the spinner
-						, corners	: 1			// Corner roundness (0..1)
+						, corners	: 1			// Corner roundness(0..1)
 						, color		:'#0f0'		// #rgb or #rrggbb or array of colors
 						, opacity	: 0			// Opacity of the lines
 						, rotate	: 32		// The rotation offset
@@ -43,7 +43,7 @@
 						, speed		: 0.5		// Rounds per second
 						, trail		: 100		// Afterglow percentage
 						, fps		: 20		// Frames per second when using setTimeout() as a fallback for CSS
-						, zIndex	: 2e9		// The z-index (defaults to 2000000000)
+						, zIndex	: 2e9		// The z-index(defaults to 2000000000)
 						, className	:'spinner'	// The CSS class to assign to the spinner
 						, top		:'54%'		// Top position relative to parent
 						, left		:'47%'		// Left position relative to parent
@@ -58,7 +58,7 @@
 							blockUI.start();
 							var target = document.getElementById('blockUIDiv');
 							spinner.spin(target);
-							$timeout (caller, delay);	
+							$timeout(caller, delay);	
 						}
 				, stop	: function(caller, delay) 	
 						{ 	blockUI.stop();
@@ -71,9 +71,9 @@
 					// { 	return !! u.user; 
 					// }
 		// , is_admin: function() 	
-					// { 	if (! u.user)
+					// { 	if(! u.user)
 							// return false;
-						// if (u.user.isAdmin_ === undefined) 
+						// if(u.user.isAdmin_ === undefined) 
 							// console.log('unknown admin status!', u.user);
 						//console.log(' admin status: ', u.user.isAdmin_);
 						// return u.user.isAdmin_
@@ -81,7 +81,7 @@
 		// , setUser : function(user) 
 					// { 	u.user = Restangular.restangularizeElement(null, user, 'users');
 						// u.user.avatarUrl = function(size)
-						// {	console.log (u);
+						// {	console.log(u);
 							// return '//gravatar.com/avatar/'+u.hash+'?d=identicon&r=x&s='+size;
 						// }
 						
@@ -90,10 +90,10 @@
 						// return u.user;
 					// }
 		// , authProviderName : function(authId)
-					// {	if (authId[2] !== ':')
+					// {	if(authId[2] !== ':')
 							// throw "invalid authId: missing colon"
 						// var shortname = authId.substr(0, 3);
-						// if (! shortname in gaAuthNames)
+						// if(! shortname in gaAuthNames)
 							// throw "missing shortname in authNames";
 						// return gaAuthNames[shortname];
 					// }
@@ -122,34 +122,34 @@
         };
 		$rootScope.cfg = gaAppConfig;
 		
-        if (gaAuth.loggedIn()) 
+        if(gaAuth.loggedIn()) 
         	gaAuth.user = Restangular.restangularizeElement(null, gaAuth.user, 'users');
 
         gaBrowserHistory.init();
 
         Restangular.setErrorInterceptor(function(res) 
         {	endLoading();
-           /* if (res.status === 401) 
+           /* if(res.status === 401) 
 			{	gaToast.show('Please sign in first.');
 				//$state.go('signin');
 				// $location.path('/signin'); 
             } else 
 			*/
-			if (res.status === 403) 
+			if(res.status === 403) 
             {	gaToast.show('No access to that page!');
                 //$timeout(function() { $state.go('signin'); }, 1000)
 				//$location.path('/signin'); 
-			} else if (res.status === 404) 
+			} else if(res.status === 404) 
             {	gaToast.show('Sorry, but that page does not exist.');
                 gaBrowserHistory.back();
             } else 
-			{	if (res.data)
+			{	if(res.data)
 				{	//console.log('error interceptor:');
 					//console.log(res);
-					if (res.data.message)
-						gaToast.show (res.data.message);
+					if(res.data.message)
+						gaToast.show(res.data.message);
 					else
-						gaToast.show (res.data);
+						gaToast.show(res.data);
 				}
 				else 
 				{	gaToast.show('Sorry, I failed so badly I can\'t even describe it.  :(' );
@@ -183,7 +183,7 @@
 				, 500);
 
             // Flask responds with error, when DELETE method contains body, so we remove it
-            if (operation === 'remove') 
+            if(operation === 'remove') 
             	return undefined;
             return element;
         });
@@ -200,7 +200,7 @@
          *      more - whether datastore contains more items, for pagination
          */
         Restangular.addResponseInterceptor(function(data, operation) 
-        {	if (operation === 'getList') 
+        {	if(operation === 'getList') 
 			{	var d = data.list;
 				d.meta = data.meta;
 				return d;
@@ -216,7 +216,7 @@
 		//console.log(' : '+);
 
         // If there are FlashMessages from server, toast will display them
-        if (!_.isEmpty(gaFlashMessages)) 
+        if(!_.isEmpty(gaFlashMessages)) 
 		{	console.log(gaFlashMessages);
         	$timeout(function() 
 				{ gaToast.show( gaFlashMessages[0] 

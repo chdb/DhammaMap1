@@ -5,15 +5,15 @@ from __future__ import absolute_import
 from google.appengine.ext import ndb
 from google.appengine.api import app_identity 
 #import config
-from model import base #, ConfigAuth
+from model import mBase #, ConfigAuth
 import util
 
-# class AuthProvider (ndb.Model):
+# class AuthProvider(ndb.Model):
     # name   = ndb.StringProperty()
     # id     = ndb.StringProperty()
     # secret_= ndb.StringProperty()
     
-# def _apDict (apList):
+# def _apDict(apList):
     ##convert authProviders from list to dict keyed on name
     # apDict = {} 
     # for ap in apList:
@@ -22,7 +22,7 @@ import util
     # return apDict
 
 
-# def _apList (apDict):
+# def _apList(apDict):
     ##convert back to list
     # apList = [] 
     # for k,ap in apDict.iteritems():
@@ -30,7 +30,7 @@ import util
          # apList.append(ap)
     # return apList
     
-class Config(base.ndbModelBase):
+class MConfig(mBase.ndbModelBase):
     """A class describing datastore config."""
 #   analytics_id       = ndb.StringProperty()    # Google Analytics ID
     site_name          = ndb.StringProperty(default=app_identity.get_application_id())  # Webapp name
@@ -66,7 +66,7 @@ class Config(base.ndbModelBase):
                 
         # for i in config.authNames:
             # if not i.endswith(':'): # exclude short names
-                # apTestList.append( AuthProvider ( name   =i
+                # apTestList.append( AuthProvider( name   =i
                                                 # , id     =util.randomB64() 
                                                 # , secret_=util.randomB64() 
                                                 # ))  
@@ -85,7 +85,7 @@ class Config(base.ndbModelBase):
         
         # return d
 
-    def populate_ (_s, **ka):
+    def populate_(_s, **ka):
         
         if 'authProviders' in ka:
             d1 = ka['authProviders']

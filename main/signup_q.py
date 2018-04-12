@@ -23,8 +23,8 @@ N = appCfg.NonceLEN()
 def key(token): return token[:N]
 def tag(token): return token[N:]      
 
-class VerifyData (object):
-    def __init__ (_s, ema=None, uname=None, data=None):
+class VerifyData(object):
+    def __init__(_s, ema=None, uname=None, data=None):
         assert bool(ema)  == bool(uname) , 'must have uname if we have ema and vice versa'
         assert bool(data) != bool(uname) , 'must have uname or data but not both'
         if data:
@@ -35,19 +35,22 @@ class VerifyData (object):
         _s.n = -1
         
     def __repr__(_s):        
-        return  "<uname: %s, ema: %s>" % (_s.uname(), _s.ema())
+        return  "<uname: %s, ema: %s>" %(_s.uname(), _s.ema())
                         
 #    @property
-    def _n (_s):      
+    def _n(_s):      
         if _s.n == -1:
             _s.n = _s.data.find(' ')
         return _s.n    
          
-    def ema (_s): 
+    def ema(_s): 
         return _s.data[_s._n()+1:]
 
     def uname(_s):      
         return _s.data[:_s._n()]
+        
+    def asDict(_s):
+        return {'uname':_s.uname(), 'ema':_s.ema() }
 
         
 def hasEma(ema):
@@ -58,13 +61,13 @@ def hasEma(ema):
         return vd.ema() == ema
     return taskHasEma
     
-class Midstore (object):
+class Midstore(object):
     
     def __init__(_s, queueName):
         _s.queue = tq.Queue(queueName)
     #    _s.mc = memcache.Client()
     
-    def length (_s):
+    def length(_s):
         '''NB the Docs say this: 
         It is not always possible to accurately determine the value for the `tasks` field.
         Use this field with caution.
@@ -72,7 +75,7 @@ class Midstore (object):
         statsList = tq.QueueStatistics.fetch([_s.queue]) 
         return statsList[0].tasks
         
-    def _getTasks (_s, token, lease_seconds=0.0):
+    def _getTasks(_s, token, lease_seconds=0.0):
         return _s.queue.lease_tasks_by_tag( lease_seconds # int or float >= 0.0  Access to task is locked for this worker to complete and possibly delete task. If not, after this time another worker can lease. 
                                           , 1000 # max_tasks:- The maximum number of tasks to lease from the pull queue, up to 1000 tasks.
                                           , tag(token)
@@ -81,7 +84,7 @@ class Midstore (object):
 #    def _firstTag(_s):
         
     
-    def put (_s, nonce, ema, uname): 
+    def put(_s, nonce, ema, uname): 
         '''caller provides a key which must be unique - not in use for any other task in the Queue'''
     #    _s._deleteTasks(key)
         #find first tag group with space for a new task
@@ -101,38 +104,38 @@ class Midstore (object):
             # emaTasks = [t for t if hasEma(t) ]
             # ok = len(tasks) - len(emaTasks) < TagMAX 
             # _s.queue.delete_tasks(emaTasks)
-            # if ok: # allow for some (up to max 9?) tasks created concurrently with this instance
+            # if ok: # allow for some(up to max 9?) tasks created concurrently with this instance
                 # break
             # n+=1
            
         #d = mp.packb(data)
         #d = json.dumps(data)
-        # _s.queue.add (t)
+        # _s.queue.add(t)
         # logging.debug('added task = %r', t)
         return addtag
   #      _s.mc.set(key, d)
 
-    def _find (_s, tasks, key):
+    def _find(_s, tasks, key):
         logging.debug('tasks = %r', tasks)
         n = len(tasks)
         if n == 0:
             logging.warning('No pullq task for tag %s!', tag) # todo try again message ?
             return None
         if n > TagMAX:    
-            logging.warning('Extra (%d) pullq tasks for tag %s!', n, tag)
+            logging.warning('Extra(%d) pullq tasks for tag %s!', n, tag)
         task = next((t for t in tasks if t.name==key), None) 
         if task:
             assert len([i for i,t in enumerate(tasks) if t.name==key]) == 1, 'one and only one task with key'
             p = task.payload
             logging.debug('payload found: %r' % p)
-            return decodeVerifyData(p) # mp.unpackb(p)  
+            return VerifyData(data=p).asDict() # mp.unpackb(p)  
         logging.warning('No task found for key %s!', key)       
             
-    def get (_s, token):
+    def get(_s, token):
         tasks = _s._getTasks(token)
         return _s._find(tasks, key(token))
         
-    def pop (_s, token): 
+    def pop(_s, token): 
         tasks = _s._getTasks(token, 0.1)
         k = key(token)
         p = _s._find(tasks, k)
@@ -145,7 +148,7 @@ class Midstore (object):
             If 'addname' is provided then a task is added to the queue, 
                 with 'addname' and 'addpayload' and using first tag where there is space
             pred(t) is a function taking Task t and returning bool'''
-        rv = {}
+        taskmap = {}
         total = _s.length()
         logging.debug('length = %r', total)  
         tn = 0
@@ -159,7 +162,7 @@ class Midstore (object):
             n = len(tagTasks)
             m = 0
             if n > TagMAX:
-                logging.warning('Extra (%d) pullq tagTasks for tag %s!', n, tag)
+                logging.warning('Extra(%d) pullq tagTasks for tag %s!', n, tag)
             if n == 0:
                 nulRuns+=1 
                 logging.warning('No pullq task for tag %s!', tag) # todo try again message ?
@@ -168,7 +171,7 @@ class Midstore (object):
                 predTasks = [t for t in tagTasks if pred(t)]
                 logging.debug('predTasks = %r', predTasks)
                 m = len(predTasks)
-                rv[tag] = predTasks
+                taskmap[tag] = predTasks
                 if pop:
                     for t in predTasks:
                         logging.debug('deleting task: %r', t)
@@ -180,13 +183,13 @@ class Midstore (object):
                                       , method ='PULL'
                                       , tag    =tag
                                       )
-                    _s.queue.add (addTask2)
+                    _s.queue.add(addTask2)
                     logging.debug('added task = %r', addTask2)
                     addtag = tag
                     addname = None
             total-=n
             if total <= 0 or nulRuns >= nulRunMAX:
-                return rv, addtag
+                return taskmap, addtag
             tn+=1
             # todo release all? --  for t in tasks: q.modify_task_lease(t, 0) 
      
@@ -196,11 +199,11 @@ class Midstore (object):
             n = len(taskmap)
             if n:
                 if n != 1:
-                    logging.warning('multiple tasks (%d) for ema: %s', n, loginId)
+                    logging.warning('multiple tasks(%d) for ema: %s', n, loginId)
                 tag, tasks = taskmap.iteritems().next()
                 n = len(tasks)
                 if n != 1:
-                    logging.warning('odd number of tasks (%d) for tag: %s', n, tag)
+                    logging.warning('odd number of tasks(%d) for tag: %s', n, tag)
                 t0 = tasks[0]
                 logging.debug('found task = %r, %r', tag, t0)
                 vd = VerifyData(data=t0.payload)
@@ -224,11 +227,11 @@ class Midstore (object):
             # logging.debug('deleting task: %r', t)
         # _s.queue.delete_tasks(tt)
 
-    # def delete (_s, key):
+    # def delete(_s, key):
         # _s.mc.delete(key)
         # _s._deleteTasks(key)
         
-    # def _deleteTasks (_s, key):
+    # def _deleteTasks(_s, key):
         # tasks = _s._getTasks(key)
         # logging.debug('Deleting %d old tasks for %s!', len(tasks), key)
         # if tasks:

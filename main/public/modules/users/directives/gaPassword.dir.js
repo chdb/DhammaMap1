@@ -22,11 +22,11 @@
 			scope.minlen = v ? v[0] : 0;
 			scope.maxlen = v ? v[1] : 0;
 			scope.form = form;
-			if (attrs.repeatPwd) 
+			if(attrs.repeatPwd) 
 			{	scope.$watch
-				( function () 			//watch expression
+				( function() 			//watch expression
 					{ return scope.repeatPwd() === ngModel.$modelValue; }
-				, function (newVal) 	//watch listener 
+				, function(newVal) 	//watch listener 
 					{ form[scope.name].$setValidity('mismatch', newVal); }
 				);
 			}
@@ -40,7 +40,7 @@
 							  , label	      :'@'
 							  , optional	  :'@'
 							  , ngModel		  :'='
-							  , repeatPwd:'&'
+							  , repeatPwd	  :'&'
 							  }
 				, templateUrl:'/p/modules/users/directives/gaPassword.html'
 				};

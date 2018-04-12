@@ -5,7 +5,7 @@
     module.controller('SigninController'
 					 , function($scope, $element, Restangular, gaAppConfig
 							   , gaAuth, gaBrowserHistory, gaToast, gaTracking, gaBlockSpin ) 
-	{  	if (gaAuth.loggedIn()) 
+	{  	if(gaAuth.loggedIn()) 
         {	gaBrowserHistory.back();
         }
 
@@ -18,15 +18,15 @@
 			.all('auth/log-in')
 			.post($scope.credentials)
 			.then( function(resp)
-			{	if (!!resp)			
-				{	if ('delay'in resp)//wait & try again 
+			{	if(!!resp)			
+				{	if('delay'in resp)//wait & try again 
 					 	gaBlockSpin.start($scope.signin, resp.delay);
 					else 
 					{	gaBlockSpin.stop();// Unblock the user interface
 						var category;
-						if (resp.unVerified) 
+						if(resp.unVerified) 
 						{	var loginId = $scope.credentials.loginId;
-							if (loginId.indexOf('@') !== -1)
+							if(loginId.indexOf('@') !== -1)
 							{	$scope.unVerified = resp.unVerified;
 								$scope.unVerified.ema = loginId;
 								var params =  {	action :'Resend Email'
@@ -37,9 +37,9 @@
 							}
 							category = 'unverified';
 						}
-						else if ('user'in resp)// redirect:	window.location = resp.nextUrl;	
+						else if('user'in resp)// redirect:	window.location = resp.nextUrl;	
 						{	//console.log('user', user);
-							if (! resp.user.isActive_) 
+							if(! resp.user.isActive_) 
 							{	gaToast.show('Your account has been blocked. Please contact administrators to find out why.');
 								category = 'blocked';
 							}

@@ -10,7 +10,7 @@ from env import ENV
 from collections import namedtuple
 import math
 
-from model.config import Config  # NB The model module needs to be imported *after* setting CURRENT_VERSION_TIMESTAMP,
+from model.mConfig import MConfig  # NB The model module needs to be imported *after* setting CURRENT_VERSION_TIMESTAMP,
             # since model.ndbModelBase uses it as default value for version_r property
 
 # DelayCfg = namedtuple('DelayCfg', ['delay'     # 
@@ -41,45 +41,45 @@ cfg_={'DebugMode'         : True   # if True, uncaught exceptions are raised ins
     #,'maxIdleAnon'       : 0 #60*60  
     ,'maxIdleAuth'       : 15 #60*60  
     
-    ,'MemCacheKeepAlive' : 500 # milliseconds - to refresh MemCache item, so (probably) not be flushed    
+    ,'MemCacheKeepAlive' : 500 # milliseconds - to refresh MemCache item, so(probably) not be flushed    
 
-    ,'LogIn':   RateLimitCfg ( 700
+    ,'LogIn':   RateLimitCfg( 700
                # milliseconds - minimum time between requests.
             # delay or lock on repeated requests from the same ipa and the same ema
-          , {'ema_ipa':LockCfg( lambda n: (n**2)*100 # *10 # 100 200 400 800 1600...
+          , {'ema_ipa':LockCfg( lambda n:(n**2)*100 # *10 # 100 200 400 800 1600...
                               , 3      #maxbad
                               , 60*1   #period
                               , 60*3   #lockTime
                               , True   #bGoodReset
                               ) 
             # delay orlock onrepeated requests from the same ema but different ipa's
-            ,'ema'    :LockCfg( lambda n: (n-1)*300 # 0 300 600 900 1200...
+            ,'ema'    :LockCfg( lambda n:(n-1)*300 # 0 300 600 900 1200...
                               , 3      #maxbad
                               , 60*1   #period
                               , 60*3   #lockTime
                               , True   #bGoodReset
                               )
             # delay orlock onrepeated requests from the same ipa but different ema's
-            ,'ipa'    :LockCfg( lambda n: (n-1)*500 # 0 500 1000 1500 2000 ...
+            ,'ipa'    :LockCfg( lambda n:(n-1)*500 # 0 500 1000 1500 2000 ...
                               , 3      #maxbad
                               , 60*1   #period 
                               , 60*3   #lockTime
                               , True   #bGoodReset
           ) }                 )              
     ,'Forgot':RateLimitCfg( 500    # milliseconds- minimum time between requests.
-          , {'ema_ipa':LockCfg( lambda n: (n**2)*100 # 100 200 400 800 1600...
+          , {'ema_ipa':LockCfg( lambda n:(n**2)*100 # 100 200 400 800 1600...
                               , 3      #maxbad
                               , 60*1   #period
                               , 60*3   #lockTime
                               , True   #bGoodReset
                               ) 
-            ,'ema'    :LockCfg( lambda n: (n-1)*300 # 0 300 600 900 1200...
+            ,'ema'    :LockCfg( lambda n:(n-1)*300 # 0 300 600 900 1200...
                               , 3      #maxbad
                               , 60*1   #period
                               , 60*3   #lockTime
                               , True   #bGoodReset
                               )
-            ,'ipa'    :LockCfg( lambda n: (n-1)*500 # 0 500 1000 1500 2000 ...
+            ,'ipa'    :LockCfg( lambda n:(n-1)*500 # 0 500 1000 1500 2000 ...
                               , 3      #maxbad
                               , 60*1   #period 
                               , 60*3   #lockTime
@@ -88,7 +88,7 @@ cfg_={'DebugMode'         : True   # if True, uncaught exceptions are raised ins
     # ,'pepper'             : None          
     # ,'recordEmails'       : True
     # ,'email_developers'   : True
-    # ,'developers'         : (('Santa Klauss', 'snowypal@northpole.com'))
+    # ,'developers'         :(('Santa Klauss', 'snowypal@northpole.com'))
     
     #add-to/update the default_config at  \webapp2_extras\jinja2.py
     # ,'webapp2_extras.jinja2':  { 'template_path'   : [ 'template' ]
@@ -135,8 +135,8 @@ class TwoWayDict(dict):
 
 
 authNames = TwoWayDict()
-# follow the convention: all short names end in ':' (and long names dont)
-# follow the convention: all builtin names start with '_' (both short and long names)
+# follow the convention: all short names end in ':'(and long names dont)
+# follow the convention: all builtin names start with '_'(both short and long names)
 authNames ['_e:'] = '_email'
 authNames ['_u:'] = '_userName'
 authNames ['tt:'] = 'twitter'       # OAuth 1.0a
@@ -171,22 +171,22 @@ authNames ['ig:'] = 'instagram'     # OAuth 2.0 but not yet impl in authomatic
 # authNames ['ow:'] = 'openid_wordpress'     # OpenID
 # authNames ['oy:'] = 'openid_yahoo'         # OpenID
 
-import httplib2
+#import httplib2
 import logging
 import time
 import webapp2
 
 
-class Cfg (object):
+class Cfg(object):
     ''' Combine two separate implementations of config.
         * _s.soft is the ndb.model and its data can be modified while app is running
         # _s.hard is hard-coded dict, therefore its data can only be modified by uploading a new version of application
-                        but its simpler and for sensitive data its arguably more secure ()
+                        but its simpler and for sensitive data its arguably more secure()
         Config keys must be unique overall IE may be in one or other but not both.
     '''
     def __init__(_s, codeCfg):
-        _s.hard = codeCfg  # hard-coded dict with other data  that can be modified while app is running      
-        _s.soft = Config.getCfg()
+        _s.hard = codeCfg         # hard-coded dict with other data  that can be modified while app is running      
+        _s.soft = MConfig.getCfg() # get cfg values form datastore
         for i in ENV:
             assert not hasattr(_s.hard, i)
         for i in _s.hard:
@@ -202,12 +202,12 @@ class Cfg (object):
         return getattr(_s.soft, name)
         
     def populate(_s, ka):
-        _s.soft.populate_ (**ka)
+        _s.soft.populate_(**ka)
         _s.soft.put()
             
     def refresh(_s):
-        _s.soft = Config.getCfg()
-        #todo call getInstances() to send rewquest to all instances to call this fn refresh() 
+        _s.soft = MConfig.getCfg()
+        #todo call getInstances() so we can request all instances to call this fn refresh() 
     
     def toDict(_s, nullVals=False):
         """_s dict representation of config model plus some other config props """        
@@ -238,7 +238,7 @@ class Cfg (object):
         # logging.debug('res  = %r', resp)
         # logging.debug('res  = %r', resp.content)
         # if resp.status_code != 200:
-            # logging.error("Failed to fetch list of instances. (%d)" %  (resp.status_code))
+            # logging.error("Failed to fetch list of instances.(%d)" % (resp.status_code))
         # else:
             # ins  = json.loads(resp.content)
             
@@ -262,9 +262,8 @@ class Cfg (object):
         logging.debug('appsId = %r', appsId)
         logging.debug('svs = %r', svsId)
         version_list = service.apps().services().versions().list(
-                             servicesId=svsId
-                              ,
-                            appsId=appsId
+                                servicesId=svsId
+                              , appsId=appsId
                             ).execute()
 
         logging.info('>>>>>>>>>>>>>>>>> version_list: %r', version_list)
