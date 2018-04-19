@@ -14,13 +14,13 @@ from handlers.basehandler import HAjax
 #from config import getInstances
 from app import app
 
-@app.API_1('config') 
+@app.API_1('config')
 class HConfig(HAjax):
-   
+
     @adminOnly
     def get(_s):
         return appCfg.toDict(nullVals=True)
-        
+
     @adminOnly
     def put(_s):
         #todo in production we need multi instance code
@@ -28,8 +28,8 @@ class HConfig(HAjax):
         #   thisInst = getThisInstance()
         #   for i in insts:
         #       if i != thisInst:
-        #           i.send(url=put2each, data=_s.request.body)      
-        appCfg.populate(_s.request.json)    
-   
+        #           i.send(url=put2each, data=_s.request.body)
+        appCfg.populate(_s.request.json)
+
     def put2each(_s):
         appCfg.update(_s.json())

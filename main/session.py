@@ -8,7 +8,7 @@ import util as u
 #import debug as d
 from model.mUser import MUser
 import webapp2
-# # # # # # # # # # # # # # # # # # # # 
+# # # # # # # # # # # # # # # # # # # #
 
 class CookieNameError(ValueError):
     pass
@@ -23,19 +23,19 @@ class Cookie(object):
                  , 'secure'  : secure #not handler.app.debug
                  , 'httponly': httponly
                  }
-  
+
     def set      (_s, handler, val): _s._set(handler, val, checkExists=True , resetting=False) # exception if already exists
     def reset    (_s, handler, val): _s._set(handler, val, checkExists=True , resetting=True ) # exception if doesnt exist
     def setOrReset(_s, handler, val): _s._set(handler, val, checkExists=False) # force a cookie to set or reset - you dont care which
-    
+
     def _set(_s, handler, val, checkExists, resetting=False):
-        # NB webOb treats cookie-name as a unique key called 'key' and uses a dict for a key-value map. 
-        # This is similar to other frameworks but it hides a peculiarity of cookies. 
-        # There can be multiple cookies with same name in the request's cookie header, because for the client, Cookie-name is not the full key;    
-        # The client identifies cookies by(name, path, domain) IE a different path or domain identifies a different cookie. 
-        # This is why we need path and domain from our cfg for delete() and reset() to work properly. 
+        # NB webOb treats cookie-name as a unique key called 'key' and uses a dict for a key-value map.
+        # This is similar to other frameworks but it hides a peculiarity of cookies.
+        # There can be multiple cookies with same name in the request's cookie header, because for the client, Cookie-name is not the full key;
+        # The client identifies cookies by(name, path, domain) IE a different path or domain identifies a different cookie.
+        # This is why we need path and domain from our cfg for delete() and reset() to work properly.
         # For each request(for a given url - ie domain + path) the client will send all cookies matching a given name and url.
-        # However webOb, like most server frameworks, will only read first one from the cookie header. 
+        # However webOb, like most server frameworks, will only read first one from the cookie header.
         # The cookie which had longest url, ie most specific, *should* be the first one but might not be.
         # MORAL -- if, in same domain, you are using various cookies for different paths or sub-domains, be sure to use different cookie names for each.
         exists = bool(_s.get(handler))
@@ -46,30 +46,30 @@ class Cookie(object):
             else:
                 if exists:
                     raise CookieNameError('This cookie name is already in use.')
-        
+
         n = len(val)
         if n > 4093: #some browsers will accept more but this is about the lowest browser limit
             raise ValueError('Cookie size is %d bytes and exceeds max: 4093', n)
         #todo:what to do? too big for cookie!!!
         #logging.debug('setting cookieMgr = %r', val)
-                
+
         handler.response.set_cookie(value=val, **_s.cfg)
-        
+
     def get(_s, handler):
         val = handler.request.cookies.get(_s.cfg['key'])
         if val:
             val = val.encode('utf-8') #from unicode to bytes
         #logging.debug('cookieMgr data = %r', val)
         return val
-        
+
     def delete(_s, handler):
-        # As close as possible to a delete of browser cookie.(Browsers provide no deleteCookie method - you must overwrite setting expiry to zero or negative lifespan) 
+        # As close as possible to a delete of browser cookie.(Browsers provide no deleteCookie method - you must overwrite setting expiry to zero or negative lifespan)
         # When client gets the response, only the cookie value is immediately deleted IE overwritten with empty string.
-        # The expiry is set to zero and the name will usually remain visible intil cookie itself is deleted when the browser window closes. 
+        # The expiry is set to zero and the name will usually remain visible intil cookie itself is deleted when the browser window closes.
         cfg = {k:_s.cfg[k] for k in('key','path','domain')}
         # logging.debug('cfg = %r', cfg)
         handler.response.delete_cookie(**cfg)
-                  
+
 # # # # # # # # # # # # # # # # # #
 
 class _UpdateDictMixin(object):
@@ -96,18 +96,18 @@ class _UpdateDictMixin(object):
 
 ##todo  separate Session(ie dict etc) from SessionVw
 ##          make session a namedtuple(_created gets overwiteen in Kryptoken.encode)
-##      separate Flashes 
+##      separate Flashes
 ##          make it a member class
 
 class SessionVw(_UpdateDictMixin, dict):
-    """ SessionVw looks like a session but its really just a view- a snapshot of a session. It has same 
+    """ SessionVw looks like a session but its really just a view- a snapshot of a session. It has same
     data but lasts only for a request lifetime, retrieving the session data from the session cookieMgr.
     """
     __slots__ =('modified') # 'container', 'new', is not used
     #_userKey = '_u'
 
     def __init__(_s, handler):  # container, , new=False
-        logging.debug('#################### SessionVw __init__ called')  
+        logging.debug('#################### SessionVw __init__ called')
         _s.modified = False
         _s.handler = handler
         _s.cookie = Cookie('dm_session')
@@ -126,12 +126,12 @@ class SessionVw(_UpdateDictMixin, dict):
             if data:
                 assert type(data) is dict
             if not '_created' in data:
-                data['_created'] = u.sNow()          
+                data['_created'] = u.sNow()
             dict.update(_s, data)
 
-    def expired(_s): 
-        if _s.isLoggedIn(): 
-            return u.expired(_s['_logInTS'], 'auth') 
+    def expired(_s):
+        if _s.isLoggedIn():
+            return u.expired(_s['_logInTS'], 'auth')
         return False # ANON sessions do not expire
 
     def save(_s):
@@ -140,10 +140,10 @@ class SessionVw(_UpdateDictMixin, dict):
             #_s.handler.response.headers['authentication'] = val
             logging.debug('saving session                                        £££££££££££££££££')
             _s.cookie.setOrReset(_s.handler, val)
-            
+
     def on_update(_s):
         _s.modified = True
-        
+
     # def pop(_s, key, *args):
         # if key in _s:
             # return super(SessionVw, _s).pop(key, *args)# Only pop if key exists
@@ -159,35 +159,35 @@ class SessionVw(_UpdateDictMixin, dict):
 
     def addFlash(_s, msg, level=None): #, key='_flash'
         '''add a(msg, level) to the list
-        NB. Caller of this func must ensure the msg content is safe from injection attack. 
+        NB. Caller of this func must ensure the msg content is safe from injection attack.
         Especially if it contains results from a form input. Form input should be validated server-side
        (also on client-side if possible). Any text fields that are not entirely alphanumeric are suspect.
-        The msg either must be TRUSTED content(ie without any non-alphanumeric user input) 
+        The msg either must be TRUSTED content(ie without any non-alphanumeric user input)
         or else it must be html ESCAPED content, before passing to flash()
         because this msg will inserted in the template html body WITH AUTOESCAPE OFF
         '''
         _s.setdefault('_flash', []).append((msg, level))  # append to duple list:  [(msg, level), ...]
 
     def logIn(_s, user, ipa, remember ):
-        logging.debug('user = %r', user)
+        logging.debug('user = %r', user.username)
         _s['_userID' ]= user.id()
         _s['_logInTS']= u.sNow()
         _s['_sessIP' ]= ipa
         #_s['_isAdmin']= user.isAdmin_
-        
+
        # _s['_sessID'] = sid = utils.newSessionToken()
        # user.token = sid
        # user.modified = True
         logging.debug('just logged in ssn = %r',_s)
         logging.debug('just logged in ssn id = %r',id(_s))
-        
+
     def logOut(_s):
         # if user:
             # user.token = ''
             # user.modified = True
         # _s.pop('_userID' , None) # default arg(None) to avoid KeyError
         # _s.pop('_logInTS', None)
-        # _s.pop('_sessIP' , None) 
+        # _s.pop('_sessIP' , None)
       #  d.logStackTrace(3)
         # logging.debug('about to logout ssn = %r',_s)
         # logging.debug('about to logout  ssn id = %r',id(_s))
@@ -196,15 +196,15 @@ class SessionVw(_UpdateDictMixin, dict):
         # logging.debug('2 uid was = %r', uid)
         if uid is not None:
             del _s['_logInTS']
-            del _s['_sessIP' ]          
+            del _s['_sessIP' ]
             return True
         return False
 
-    def isLoggedIn(_s):  
+    def isLoggedIn(_s):
         return('_logInTS' in _s   # \   # and '_sessID' in _s \
-        and     '_sessIP' in _s 
+        and     '_sessIP' in _s
         and     '_userID' in _s)
-         
+
         #    if user:
               #  if user.sameToken(_s['_sessID']):
          #return False
@@ -212,13 +212,13 @@ class SessionVw(_UpdateDictMixin, dict):
     def hasLoggedInRecently(_s, maxAge):
         timeStamp = _s['_logInTS']
         return u.validTimeStamp(timeStamp, maxAge)
-     
-    
-    #   3) encode(new) to save IP address when new==True to memcache and 
+
+
+    #   3) encode(new) to save IP address when new==True to memcache and
     #   4) decode(new) to compare IP when new==False and if different decode() fails unless memcache fails
-    #   
+    #
 #from google.appengine.api import memcache
-    
+
 # def get(handler):
     # ssn = _get(handler.request)
     # logging.info('get ssn items:||||||||||||||||||')
@@ -230,12 +230,11 @@ class SessionVw(_UpdateDictMixin, dict):
     # ssn['lang'] = 'en'
     # _save(handler, ssn)
     # handler.redirect_to('nocookie', abort=True)
-    
-    
-   # cookieWasSet = memcache.get(ssn['_userID'] + 'x') 
+
+
+   # cookieWasSet = memcache.get(ssn['_userID'] + 'x')
 #        if cookieWasSet:
  #           ssn.addFlash('There seems to be a problem reading the browser cookieMgr. Please ensure cookies are not disabled.')
     # return ssn
-    
-# import traceback as tb
 
+# import traceback as tb

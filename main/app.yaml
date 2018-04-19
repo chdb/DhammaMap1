@@ -22,7 +22,7 @@ handlers:
 - url: /_ah/warmup
   script: main.app
   login: admin
-  
+
 - url: /favicon.ico
   static_files: public/modules/core/img/favicon.ico
   upload: public/modules/core/img/favicon.ico

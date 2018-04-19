@@ -12,22 +12,22 @@ from handlers.basehandler import HBase
 
 # @API.resource('/api/v1/feedback')
 class FeedbackAPI(HBase):
-    
+
     @verify_captcha('feedbackForm')
     def post(_s):
         """Sends feedback email to admin"""
         if not appCfg.admin_email_:
             return _s.abort(418)
-        
+
         args = args = _s.parseJson(('message', vdr.feedback_span)
                                   ,('fromEma', vdr.email_rx)
                                   )
-        MaxSubjLen = 50  # Construct Subject from first MaxSubjLen chars of message. Adjust this if you want.            
+        MaxSubjLen = 50  # Construct Subject from first MaxSubjLen chars of message. Adjust this if you want.
         if len(args.message) > MaxSubjLen:
             subject ='%s...' % args.message[:(MaxSubjLen-3)].strip()
         else:
             subject = args.message.strip()
-        
+
         ka = {'reply_to': args.fromEma} if args.fromEma else {}
         task.sendEmail( subject
                       , body= '%s\n\nfrom: %s' %(args.message, args.fromEma)

@@ -12,9 +12,9 @@ def initEnv():
         VERtimeStamp = calendar.timegm(datetime.utcnow().timetuple())
     else:
         VERtimeStamp = long(VERid.split('.')[1]) >> 28 if VERid else None
-    
+
     VERdateTime = datetime.utcfromtimestamp(VERtimeStamp).strftime("%Y-%m-%d %H:%M:%S")
-    
+
     logging.debug('####################################################### cur ver id: %r'      , VERid)
     logging.debug('####################################################### cur ver name: %r'    , VERname)
     logging.debug('####################################################### cur ver timestamp:%r', VERtimeStamp)
@@ -34,12 +34,12 @@ ENV = initEnv()
 
 # def env(key=None):
     # def getEnv():
-        # global _env_    
+        # global _env_
         # if _env_:
             # return _env_------------------------------
         # _env_ = initEnv()
         # return _env_
-        
+
     # if key:
         # return getEnv()[key]
     # return getEnv()

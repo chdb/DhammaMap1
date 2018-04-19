@@ -1,4 +1,4 @@
-(function() 
+(function()
 {   'use strict';
     var module = angular.module('core');
 
@@ -8,11 +8,11 @@
      * @description
      * This service holds a user object so that it can be accessed in any controller
      */
-	
-	module.factory('gaX', function() 
-	{	
+
+	module.factory('gaX', function()
+	{
 		return { avatarUrl : function(user, size)
-					{	
+					{
 						if(user)
 							return '//gravatar.com/avatar/'+user.emaHash+'?d=identicon&r=x&s='+size;
 						return undefined;
@@ -20,30 +20,30 @@
 			   }
 	});
 
-    module.factory('gaAuth', function(gaAuthUser, gaAuthNames, Restangular) 
+    module.factory('gaAuth', function(gaAuthUser, gaAuthNames, Restangular)
 	{	console.log('gaAU = ' + gaAuthUser);
-		var u =	
+		var u =
 		{ user 	  : gaAuthUser
-		, loggedIn: function() 	
-					{ 	return !! u.user; 
+		, loggedIn: function()
+					{ 	return !! u.user;
 					}
-		, is_admin: function() 	
+		, is_admin: function()
 					{ 	if(! u.user)
 							return false;
-						if(u.user.isAdmin_ === undefined) 
+						if(u.user.isAdmin_ === undefined)
 							console.log('unknown admin status!', u.user);
 						//console.log(' admin status: ', u.user.isAdmin_);
 						return u.user.isAdmin_
 					}
-		, setUser : function(user) 
+		, setUser : function(user)
 					{ 	u.user = Restangular.restangularizeElement(null, user, 'users');
 						// u.user.avatarUrl = function(size)
 						// {	console.log(u);
 							// return '//gravatar.com/avatar/'+u.emaHash+'?d=identicon&r=x&s='+size;
 						// }
-						
+
 						//localStorage.setItem('dwsession', authToken);
-						
+
 						return u.user;
 					}
 		, authProviderName : function(authId)
@@ -58,7 +58,7 @@
 					// {	return '//gravatar.com/avatar/'+user.emaHash+'?d=identicon&r=x&s='+size;
 					// }
 		};
-		return u;  
+		return u;
     });
 
 

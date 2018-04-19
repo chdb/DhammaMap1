@@ -106,7 +106,7 @@ def create_virtualenv():
         os.system(echo_to % find_gae_path())
         os.system(echo_to % os.path.abspath(DIR_LIBX))
         fix_path_cmd = 'import dev_appserver; dev_appserver.fix_sys_path()'
-        
+
         print fix_path_cmd
         print '!!!!'
         os.system(echo_to %(
@@ -264,8 +264,8 @@ def run():
         else:
             print 'doctor says no'
             return
-            
-    os.chdir(os.path.dirname(os.path.realpath(__file__)))    
+
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
     make_dirs(DIR_STORAGE)
    # port = int(ARGS.port)
     #cmds =  [ 'python %s'                % os.path.join(find_gae_path(), 'dev_appserver.py')
@@ -284,7 +284,7 @@ def run():
         print '%d: "%s"'%(n,a)
         n+=1
     print 'end'
-    
+
     print ' '.join(cmds)
     os.system(' '.join(cmds))
     print 'end33'

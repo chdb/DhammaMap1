@@ -1,4 +1,4 @@
-(function() 
+(function()
 {   'use strict';
     var module = angular.module('users');
 
@@ -10,22 +10,22 @@
      * throughout the app
      */
 
-    module.directive('gaEmail', function($http, Restangular) 
+    module.directive('gaEmail', function($http, Restangular)
     {    /*jslint unparam:true*/
-        var linker = function(scope, el, attrs, form ) 
+        var linker = function(scope, el, attrs, form )
 		{	//console.log('gaEmail scope --- ', scope)
 			console.log('gaEmail el --- ', el);
 			console.log('gaEmail attrs --- ', attrs);
 			console.log('gaEmail form --- ', form);
-			
+
 			//scope.restNg = Restangular;
             scope.name  = scope.name  || 'email_';
             scope.label = scope.label || 'Email';
             scope.form = form;
             scope.required = attrs.required !== undefined && attrs.required !== 'false';
 			//scope.restNg = $injector.get('Restangular');
-	
-			/* scope.onBlur = function() 
+
+			/* scope.onBlur = function()
 			{   console.log('qqqqqqqqqqqqqq : ' );
 				// var parameter = JSON.stringify({type:"user", username:user_email, password:user_password});
 				// $http.post(url, parameter)
@@ -36,14 +36,14 @@
 							//console.log(res);
 							form.ema.$setValidity('unique', true);
 						}
-					 , function(response) 
-						{	//console.log("Error with status code", response, response.status); 
+					 , function(response)
+						{	//console.log("Error with status code", response, response.status);
 							form.ema.$setValidity('unique', false);
-							//console.log(response.data); 
-						}	
+							//console.log(response.data);
+						}
 					 );
 			}; */
-        };	
+        };
         return 	{ templateUrl:'/p/modules/users/directives/gaEmail.html'
 				, link    	 : linker /* { pre : linker } */
 				, restrict	 : 'EA'
@@ -57,4 +57,3 @@
 				};
     });
 }());
-

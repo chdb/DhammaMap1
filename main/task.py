@@ -25,7 +25,7 @@ def sendEmail(subject, body, toEma=None, subjTag=None, **ka):
         toEma = toEma or adminEma
         subject = '[%s: %s] %s' %(site_name, subjTag, subject) if subjTag else\
                   '[%s] %s'     %(site_name, subject)
-        
+
         if appCfg.development:
             logging.info( '\n######### Deferring to send this email: #############################'
                           '\nFrom: %s'
@@ -58,7 +58,7 @@ def sendNewUserEmail(usr):
             '\nname: %s'
             '\nemail: %s'
         #    '\n%s'
-            '\nurl: %s' 
+            '\nurl: %s'
              % ( usr.name
                 , usr.email_
          #       , '\n'.join([': %s' % a for a in usr.authIds])
@@ -67,7 +67,7 @@ def sendNewUserEmail(usr):
     subj = 'New user: %s' % usr.name
     sendEmail(subj, body)
 
-    
+
 def sendResetEmail(usr):
     """Sends email with url, which user can use to reset his password
     Args : usr(model.MUser): User, who requested password reset
@@ -92,13 +92,13 @@ def sendVerifyEmail(ema, nonce, tag):
     # ema = usr.pop('email_')
     #uname = usr.pop('username')
     #assert usr == {}
-         
+
     # nonce = util.randomB64(appCfg.NonceBYTES)
     # tag = Midstore('SignupQ').put(nonce, ema, usr.name)
 
     # usr.token__ = util.randomB64()
     # usr.put()
-    
+
     logging.debug('wtoken = %r', nonce+tag)
     uri = wa2.uri_for('home', _full=True) + '#!/verify/' + nonce + tag
     body = verify_text % {'link'    : uri
@@ -114,16 +114,16 @@ We understand that you want to reset your password at %(siteName)s.
 In that case, please follow this link:
 
     %(link)s
-    
-The old password will remain valid until you click the link. 
+
+The old password will remain valid until you click the link.
 
 Sometimes people people can recieve these emails in error.So, if you dont want to reset your password, we apologize. you can ignore this email.
-For example because someone was playing around to test our security. But don't be alarmed:this link was sent only to you so there is no security breach. 
+For example because someone was playing around to test our security. But don't be alarmed:this link was sent only to you so there is no security breach.
 You can delete this email, but first please can you reply to it, with or without some explanation so we can take a look and see what happened.
 
 Best regards,
 %(siteName)s
-''' 
+'''
 # --------------------------------------------------------
 verify_text =\
 '''Welcome to %(siteName)s.

@@ -8,20 +8,21 @@ import base64
 import logging
 import time as tim
 import traceback
+import re
 #from datetime import datetime
 
-    # The code in index.py sends a serverside email regex to clientside along with other validators 
+    # The code in index.py sends a serverside email regex to clientside along with other validators
     # Note that currently, email fields on clientside forms dont use it.  Instead they will use the regex provided by AngularJS
     # var EMAIL_REGEXP = /^[a-z0-9!#$%&'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
     #  python str =    r'^[a-z0-9!#$%&\'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$'
-    # This is broadly similar except for allowing the domain-part to be just a single TLD   eg joebloggs@com    
+    # This is broadly similar except for allowing the domain-part to be just a single TLD   eg joebloggs@com
     # it is also lowercase only for use with a case-insensitive search
     # and does not allow domain part to start with '-'
-    # def getEmailRegex():   
-    #     #Use as a pre-validator, to be followed by proper live validation by mailgun service 
-    #     #Note that it is currently too strict a) does not allow new forms i18n email addresses. And b) weird and outdated forms that are permissed by the RFC and possibly by some mail servers  
+    # def getEmailRegex():
+    #     #Use as a pre-validator, to be followed by proper live validation by mailgun service
+    #     #Note that it is currently too strict a) does not allow new forms i18n email addresses. And b) weird and outdated forms that are permissed by the RFC and possibly by some mail servers
     #     EMAIL_REGEX =  r'^[a-z0-9-!#$%&\'*+\/=?^_`{|}~.]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$'
-        
+
     #     def findNgEMAIL_REGEXP():
     #         '''Find and return the email regex in AngularJS code. If not found return None
     #         Of course both sides need to follow the same rules so index.py sends our regex email validator to clientside with .
@@ -48,29 +49,29 @@ import traceback
     #             ngEMAIL_REGEXP = found[len(start):-len(end)]
     #             logging.debug('regex: %s', ngEMAIL_REGEXP)
     #             return ngEMAIL_REGEXP
-            
+
     #         logging.warning('email regex line not found in AngularJS code')
     #         return None
-            
-    #     # return AngularJS email regex, or our own one, if not found.    
+
+    #     # return AngularJS email regex, or our own one, if not found.
     #     return findNgEMAIL_REGEXP() or EMAIL_REGEX
 
 # def ConfigFactory(_x = Config() ) : return _x
-    
+
 #def uuid():
     # """Generates random UUID used as user token for verification, reseting password etc.
-    # Returns:	string:     32 characters long 
+    # Returns:	string:     32 characters long
     # """
     #return uuid4().hex
 
-#todo provide a raw token - they will be b64-encoded again 
-#because the token is part of the Kryptoken 
-def randomB64(n):
-    '''a base64 string representing n random bytes
-    returns string of length = ceil(n/3)*4  '''
+#todo provide a raw token - they will be b64-encoded again
+#because the token is part of the Kryptoken
+def randomB64(n=12):
+    '''a base64 string representing n random bytes returns string of length = ceil(n/3)*4
+    the default 12*8 = 96 bits provides sufficent entropy for most crytographic purposes'''
     #n = config('NonceBytes')
-    r = os.urandom(n) 
-    #return os.urandom(8) 
+    r = os.urandom(n)
+    #return os.urandom(8)
     #todo Do we need to base64-encode? Surely the token will be wrappped in a crytoken which will do it?
     return base64.urlsafe_b64encode(r)
 
@@ -85,7 +86,7 @@ def create_name_from_email(email):
     Returns:	string          : Hopefully user's real name
     """
     local_part =  email.split('@')[0]
-    separator = r'_+|-+|\.+|\++' # regex for one of these 4 chars _ - . +(optionally repeated)  
+    separator = r'_+|-+|\.+|\++' # regex for one of these 4 chars _ - . +(optionally repeated)
     return re.sub(separator, ' ', local_part).title()
 
 
@@ -93,10 +94,10 @@ def sNow():
     return int(tim.time()) # seconds since epoch.  time() returns float with system-dependent resolution - some only resolve to nearest second
 
 def msNow():
-    return int(tim.time()*1000) # milliSeconds since epoch.  
+    return int(tim.time()*1000) # milliSeconds since epoch.
 
 # def dsNow():
-    # return int(tim.time()*10) # deciSeconds since epoch.  
+    # return int(tim.time()*10) # deciSeconds since epoch.
 
 def utf8(uStr):
     assert isinstance(uStr, unicode)
@@ -127,21 +128,21 @@ def utf8(uStr):
     # """
     # return _.keys(_.pick(input_dict, _.identity))
 
-        
+
 # def filterDictListDict(d, filter):
-    # ''' For a dict d and string s,  return a dict having removed all items with key ending with s 
+    # ''' For a dict d and string s,  return a dict having removed all items with key ending with s
         # If a value of d is a list of dicts, this will also filter those subkeys ending with s.
         # This uses a dictionary comprehension            { k1:v1 for ... }
              # with optional nested list comprehension    [ i for ... ]
         # with optional nested dictionary comprehension   { k2:v2 for ...}
     # '''
     # return { k1:[   {   k2:v2
-                        # for k2,v2 in i.iteritems() 
+                        # for k2,v2 in i.iteritems()
                         # if filter(k2,v2) #not k2.endswith(s)
                     # } if isinstance(i, dict) else i
                     # for i in v1
-                # ] if isinstance(v1, list) else v1             
-             # for k1,v1 in d.iteritems() 
+                # ] if isinstance(v1, list) else v1
+             # for k1,v1 in d.iteritems()
              # if filter(k1,v1) #not k1.endswith(s)
            # }
 # todo replace with full recursion on all iterables  - use hasattr('__iter__') and filter by function param
@@ -153,8 +154,8 @@ def utf8(uStr):
     # if isinstance(c, list):
         # return [deepFilter(i, filterFn) for i in c]
     # return c
-    
-    
+
+
 # def fib(n):
     # if n == 0:
         # return 0
@@ -173,31 +174,31 @@ def deepFilter(c, filterFn, updateFn=None):
     '''c is a json-like object, a list or dict with elements of type string, number, bool or None in nested lists and dicts.
     deepFilter() returns the result of recursively applying the filter and update functions to all dicts in c, to remove or update dict members.
     param: filterFn(k,v) is a predicate(ie boolean function) returning True to include(k:v)   It must not modify k or v.
-    param: updateFn(k,v) is an optional modifying function for dict values. It returns updated v.  
+    param: updateFn(k,v) is an optional modifying function for dict values. It returns updated v.
     return: (filtered_c, filtrate_from_c)
     '''
     if updateFn is None:
         updateFn = lambda k,v: v
-   
+
     filtrate = {}
     def deepFilter_(c):
         if isinstance(c, dict):
-            filtrate.update({ k : v 
-                     for k,v in c.iteritems() 
-                     if not filterFn(k,v) 
+            filtrate.update({ k : v
+                     for k,v in c.iteritems()
+                     if not filterFn(k,v)
                    })
-            return { k : deepFilter_(updateFn(k,v)) 
-                     for k,v in c.iteritems() 
-                     if filterFn(k,v) 
+            return { k : deepFilter_(updateFn(k,v))
+                     for k,v in c.iteritems()
+                     if filterFn(k,v)
                    }
         if isinstance(c, list):
             return [ deepFilter_(i) for i in c ]
         return c
-        
+
     return deepFilter_(c), filtrate
 
 def deepFindKey(c, pred):
-    """ depth-first search of c, a json object consisting of nestedlists and dicts, 
+    """ depth-first search of c, a json object consisting of nestedlists and dicts,
         returns the all dict keys(at whatever level) satisfying the predicate pred.
     """
     def _deepFindKey(c, pred):
@@ -208,21 +209,21 @@ def deepFindKey(c, pred):
                 _deepFindKey(v, pred)
         elif isinstance(c, list):
             for i in c:
-                _deepFindKey(i, pred)            
+                _deepFindKey(i, pred)
     res = []
     _deepFindKey(c, pred)
     return res
-    
-def disjointDictKeys(d1, d2):    
-    return not d1.viewkeys() & d2.viewkeys() # '&' returns the intersection as a python set  
-    
+
+def disjointDictKeys(d1, d2):
+    return not d1.viewkeys() & d2.viewkeys() # '&' returns the intersection as a python set
+
 def pyProperties(cls):
     '''return a list of names of all the python properties in cls
-    NB Normally properties are created with the @property decorator, 
-    but they can also be created using property() built-in function, and in other arcane ways. 
+    NB Normally properties are created with the @property decorator,
+    but they can also be created using property() built-in function, and in other arcane ways.
     '''
     return [k for k, v in vars(cls).items() if isinstance(v, property)]
-    
+
 def debugList(lst, label=None):
     logging.debug('%s +++++++++++++++++++++++++++++++++++', label)
     if lst and hasattr(lst,'__iter__'):

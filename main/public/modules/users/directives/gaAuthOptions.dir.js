@@ -1,4 +1,4 @@
-(function() 
+(function()
 {	'use strict';
     var module = angular.module('users');
 
@@ -11,16 +11,16 @@
      * Also inserts 'remember me' checkbox, which can be binded by remember="myModel"
      */
 
-    module.directive('gaAuthOptions', function(gaAppConfig, _) 
-    {	var link = function(scope) 
-        {	scope.authOptions = _.keys(_.pick(gaAppConfig, function(cfg, cfgName) 
+    module.directive('gaAuthOptions', function(gaAppConfig, _)
+    {	var link = function(scope)
+        {	scope.authOptions = _.keys(_.pick(gaAppConfig, function(cfg, cfgName)
             {	return _.startsWith(cfgName, 'auth_') && cfg;
             }));
-            scope.authOptions = _.map(scope.authOptions, function(optName) 
+            scope.authOptions = _.map(scope.authOptions, function(optName)
             {	return optName.replace('auth_', '').replace('_id', '');
             });
             scope.authOptions.unshift('google'); //todo why always add google?
-            
+
 			scope.remember = true;
         };
 

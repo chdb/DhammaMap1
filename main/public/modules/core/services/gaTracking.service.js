@@ -1,4 +1,4 @@
-(function() 
+(function()
 {	'use strict';
     var module = angular.module('core');
 
@@ -10,9 +10,9 @@
      * Currenly works only with Google Analytics
      */
 
-    module.factory('gaTracking', function($analytics) 
+    module.factory('gaTracking', function($analytics)
 	{
-        return 	{ eventTrack : function(eventName, label, category) 
+        return 	{ eventTrack : function(eventName, label, category)
 					{	$analytics.eventTrack( eventName
 											 , { label     : label
 											   , categoory : category

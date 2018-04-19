@@ -6,7 +6,7 @@
 
         $scope.askForNewPassword = function() {
             Restangular.all('auth/forgot-password').post($scope.credentials)
-			.then(function() 
+			.then(function()
 			{
                 gaToast.show('Please check your email for instructions to reset your password.');
                 gaTracking.eventTrack('Forgot password', $scope.credentials.email_);

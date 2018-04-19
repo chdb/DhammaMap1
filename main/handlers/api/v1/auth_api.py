@@ -1,18 +1,23 @@
 # coding: utf-8
-# pylint: disable=too-few-public-methods, no-_s-use, missing-docstring, unused-argument
+# pylint: disable=too-few-public-methods, missing-docstring, unused-argument
 """
 Provides API logic relevant to user authentication
 """
 #from flask_restful import inputs, Resource
 #from flask import g, abort
 
+import logging
+try:  import simplejson as json
+except ImportError: import json
+
+from google.appengine.ext import ndb  # pylint: disable=import-error
+import task
+
 import util
 # import auth
 from config import appCfg
 from model import mUser as u
-import task
 #from main import API
-from google.appengine.ext import ndb  # pylint: disable=import-error
 #from werkzeug import exceptions as exc
 # import control.error as exc
 import validators as v
@@ -20,21 +25,18 @@ from security import pwd
 #from handlers.api.helpers import ok #, rqParse
 from handlers.api.decorators import verify_captcha #, usrByCredentials
 from handlers.api.throttle import RateLimiter,credentials
-import logging
 from app import app
 from handlers.basehandler import HAjax
 from signup_q import Midstore
-from session import Cookie 
-try:  import simplejson as json
-except ImportError: import json
+#from session import Cookie
 #from webob.exc import HTTPUnprocessableEntity
 
 @app.API_1('auth/unique_ema')
 class HEmailVdr(HAjax):
     def post(_s):
-        # todo: Security - dont provide user info on validated uniqueness here - send this info in email response 
+        # todo: Security - dont provide user info on validated uniqueness here - send this info in email response
         _s.parseJson(('email_', u.emailUniqueVdr )) # todo instead change this to check ema format with MailGun Validator
-            
+
 @app.API_1('auth/signup')
 class HSignup(HAjax):
     @verify_captcha('signupForm')
@@ -48,7 +50,7 @@ class HSignup(HAjax):
                            )
         #todo   remove password to HVerify
         #       save data in pullQ
-         
+
         # usr = u.MUser.create( username   =args.username
                            # , email_     =args.email_
                            # , isVerified_=not appCfg.verify_email
@@ -56,9 +58,9 @@ class HSignup(HAjax):
                            # )
         if appCfg.notify_on_new_user_:
             task.sendNewUserEmail(args)
-            
+
         nonce = util.randomB64(appCfg.NonceBYTES)
-        tag = Midstore('SignupQ').put(nonce, args.email_, args.name) 
+        tag = Midstore('SignupQ').put(nonce, args.email_, args.name)
         task.sendVerifyEmail(args.email_, nonce, tag)
         #_s.flash('OK - an email has been sent')
         # else: # if users don't need to verify email, we sign in new user
@@ -73,7 +75,7 @@ class HVerify(HAjax):
         logging.debug('NNNNNNNNNNNNNNNNNNN token = %r', token)
         if _s.ssn.logOut():
             _s.redirect(_s.request.path)
-        
+
         data = Midstore('SignupQ').get(token)
  #       verifyCookie = Cookie('vdata', httponly=False)
      #   cookie.set(_s, data)
@@ -87,10 +89,10 @@ class HVerify(HAjax):
         #_s.redirect('%s#!/password/reset/%s' %(_s.url_for('home'), token))
         logging.debug('NNNNNNNNNNNNNNNNNNN data = %r', data)
         logging.debug('NNNNNNNNNNNNNNNNNNN uri = %r', '%s#!/signup2/%s' %(_s.url_for('home'), token))
-        
+
         # _s.redirect('%s#!/signup2/%s' %(_s.url_for('home'), token))
         return data
-        
+
         # if data:
             # logging.debug('NNNNNNNNNNNNNNNNNNNN data = %r', data)
             # usr = u.MUser.create(data)
@@ -110,7 +112,7 @@ class HSignup2(HAjax):
                            ,('password', v.password_span   )
                            ,('remember', v.toBool,    False)
                            ,('token'   , v.token_span      )
-                           )  
+                           )
         token = util.utf8(args.pop('token'))
         data = Midstore('SignupQ').pop(token)
         if data:
@@ -121,12 +123,12 @@ class HSignup2(HAjax):
                 usr = u.MUser.create(**args)
                 _s.logIn(usr, rmbr)
                 return usr.toDict()
-                
+
             logging.warning('wrong data')
-        else: 
+        else:
             logging.warning('no data ')
         # else:
-        # return 
+        # return
         # usr = u.MUser.create( username   =args.username
                             # , email_     =args.email
                            # , isVerified_=not appCfg.verify_email
@@ -141,10 +143,12 @@ class HSignup2(HAjax):
         # else: # if users don't need to verify email, we sign in new user
             # _s.logIn(usr, remember=args.remember)
 
+#@verify_captcha('signinForm')
 @app.API_1('auth/logIn')
 class HLogIn(HAjax):
-    @verify_captcha('signinForm')
+
     @credentials
+    #@verify_captcha('signinForm')
     #@rateLimit #todo implement rateLimit calling code in other handlers(HForgotPassword HVerify)
     def post(_s, loginId, password, remember):
         """Signs in existing user."""
@@ -152,7 +156,7 @@ class HLogIn(HAjax):
         rl = RateLimiter(loginId, _s)
         if not rl.ready():
             resp['delay']= rl.delay
-        else:    
+        else:
             usr = u.MUser.byCredentials(loginId, password)
             rl.tryLock(bool(usr))
             if usr:
@@ -169,28 +173,28 @@ class HLogIn(HAjax):
                     _s.abort(401,'These credentials are invalid')
         return resp
 
-        
+
 @app.API_1('auth/logOut')
 class HLogOut(HAjax):
     def post(_s):
         _s.logOut()
 
-        
+
 @app.API_1('auth/resendSignup')
 class HResendSignUp(HAjax):
    # @usrByCredentials
    # @credentials
     def post(_s): #, loginId, password, remember
         """Resend the verification email to user"""
-        
+
         args = _s.parseJson(('ema' , v.loginId_span)
                            ,('name', v.name_span)
-                        #   ,('remember', v.toBool, False)                           
-                           ,('nonce', )                           
-                           ,('tag'  , )                           
-                           ) 
+                        #   ,('remember', v.toBool, False)
+                           ,('nonce', )
+                           ,('tag'  , )
+                           )
         # usr = u.byCredentials(loginId, password)
-        # if usr: 
+        # if usr:
             # if not usr.isActive_:
                 # abort(423)
                 # raise exc.Locked('your account is locked until...') # todo "... until when"
@@ -204,13 +208,13 @@ class HResendSignUp(HAjax):
 class HForgotPassword(HAjax):
     def post(_s):
         """Send email with reset-password token, to user"""
-        args = _s.parseJson(('email_',)) 
+        args = _s.parseJson(('email_',))
         usr = u.MUser.byEmail(args.email_)
         if usr:
             task.sendResetEmail(usr)
         else: logging.warning('ema not found : %r', args.email_)
 
-            
+
 @app.API_1('auth/resetPassword')
 class HResetPassword(HAjax):
     @ndb.toplevel #so we can perform asynchronous put and sign-in in parallel
@@ -222,8 +226,8 @@ class HResetPassword(HAjax):
                            )
         usr = u.MUser.get_by('token__', args.token) # todo encode uid with token, or put token in AuthId, so we can replace get_by
         usr.pwdhash__ = pwd.encrypt(args.newPassword)
-        usr.token__ = util.randomB64()              
+        usr.token__ = util.randomB64()
   #      usr.isVerified_ = True
         usr.put_async()
-        auth.logIn(usr)
+        _s.logIn(usr)
         return usr.toDict()

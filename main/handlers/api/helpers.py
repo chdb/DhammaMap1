@@ -28,7 +28,7 @@ import json
         # """
         # return handle_error(err)
 
-#todo 
+#todo
 def handle_error(err):
     """This error handler logs exception and provides a response with error message and error code
     Args:   err(Exception): the raised Exception object
@@ -42,14 +42,16 @@ def handle_error(err):
             message = err.message
         if not message:
             message = err.description
-    except:
+    except Exception as ex:
+        # handle any other exception
+        message = ("Error '{0}' with Args {1}.".format(ex.message, ex.args))
+    else:
         message = 'Unrecognised error format: ' + repr(err)
     try:
         err.code
     except AttributeError:
         err.code = 500
-    return json.dump({'message': message}
-                    ), err.code
+    return json.dumps({'message': message}), err.code
 
 
 # def make_not_found_exception():
@@ -93,13 +95,13 @@ def listResponse(responseList, cursor=None, more=False, totalCount=None):
     # vdr = None
     # if 'vdr' in ka:
         # vdr = ka.pop('vdr')
-        # if not callable(vdr): 
+        # if not callable(vdr):
             # vdr = vdr.fn
     # return argName, vdr, ka
-    
+
 
 # def rqParse(req, *pa):
-    '''syntax sugar to simplify calling RequestParser functions    
+    '''syntax sugar to simplify calling RequestParser functions
     Continuing rqArg example ...
     rqParse then further expands these:
         ->   requestParser.add_argument('name', type=ArgVdr .fn('myVdr'))
@@ -109,12 +111,12 @@ def listResponse(responseList, cursor=None, more=False, totalCount=None):
     # p = restful.reqparse.RequestParser()
     # vdrs = {}
     # for argName, vdr, ka in pa:
-        # p.add_argument(argName, **ka) 
+        # p.add_argument(argName, **ka)
         # if 'dest' in ka:
             # argName = ka['dest']
         # vdrs[argName] = vdr
     # args = p.parse_args(req) # todo pass strict:   parse_args(req, strict=True)
-    
+
     # assert len(vdrs) == len(args)
     # for k,v in vdrs.iteritems():
         # if v:

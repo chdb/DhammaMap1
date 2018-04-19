@@ -20,13 +20,13 @@ else:
     # The line below does not work!!!(worked in previous version of sdk) - we get "ImportError: cannot import name stubs"
     #   from google.appengine.tools.devappserver2.python import stubs
     #
-    # Nor this one, although it's the solution found by google 
+    # Nor this one, although it's the solution found by google
     #   from google.appengine.tools.devappserver2.python.runtime import stubs
     #
-    # But this line does work: 
+    # But this line does work:
     from google.appengine.tools.devappserver2.python.runtime.stubs import FakeFile
     # This imports  "FakeFile"  instead of "stubs" so below we have replaced  "stubs.FakeFile" with "FakeFile"
-    
+
     # since lib folder is normally in skip_files in yaml, while developing
     # we want server to include this folder, so we remove it from skip_files
     re_ = FakeFile._skip_files.pattern.replace('|^lib/.*', '')  # pylint: disable=protected-access

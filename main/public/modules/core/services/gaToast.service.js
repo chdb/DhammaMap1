@@ -1,4 +1,4 @@
-(function() 
+(function()
 {	'use strict';
     var module = angular.module('core');
 
@@ -9,23 +9,23 @@
      * Service responsible for showing, hiding, updating toast
      */
 
-    module.factory('gaToast', function($mdToast, _) 
-    {	
-		return 	{ show : function(content, opts) 
+    module.factory('gaToast', function($mdToast, _)
+    {
+		return 	{ show : function(content, opts)
 					{	opts = opts || {};
 						opts.delay = _.isNumber(opts.delay) ? opts.delay : 50000;
 						var toast = $mdToast.simple()
 							.content(content)
 							.hideDelay(opts.delay);
-						if(opts.action) 
+						if(opts.action)
 						{	toast.action(opts.action);
 							toast.highlightAction(true);
 						}
 						return $mdToast.show(toast);
 					}
-				, update : function(content) 
+				, update : function(content)
 					{	$mdToast.updateContent(content); }
-				, hide : function() 
+				, hide : function()
 					{	$mdToast.hide(); }
 				};
     });

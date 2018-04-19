@@ -3,11 +3,11 @@
  */
 
 // Init the application configuration module for AngularJS application
-var AppConfig =(function() 
+var AppConfig =(function()
     { 	'use strict';
 		// Init module configuration options
 		var applicationModuleName = 'Dhamma Map';
-		var applicationModuleVendorDependencies = 
+		var applicationModuleVendorDependencies =
 			[ 'ngAnimate'
 			, 'ngMessages'
 			, 'restangular'
@@ -21,7 +21,7 @@ var AppConfig =(function()
 			];
 
 		// Add a new vertical module
-		var registerModule = function(moduleName, dependencies) 
+		var registerModule = function(moduleName, dependencies)
 			{ 	// Create angular module
 				angular.module(moduleName, dependencies || []);
 
@@ -41,17 +41,17 @@ angular.module(AppConfig.applicationModuleName, AppConfig.applicationModuleVendo
 // Setting HTML5 Location Mode
 angular.module(AppConfig.applicationModuleName).config(
 	[ 	'$locationProvider'
-    , 	function($locationProvider) 
+    , 	function($locationProvider)
         { 	'use strict';
 			$locationProvider.hashPrefix('!');
 		}
 	]);
 
 //Then define the init function for starting up the application
-angular.element(document).ready(function() 
+angular.element(document).ready(function()
     { 	'use strict';
 		//Fixing facebook bug with redirect
-		if(window.location.hash === '#_=_') 
+		if(window.location.hash === '#_=_')
 			{ window.location.hash = '#!';
 			}
 

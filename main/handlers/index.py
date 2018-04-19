@@ -2,7 +2,7 @@
 """
 Injects data for rendering index template - see base.html
 """
-import flask
+#import flask
 from main import app
 import auth
 import model.user as users
@@ -35,7 +35,7 @@ def inject_config():
     #config_properties = Config.get_all_properties() if auth.is_admin() else Config.get_public_properties()
     app_config = CONFIG_DB.toDict(auth.is_admin())
     logging.debug('inject config')
-    return { 'app_config': app_config 
+    return { 'app_config': app_config
            , 'authNames' : config.authNames
            }
 
@@ -43,13 +43,13 @@ def inject_config():
 @app.context_processor
 def inject_validators():
     """Inject vdr-specifiers for regex and min-max validators into jinja template for the client. See base.html
-    This is so that client and server can both recreate same ie functionally equivalent validators. 
+    This is so that client and server can both recreate same ie functionally equivalent validators.
     However custom validators cannot be passed but generally these are only applied server side
     """
     logging.debug('inject valid')
     return { 'validators' : validators.to_dict(validators) }
 
-           
+
 @app.route('/_ah/warmup')
 def warmup():
     """Warmup request to load application code into a new instance before any live requests reach that instance.

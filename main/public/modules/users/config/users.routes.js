@@ -2,27 +2,27 @@
 	'use strict';
 
 	var module = angular.module('users');
-	module.config(function($stateProvider) 
+	module.config(function($stateProvider)
 	{	$stateProvider
-		.state( 'signin' 
+		.state( 'signin'
 			  , { url		  : '/login'
 				, controller  : 'SigninController'
 				, templateUrl : '/p/modules/users/auth/signin.html'
 				, data		  : { signedOutOnly : true }
 				})
-		.state( 'signup' 
+		.state( 'signup'
 			  , { url		  : '/signup'
 				, controller  : 'SignupController'
 				, templateUrl : '/p/modules/users/auth/signup.html'
 				, data		  : { signedOutOnly : true }
 				})
-		.state( 'verify' 
+		.state( 'verify'
 			  , { url		  : '/verify/:token'
 				, controller  : 'Signup2Controller'
 				, templateUrl : '/p/modules/users/auth/signup2.html'
 				, data		  : { signedOutOnly : true }
 				})
-		.state( 'signup2' 
+		.state( 'signup2'
 			  , { url		  : '/signup2/:token'
 				, controller  : 'Signup2Controller'
 				, templateUrl : '/p/modules/users/auth/signup2.html'
@@ -30,16 +30,16 @@
 				})
 		.state( 'signout'
 			  , { url		  : '/logout'
-				, controller  : function(Restangular, gaAuth, $state,  gaAdminCfg) 
+				, controller  : function(Restangular, gaAuth, $state,  gaAdminCfg)
 							  {	Restangular.all('auth/log-out').post()
-								.then(function() 
+								.then(function()
 								{	gaAuth.user = false;
 									gaAdminCfg = {};
 									//_.assignDelete(gaAppConfig, appConfig);
 									$state.go('home');
 								});}
 				})
-		.state( 'forgot' 
+		.state( 'forgot'
 			  , { url		  : '/password/forgot'
 				, controller  : 'ForgotController'
 				, templateUrl : '/p/modules/users/auth/password/forgot.html'

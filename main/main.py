@@ -5,7 +5,7 @@ import logging
 logging.debug('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  main  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
 
 import handlers
-from app import app 
+from app import app
 
 import logging
 import os
@@ -16,7 +16,7 @@ def handle_error(request, response, exception):
     if(request.path != '/'
     and exception.detail != None):
         #response.headers['Content-Type'] = 'application/json'
-        #request.headers['HTTP_ACCEPT'] = 'text/plain' # we want to get a plain response from webob 
+        #request.headers['HTTP_ACCEPT'] = 'text/plain' # we want to get a plain response from webob
                                                 # see generate_response() in webob/exc.py lines 310 - 331
                                                 # but its not working
         # result = {
@@ -51,6 +51,6 @@ def handle_error(request, response, exception):
 #todo error handling
 #currently validation errors call wa2.abort(422)
 #but this either generates a html fomatted response(we want plain) from the angular error-interceptor
-#or, if we register handle_error for 422, as above,  then the error is not seen by client 
+#or, if we register handle_error for 422, as above,  then the error is not seen by client
 #       unless the exc is re raised
 #       ok but still unable to reset the HTTP_ACCEPT header to exclude */* and so make webob to call plain_body() for the plain response

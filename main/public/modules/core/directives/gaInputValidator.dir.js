@@ -25,13 +25,13 @@
      */
     module.directive('validator', function($compile, gaValidators, _) {
 		var compile = function(el, attrs) {
-				
+
 			//var type = attrs.name + attrs.validator;
 			var vdr = gaValidators[attrs.validator];
 			if(_.isArray(vdr)) {
 				if(vdr.length != 2)
 					throw 'unexpected validator array length'
-				if(vdr[0] > 0) 
+				if(vdr[0] > 0)
 					attrs.$set('ng-minlength', vdr[0]);
 				if(vdr[1] > 0) {
 					var maxType = attrs.showCounter === 'true' ? 'md-maxlength' : 'ng-maxlength';

@@ -17,20 +17,20 @@ from app import app
 #logging.debug('=================================== loaded gen db!')
 
 @app.API_1('generate_database')
-class GenerateDatabaseAPI(HAjax):
+class GenDatabase(HAjax):
     @ndb.toplevel
     def post(self):
         """Deletes all users and re-generates mock users for development purposes"""
         if not app.devt:
             _s.abort(404) # very important - dont give users the opportunity to destroy our entire user base
-       
+
         def delete_all():
             ndb.delete_multi(u.MUser .query().fetch(keys_only=True))
             ndb.delete_multi(u.AuthId.query().fetch(keys_only=True))
-            
+
         def create_admin():
             u.MUser.create( username   ='admin'
-                          , email_     ='admin@xyz.com' 
+                          , email_     ='admin@xyz.com'
                           , password   ='123456'
                           , isAdmin_   =True
                           , isVerified_=True
@@ -40,7 +40,7 @@ class GenerateDatabaseAPI(HAjax):
             #MUser.put(admin)
 
         def create_user(n):
-            name = 'tutshka%d' % n 
+            name = 'tutshka%d' % n
             u.MUser.create( username   =name
                           , email_     =name+'@xyz.com'
                           , password   ='123456'
@@ -52,13 +52,10 @@ class GenerateDatabaseAPI(HAjax):
                           )
             #u.addRandomAuthIds()
             #MUser.put(usr)
-        
+
         delete_all()
         NumUsers = 3
         for n in xrange(NumUsers):
             create_user(n)
         create_admin()
         return '', 204
-
-        
-    

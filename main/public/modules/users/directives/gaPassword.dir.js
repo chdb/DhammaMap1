@@ -1,4 +1,4 @@
-(function() 
+(function()
 { 'use strict';
 	var module = angular.module('users');
 
@@ -11,9 +11,9 @@
 	 * for this directive. It will display error is passwords don't match
 	 */
 
-	module.directive('gaPassword', function(gaValidators) 
+	module.directive('gaPassword', function(gaValidators)
 	{ /*jslint unparam:true*/
-		var link = function(scope, el, attrs, ctrls) 
+		var link = function(scope, el, attrs, ctrls)
 		{	var form = ctrls[0];
 			var ngModel = ctrls[1];
 			scope.name	= scope.name  || 'password';
@@ -22,11 +22,11 @@
 			scope.minlen = v ? v[0] : 0;
 			scope.maxlen = v ? v[1] : 0;
 			scope.form = form;
-			if(attrs.repeatPwd) 
+			if(attrs.repeatPwd)
 			{	scope.$watch
 				( function() 			//watch expression
 					{ return scope.repeatPwd() === ngModel.$modelValue; }
-				, function(newVal) 	//watch listener 
+				, function(newVal) 	//watch listener
 					{ form[scope.name].$setValidity('mismatch', newVal); }
 				);
 			}
