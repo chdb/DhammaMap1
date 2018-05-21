@@ -17,7 +17,7 @@
     "glob": "^7.1.1",
     "grunt": "^1.0.1",
     "grunt-pylint": "^1.1.0",
-    "gulp": "~3",
+    "gulp": "^3.9.1",
     "gulp-angular-templatecache": "^2.0.0",
     "gulp-bower": "~0",
     "gulp-concat-css": "^2.1.0",

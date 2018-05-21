@@ -1,9 +1,10 @@
 import webapp2 as wa2
-from jinja_env import Jinja
+from handlers.jinja_env import Jinja
+#from webapp2_extras.jinja2 import Template
 import util
 import logging
 #import json
-from model.mUser import MUser
+from model.mUser import MUser, MLock
 #from model.mConfig import CONFIG_DB
 
 import config
@@ -17,7 +18,7 @@ except ImportError: import json
 
 
 class Namespace(dict):
-    ''' a dictionary with class attribute interface as an alternative
+    ''' a dictionary with class attribute interface as an alternative to named value
         EG  >>> ns = Namespace({'abc':123})
             >>> ns['abc'] # as dict
             123
@@ -135,7 +136,7 @@ class HBase(wa2.RequestHandler):
 
     def setLock(_s, lockname, duration):
         def lockOn(kStr, mode, usrMsg, logMsg):
-            m.Lock.set(kStr, duration)
+            MLock.set(kStr, duration, _s)
             _s.flash('Too many %s failures: %s for %s.' %(_s.apiName, usrMsg, util.hoursMins(duration)))
             logging.warning('%s BruteForceAttack! on %s page: %s', mode, _s.apiName, logMsg)
             logging.warning('Start lock on %s: ema:%s pwd:%s ipa:%s', lockname, ema, pwd, ipa)
@@ -152,7 +153,6 @@ class HBase(wa2.RequestHandler):
         # todo this password stuff is not generic to other handlers
         #pwd = _s.request.get('password')
 
-
  #   def json(_s):
 #        return json.loads(_s.request.body)
 
@@ -167,22 +167,23 @@ class HBase(wa2.RequestHandler):
         '''
         assert dataLoc == 'json' or 'urlData' or 'formData'
 
-        def validate(vdr, val):
+        def validate(vldr, val):
             logging.debug('validating val: %r ###################################################################################', val)
-            return (vdr(val, **ka) if callable(vdr) else
-                    vdr.fn(val, **ka))
+            logging.debug('validating vldr: %r ###################################################################################', vldr)
+            return (vldr(val, **ka) if callable(vldr) else
+                    vldr.fn(val, **ka))
 
-        def parseArg(unparsed, name, vdr=None, dflt=required):
-            if vdr is None:
-                vdr = lambda x:x  # no-op validator: always valid, does not throw
+        def parseArg(unparsed, name, vldr=None, dflt=required):
+            if vldr is None:
+                vldr = lambda x:x  # no-op validator: always valid, does not throw
             logging.debug('name : %r',name)
             if name in args:
                 if dataLoc == 'json':
-                    res[name] = validate(vdr, args[name])
+                    res[name] = validate(vldr, args[name])
                 else:
                     values = args.getall(name)
-                    res[name] =( validate(vdr, values[0]) if len(values)==1 else
-                                [validate(vdr, v) for v in values] )
+                    res[name] =( validate(vldr, values[0]) if len(values)==1 else
+                                [validate(vldr, v) for v in values] )
             elif dflt is required:
                 _s.abort(400, detail='"%s" not found in the request data'%name)
             elif dflt is not optional:
@@ -270,15 +271,16 @@ class HBase(wa2.RequestHandler):
         flist = _s.ssn.getFlashes()
         #logging.info('>>>>>>>>>>>>> ok added fmsgs: %r' % f)
         if flist:
-            fmsgsTmpl = Template(  '{%- if fmessages -%}'
-                                        '{%- for fmsg in fmessages -%}'
-                                            '<li>{{ fmsg.0 }}</li>'
-                                        '{%- endfor -%}'
-                                    '{%- endif -%}'
-                                 )
-            fmsgs_html = fmsgsTmpl.render(fmessages=flist) # _s.ssn.getFlashes())
+            fmsgsTmpl =('{%- if fmessages -%}'
+                            '{%- for fmsg in fmessages -%}'
+                                '<li>{{ fmsg.0 }}</li>'
+                            '{%- endfor -%}'
+                        '{%- endif -%}'
+                        )  
+                                 
+            fmsgs_html = Jinja().render(fmsgsTmpl, {'fmessages':flist}) # _s.ssn.getFlashes())
             # logging.info('>>>>>>>>>>>>> ok tmplate fmsgs: %r' % fmsgs_html)
-            # logging.info('>>>>>>>>>>>>> ok tmplate fmsgs: %r' %  str(fmsgs_html))
+            # logging.info('>>>>>>>>>>>>> ok tmplate fmsgs: %r' % str(fmsgs_html))
             return util.utf8(fmsgs_html)
         return None
 #------------------------------------

@@ -2,6 +2,7 @@
 """implementation of MUser model"""
 from __future__ import absolute_import
 
+import datetime
 import hashlib
 from google.appengine.ext import ndb
 from model import mBase
@@ -14,7 +15,7 @@ from security import pwd
 import webapp2 as wa2
 
 ##############################################################################
-"""Define CUSTOM validators for user properties. For SPECIFIED user validators see Validator"""
+#"""Define CUSTOM validators for user properties. For SPECIFIED user validators see Validator"""
 
 def usernameExists(un):
     return AuthId.get_by_id(unameId(un)) is not None
@@ -60,7 +61,7 @@ class AuthId(ndb.Model):
         k = ndb.Key(C, authId)
         ent = k.get()
         if ent is not None:
-            logging.info('This authId key already exists: %s' % authId)
+            logging.info('This authId key already exists: %s', authId)
             raise NotUnique
         ent = C(userId=userId)
         ent.key = k
@@ -107,7 +108,88 @@ def randomAuthIds():
                 aids.append(ap + util.randomB64(8))
     util.debugList(aids, 'random Auth Providers')
     return aids
+#############################################################
+class Locked (Exception):
+    pass
+class AlreadyInUse (Exception):
+    pass
+class BadData (Exception):
+    pass
 
+class MLock (ndb.Model):
+#    handler   = ndb.  StringProperty(required=True)
+    lockUntil_ = ndb.DateTimeProperty(required=True)
+
+    @staticmethod
+    def _keystr (txt, hlr):
+        assert' 'not in txt
+        assert' 'not in hlr
+        return hlr +' '+ txt
+  
+    @classmethod
+    def _find (C, txt, hlr):
+        keystr = C._keystr (txt, hlr)
+        return C.get_by_id (keystr)
+        
+    @classmethod
+    def _create (C, txt, hlr, exp): 
+        keystr = C._keystr (txt, hlr)
+        k = ndb.Key(C, keystr)
+        e = k.get() 
+        if e is not None:
+            logging.info('Lock key already exists: %s', keystr)
+            raise AlreadyInUse
+        e = C(lockUntil_=exp)
+        e.key = k
+        e.put()
+        return e
+    
+    # @classmethod
+    # def create (C, duration): 
+        # exp = u.dtExpiry (duration)
+        # e = C(lockUntil_=exp)
+        # e.put()
+        # return e
+    
+# class LockSet (ndb.Model):
+    # lockList = ndb.LocalStructuredProperty (Lock, repeated=True)
+    
+    # def _find (_s, hlr):
+        # '''return 1st item in lockList with hlr as handler'''
+        # return next((x for x in _s.lockList if x.handler == hlr), None) 
+    
+    @staticmethod
+    def set (txt, duration, hlr):
+        '''put a lock for duration seconds on a given txt and handler, hlr'''
+        logging.debug('xxxxxxxxxxxx txt = %r', txt)
+        logging.debug('xxxxxxxxxxxx dur = %r', duration)
+        logging.debug('xxxxxxxxxxxx hlr = %r', hlr)
+        exp = util.dtExpiry (duration)
+        logging.debug('xxxxxxxxxxxx exp = %r', exp)
+        lock = MLock._find(txt, hlr)
+        if lock:
+            lock.lockUntil_ = exp
+        else: 
+            lock = MLock._create (txt, hlr, exp)
+        lock.put()
+
+    # def lock (_s, duration):
+        # '''for a given handler, hlr, put a lock on hld for duration seconds '''
+        # exp = u.dtExpiry (duration)
+        # _s.lockUntil_ = exp
+        # _s.put()
+                
+    @staticmethod
+    def isSet (txt, hlr):
+        '''return whether there is a current lock on a given txt, and handler, hlr '''
+        lock = MLock._find(txt, hlr)
+        if lock:
+            togo = lock.lockUntil_ - datetime.datetime.now()
+            bUnexpired = togo > datetime.timedelta()
+            if bUnexpired:
+                logging.warning('locked for %d more seconds', togo.total_seconds())
+            return bUnexpired
+        return False
 #############################################################
 class MUser(mBase.ndbModelBase):
     """A class describing datastore user."""
@@ -159,7 +241,7 @@ class MUser(mBase.ndbModelBase):
         return None
 
     @staticmethod
-    @ndb.transactional(xg=True)
+    @ndb.transactional (xg=True)  # xg - triggers pylint e1120 three times - but perhpas we can redesign so we dont need it - after all it slows the call 
     def create(**ka):
         ''' Use this method. Dont simply call    MUser(**ka).put()
             Otherwise DataStore becomes incoherent '''
@@ -181,12 +263,12 @@ class MUser(mBase.ndbModelBase):
             AuthId.create(i, key.id())
         return user
 
-    @ndb.transactional(xg=True)
+    @ndb.transactional #(xg=True)
     def mergeUsers(_s, authId):
         '''Suppose you want to add an existing authId   authId1 -> user1 with id2'''
-        raise NotImplemented
+        raise NotImplementedError
 
-    @ndb.transactional(xg=True)
+    @ndb.transactional #(xg=True)
     def addNewAuthId(_s, authId):
         ''' Use this method. Dont simply call:  _s.authIds.append(authId)
             Otherwise DataStore becomes incoherent
@@ -207,17 +289,17 @@ class MUser(mBase.ndbModelBase):
         k = ndb.Key(AuthId, authId)
         k.delete()
 
-    @ndb.transactional(xg=True)
+    @ndb.transactional #(xg=True)
     def removeAuthId(_s, authId):
         ''' Use this method. Dont simply call:  _s.authIds.remove(authId)
             Otherwise DataStore becomes incoherent '''
         if authId not in _s.authIds:
-            logging.warning('The user does not have this authID: %s', authID)
+            logging.warning('The user does not have this authID: %s', authId)
         else:
             _s._deleteAuthId(authId)
             _s.authIds.remove(authId)
 
-    @ndb.transactional(xg=True)
+    @ndb.transactional #(xg=True)
     def delete(_s):
         ''' Use this method to delete MUser and associated authIds.
             Dont simply call:   _s._key.delete()

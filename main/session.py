@@ -6,7 +6,7 @@ import logging
 import kryptoken
 import util as u
 #import debug as d
-from model.mUser import MUser
+#from model.mUser import MUser 
 import webapp2
 # # # # # # # # # # # # # # # # # # # #
 
@@ -29,10 +29,10 @@ class Cookie(object):
     def setOrReset(_s, handler, val): _s._set(handler, val, checkExists=False) # force a cookie to set or reset - you dont care which
 
     def _set(_s, handler, val, checkExists, resetting=False):
-        # NB webOb treats cookie-name as a unique key called 'key' and uses a dict for a key-value map.
-        # This is similar to other frameworks but it hides a peculiarity of cookies.
+        # NB webOb treats cookieName as a unique key and uses a dict for a key-value map.
+        # This is similar to other frameworks but it ignores a peculiarity of cookies.
         # There can be multiple cookies with same name in the request's cookie header, because for the client, Cookie-name is not the full key;
-        # The client identifies cookies by(name, path, domain) IE a different path or domain identifies a different cookie.
+        # The client identifies cookies by(name, path, domain) so a different path or domain identifies a different cookie even if it has the same name.
         # This is why we need path and domain from our cfg for delete() and reset() to work properly.
         # For each request(for a given url - ie domain + path) the client will send all cookies matching a given name and url.
         # However webOb, like most server frameworks, will only read first one from the cookie header.
@@ -49,7 +49,7 @@ class Cookie(object):
 
         n = len(val)
         if n > 4093: #some browsers will accept more but this is about the lowest browser limit
-            raise ValueError('Cookie size is %d bytes and exceeds max: 4093', n)
+            raise ValueError('Cookie data of %d bytes exceeds max: 4093 bytes' % n)
         #todo:what to do? too big for cookie!!!
         #logging.debug('setting cookieMgr = %r', val)
 
@@ -74,7 +74,7 @@ class Cookie(object):
 
 class _UpdateDictMixin(object):
     """A dict which calls `_s.on_update` on all modifying function calls."""
-    on_update = None
+    on_update = None # subclass will override None with a function that it wants to call on updating 
 
     def calls_update(name):
         def oncall(_s, *args, **kw):

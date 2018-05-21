@@ -9,7 +9,7 @@ import sys
 
 # show the sys path
 import logging
-logging.info("sys.path: ")
+logging.info("\n\n\tsys.path: ")
 for i in sys.path: logging.info('\t'+i)
 
 if os.environ.get('SERVER_SOFTWARE', '').startswith('Google App Engine'):

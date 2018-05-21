@@ -9,16 +9,15 @@
 #init-hook=
 #
 init-hook='import sys;
-        sys.path.append("/home/cb/google-cloud-sdk/platform/google_appengine");
-        sys.path.append("/home/cb/google-cloud-sdk/platform/google_appengine/lib/webapp2-2.5.2");'
+        sys.path.append("/usr/lib/google-cloud-sdk/platform/google_appengine");
+        sys.path.append("/usr/lib/google-cloud-sdk/platform/google_appengine/lib/webapp2-2.5.2");'
 
-#sys.path.append("/home/cb/google-cloud-sdk/platform/google_appengine/google/appengine/api")'
+#sys.path.append("/usr/lib/google-cloud-sdk/platform/google_appengine/google/appengine/api")'
 
 # Profiled execution.
 profile=no
 
 # Add files or directories to the blacklist. They should be base names, not
-
 # paths.
 ignore=CVS
 
@@ -47,9 +46,11 @@ load-plugins=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
+
 disable=E0213   #first arg should be "self"
         ,C0326  #only one space before comma
         ,C0330  #wrong continued indentation
+        ,C0321  #more than one statement on a single line
 
 
 [REPORTS]
@@ -105,7 +106,7 @@ bad-functions=map,filter,apply,input
 module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
 
 # Regular expression which should only match correct module level names
-const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
+const-rgx=(([A-Z_]\w*)|(__.*__))$
 
 # Regular expression which should only match correct class names
 class-rgx=[A-Z_][a-zA-Z0-9]+$
@@ -114,10 +115,10 @@ class-rgx=[A-Z_][a-zA-Z0-9]+$
 function-rgx=[a-z_]\w{2,30}$
 
 # Regular expression which should only match correct method names
-method-rgx=[a-z_][a-z0-9_]{2,30}$
+method-rgx=[a-z_]\w{2,30}$
 
 # Regular expression which should only match correct instance attribute names
-attr-rgx=[a-z_][a-z0-9_]{2,30}$
+attr-rgx=[a-z_]\w{1,30}$
 
 # Regular expression which should only match correct argument names
 argument-rgx=[a-z_]\w{,30}$
@@ -125,15 +126,11 @@ argument-rgx=[a-z_]\w{,30}$
 # Regular expression which should only match correct variable names
 variable-rgx=[a-z_]\w{,30}$
 
-# Regular expression which should only match correct attribute names in class
+# Regular expression which should only match correct attribute names in class bodies
+class-attribute-rgx=([A-Za-z_]\w{,30}|(__.*__))$
 
-# bodies
-class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{2,30}|(__.*__))$
-
-# Regular expression which should only match correct list comprehension /
-
-# generator expression variable names
-inlinevar-rgx=[A-Za-z_][A-Za-z0-9_]*$
+# Regular expression which should only match correct list comprehension generator expression variable names
+inlinevar-rgx=[A-Za-z_]\w*$
 
 # Good variable names which should always be accepted, separated by a comma
 good-names=i,j,k,ex,Run,_,a,b,c,n,m
@@ -141,13 +138,11 @@ good-names=i,j,k,ex,Run,_,a,b,c,n,m
 # Bad variable names which should always be refused, separated by a comma
 bad-names=foo,bar,baz,toto,tutu,tata
 
-# Regular expression which should only match function or class names that do
-# not require a docstring.
+# Regular expression which should only match function or class names that do not require a docstring.
 no-docstring-rgx=__.*__
 
-# Minimum line length for functions/classes that require docstrings, shorter
-# ones are exempt.
-docstring-min-length=-1
+# Minimum line length for functions/classes that require docstrings, shorter ones are exempt.
+docstring-min-length=20
 
 
 [FORMAT]
@@ -158,9 +153,8 @@ max-line-length=160
 # Regexp for a line that is allowed to be longer than the limit.
 ignore-long-lines=^\s*(# )?<?https?://\S+>?$
 
-# Allow the body of an if to be on the same line as the test if there is no
-# else.
-single-line-if-stmt=no
+# Allow the body of an if to be on the same line as the test if there is no else.
+single-line-if-stmt=yes
 
 # List of optional constructs for which whitespace checking is disabled
 no-space-check=trailing-comma,dict-separator
@@ -168,8 +162,7 @@ no-space-check=trailing-comma,dict-separator
 # Maximum number of lines in a module
 max-module-lines=1000
 
-# String used as indentation unit. This is usually " " (4 spaces) or "\t" (1
-# tab).
+# String used as indentation unit. This is usually "     " (4 spaces) or "\t" (1 tab).
 indent-string='    '
 
 
@@ -196,26 +189,19 @@ ignore-imports=no
 
 [TYPECHECK]
 
-# Tells whether missing members accessed in mixin class should be ignored. A
-
-# mixin class is detected if its name ends with "mixin" (case insensitive).
+# Tells whether missing members accessed in mixin class should be ignored. 
+# A mixin class is detected if its name ends with "mixin" (case insensitive).
 ignore-mixin-members=yes
 
 # List of classes names for which member attributes should not be checked
-
 # (useful for classes with attributes dynamically set).
 ignored-classes=SQLObject,generator
 
-# When zope mode is activated, add a predefined set of Zope acquired attributes
-
-# to generated-members.
+# When zope mode is activated, add a predefined set of Zope acquired attributes to generated-members.
 zope=no
 
-# List of members which are set dynamically and missed by pylint inference
-
-# system, and so shouldn't trigger E0201 when accessed. Python regular
-
-# expressions are accepted.
+# List of members which are set dynamically and missed by pylint inference system, 
+# and so shouldn't trigger E0201 when accessed. Python regular expressions are accepted.
 generated-members=REQUEST,acl_users,aq_parent
 
 
@@ -224,22 +210,18 @@ generated-members=REQUEST,acl_users,aq_parent
 # Tells whether we should check for unused import in __init__ files.
 init-import=no
 
-# A regular expression matching the beginning of the name of dummy variables
-
-# (i.e. not used).
+# A regular expression matching the beginning of the name of dummy variables (i.e. not used).
 dummy-variables-rgx=_$|dummy
 
-# List of additional names supposed to be defined in builtins. Remember that
-
-# you should avoid to define new builtins when possible.
+# List of additional names supposed to be defined in builtins. 
+# Remember that you should avoid to define new builtins when possible.
 additional-builtins=
 
 
 [CLASSES]
 
-# List of interface methods to ignore, separated by a comma. This is used for
-
-# instance to not check methods defines in Zope's Interface base class.
+# List of interface methods to ignore, separated by a comma. 
+# This is used for instance to not check methods defines in Zope's Interface base class.
 ignore-iface-methods=isImplementedBy,deferred,extends,names,namesAndDescriptions,queryDescriptionFor,getBases,getDescriptionFor,getDoc,getName,getTaggedValue,getTaggedValueTags,isEqualOrExtendedBy,setTaggedValue,isImplementedByInstancesOf,adaptWith,is_implemented_by
 
 # List of method names used to declare (i.e. assign) instance attributes.
@@ -292,25 +274,17 @@ max-public-methods=20
 # Deprecated modules which should not be used, separated by a comma
 deprecated-modules=regsub,TERMIOS,Bastion,rexec
 
-# Create a graph of every (i.e. internal and external) dependencies in the
-
-# given file (report RP0402 must not be disabled)
+# Create a graph of every (i.e. internal and external) dependencies in the given file (report RP0402 must not be disabled)
 import-graph=
 
-# Create a graph of external dependencies in the given file (report RP0402 must
-
-# not be disabled)
+# Create a graph of external dependencies in the given file (report RP0402 must not be disabled)
 ext-import-graph=
 
-# Create a graph of internal dependencies in the given file (report RP0402 must
-
-# not be disabled)
+# Create a graph of internal dependencies in the given file (report RP0402 must not be disabled)
 int-import-graph=
 
 
 [EXCEPTIONS]
 
-# Exceptions that will emit a warning when being caught. Defaults to
-
-# "Exception"
+# Exceptions that will emit a warning when being caught. Defaults to "Exception"
 overgeneral-exceptions=Exception

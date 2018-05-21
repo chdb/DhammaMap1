@@ -11,8 +11,8 @@ try:  import simplejson as json
 except ImportError: import json
 
 from google.appengine.ext import ndb  # pylint: disable=import-error
-import task
 
+import task
 import util
 # import auth
 from config import appCfg
@@ -25,8 +25,8 @@ from security import pwd
 #from handlers.api.helpers import ok #, rqParse
 from handlers.api.decorators import verify_captcha #, usrByCredentials
 from handlers.api.throttle import RateLimiter,credentials
-from app import app
 from handlers.basehandler import HAjax
+from app import app
 from signup_q import Midstore
 #from session import Cookie
 #from webob.exc import HTTPUnprocessableEntity

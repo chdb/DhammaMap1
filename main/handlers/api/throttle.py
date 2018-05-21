@@ -1,13 +1,13 @@
 # coding: utf-8
+from functools import wraps
 import logging
-import helpers
+#import helpers
 from google.appengine.api import memcache
 #from flask import request, g
 from config import cfg_
 import util as ut
 #from werkzeug import exceptions as exc
 #from webapp2 import abort
-from functools import wraps
 
 def credentials(fn):
     @wraps(fn)
@@ -60,17 +60,21 @@ def rateLimit(fn): # decorator
 #... but all requests to rate-limited forgot handler and signup handler are 'bad'
 # because any rapid sequence of requests to those handlers is suspect
 
+
+LATENCYFACTOR = 50
+
 class RateLimiter(object):
 
     def __init__(_s, ema, handler):
 
         def _initDelay(minWait):
-            _s.delay = minWait #milliseconds
+            delay = minWait #milliseconds
             for key, cf in _s.monitors.itervalues():
                 nBad = _s.mc.get(key)
                 if nBad:
                     #logging.debug('extra = %d for %d bad %s logins', cf.delayFn(nBad), nBad, cf.name)
-                    _s.delay += cf.delayFn(nBad)
+                    delay += cf.delayFn(nBad)
+            return delay
             # d = _s.delay*100.0                  # Convert from int-deciseconds to float-milliseconds
             # mcka = cfg_['MemCacheKeepAlive']# Divide d into a series of equal waits so each wait is the max that is less than MemCacheKeepAlive
             # n = -(-d//mcka) # number of waits. NB -(-a//b) rounds up a division and is equivalent to math.ceil(a/b)
@@ -99,12 +103,12 @@ class RateLimiter(object):
 
         _s.handler = handler
         ipa = handler.request.remote_addr
-        _s.ei = ema + ipaipa
+        _s.ei = ema + ipa
         _s.mc = memcache.Client()
+        _s.monitors = {}
         cfg = _initMonitors(ema, ipa)
-        _initDelay(cfg.minDelay)
-
-
+        _s.delay = _initDelay(cfg.minDelay)
+   
     def ready(_s):
         '''test if we are ready to call the handler'''
         rtt = 200 # round trip time : todo = const val just for testing
@@ -118,11 +122,9 @@ class RateLimiter(object):
                 _s.mc.delete(key)
                 return True #handler state 'good':-> | 'bad' | 'locked'
         else: # key not found
-            LatencyFactor = 50
-            exp = _s.delay +(rtt * LatencyFactor) # exp = relative expiry = delay+maxLatency. For maxLatency, rtt * LatencyFactor gives a v rough upper limit
+            exp = _s.delay +(rtt * LATENCYFACTOR) # exp = relative expiry = delay+maxLatency. For maxLatency, rtt * LatencyFactor gives a v rough upper limit
             _s.mc.set(key, now+_s.delay, exp)
         return False
-
 
     def tryLock(_s, ok):
         '''having called the handler, with result of 'ok', decide whether to wipe the slate, increment the bad count, or set a lock out'''

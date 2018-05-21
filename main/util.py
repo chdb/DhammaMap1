@@ -9,7 +9,10 @@ import logging
 import time as tim
 import traceback
 import re
-#from datetime import datetime
+import datetime
+
+import webapp2
+from google.appengine.api import memcache
 
     # The code in index.py sends a serverside email regex to clientside along with other validators
     # Note that currently, email fields on clientside forms dont use it.  Instead they will use the regex provided by AngularJS
@@ -20,7 +23,8 @@ import re
     # and does not allow domain part to start with '-'
     # def getEmailRegex():
     #     #Use as a pre-validator, to be followed by proper live validation by mailgun service
-    #     #Note that it is currently too strict a) does not allow new forms i18n email addresses. And b) weird and outdated forms that are permissed by the RFC and possibly by some mail servers
+    #     #Note that it is currently too strict does not allow a) new forms such as i18n email addresses.
+    #                                   nor b) weird and outdated forms that are permitted by the RFC and possibly by some mail servers
     #     EMAIL_REGEX =  r'^[a-z0-9-!#$%&\'*+\/=?^_`{|}~.]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$'
 
     #     def findNgEMAIL_REGEXP():
@@ -98,6 +102,47 @@ def msNow():
 
 # def dsNow():
     # return int(tim.time()*10) # deciSeconds since epoch.
+
+def dtExpiry(secs):
+    #logging.debug('secs = %r', secs)
+    return datetime.datetime.now() + datetime.timedelta (seconds=secs)
+
+def hoursMins(seconds):
+    assert seconds >= 0
+    m, _ = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    txt = '%d hours' % h if h else ''
+    if h and m:
+        txt+= ', '
+    if m:
+        txt+= '%d minutes' % m
+    return txt
+
+
+##TODO refactor expired / validTimeStamp / ttype etc #######################
+def expired (timeStamp, ttype):
+    assert isinstance (timeStamp, int)
+    config = webapp2.get_app().cfg
+    if   ttype =='anon'  : return False
+    if   ttype =='auth'  : maxAge = config('maxIdleAuth')
+    elif ttype =='signUp': maxAge = config('maxAgeSignUpTok')
+    elif ttype =='pw1'   : maxAge = config('maxAgePasswordTok')
+    else:
+        raise RuntimeError ('invalid token type')
+    assert isinstance (maxAge, int)
+    logging.debug('@@@@@@@@@@@@@@@@ elapsed:  %d', sNow() - timeStamp)
+    logging.debug('@@@@@@@@@@@@@@@@ maxAge:   %d', maxAge)
+    return sNow() - timeStamp > maxAge
+
+def validTimeStamp (timeStamp, maxAge):
+    assert isinstance (timeStamp, int)
+    assert maxAge is None or isinstance (maxAge, int)
+    if maxAge is None:
+        return True
+    logging.debug('elapsed:  %d', sNow() - timeStamp)
+    logging.debug('maxAge:   %d', maxAge)
+    return sNow() - timeStamp <= maxAge
+###############################################################
 
 def utf8(uStr):
     assert isinstance(uStr, unicode)
@@ -247,3 +292,19 @@ def logStackTrace(n=0):
     stacktrace = ''.join(traceback.format_stack()[depth:-2])
     assert logging.getLogger().isEnabledFor(logging.DEBUG)
     logging.debug("TRACE last %d:\n %s", n, stacktrace)
+
+
+
+def mcGetSet(key, modify):
+    '''implement gets/cas loop for threadsafe conditional update of MemCache
+    '''
+    mc = memcache.Client()
+    retries = 10 # TODO config?
+    while retries: # cas loop for threadsafe update of memcache
+        retries -= 1
+        v = mc.gets(key)
+        v,b = modify(v)
+        if not b or mc.cas(key, v):
+            break
+    return v
+

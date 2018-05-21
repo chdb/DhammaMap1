@@ -16,7 +16,7 @@ import logging
 
 logging.debug('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  main  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
 
-from functools import wraps
+#from functools import wraps
 # Third party libraries path must be findable before importing webapp2
 #sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'Libs'))
 import webapp2
@@ -197,22 +197,24 @@ class WSGIApp(webapp2.WSGIApplication):
 
     # these two define decorators that can be used on each handler def
     def API_1(_s, name_, *pa, **ka): return _s.m_route('/api/v1/', name_, *pa, **ka)
-    def route(_s, name_, *pa, **ka): return _s.m_route('/'       , name_, *pa, **ka)
+    def route(_s, name_, *pa, **ka):
+        logging.info('DDDDDDDDDDDDDDDD')
+        return _s.m_route('/'       , name_, *pa, **ka)
 
-    def handle_exception(_s, request, response, ex):
+    def handle_exception(_s, request, response, e): 
        # logging.debug('&&&&&&&&&&&&& &&&&&&&&&&&&& &&&&&&&&&&&&&&')
        # def handle_error(request, response, exception):
         if (request.path != '/'
-        and hasattr(ex,'detail')
-        and ex.detail != None):
-            logging.debug('exception = %r',ex)
-            logging.debug('exception.detail = %r',ex.detail)
-            ex.body = ex.detail
+        and hasattr(e,'detail')
+        and e.detail != None):
+            logging.debug('exception = %r',e)
+            logging.debug('exception.detail = %r',e.detail)
+            e.body = e.detail
             # raise exception
         # else:
             # response.write(exception)
             # response.set_status(exception.code)
-        super(WSGIApp,_s).handle_exception(request, response, ex)
+        super(WSGIApp,_s).handle_exception(request, response, e)
 
 
 logging.info('\n\tROUTES:')
@@ -224,7 +226,7 @@ app = WSGIApp( debug = config.appCfg.development
              )
 app.devt = config.appCfg.env['development'] # convenient boolean
 app.cfg = config.appCfg                     # the other stuff too in case we need it
-#logging.info('\n')
+logging.info('%%%%%%%%%%%%%%%%%%')
 
 #    session.loadConfig(wa)   # override/add-to  session config defaults with myConfig
 #    logging.debug('config = %r', a.config)

@@ -143,7 +143,7 @@ def captchaVdr(captchaStr, ipa):
             , 'response': captchaStr
             }
     params = urllib.urlencode(params)
-    result = urlfetch.fetch( url='https://www.google.com/recaptcha/api/siteverify'
+    result = urlfetch.fetch ( url='https://www.google.com/recaptcha/api/siteverify'
                             , payload=params
                             , method=urlfetch.POST
                             , headers={'Content-Type': 'application/x-www-form-urlencoded'}

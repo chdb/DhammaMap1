@@ -117,7 +117,7 @@ In that case, please follow this link:
 
 The old password will remain valid until you click the link.
 
-Sometimes people people can recieve these emails in error.So, if you dont want to reset your password, we apologize. you can ignore this email.
+Sometimes people people can recieve these emails in error. So, if you dont want to reset your password, we apologize. you can ignore this email.
 For example because someone was playing around to test our security. But don't be alarmed:this link was sent only to you so there is no security breach.
 You can delete this email, but first please can you reply to it, with or without some explanation so we can take a look and see what happened.
 

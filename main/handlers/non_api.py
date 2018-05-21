@@ -1,5 +1,5 @@
 # non-api handlers
-import basehandler as bh
+import handlers.basehandler as bh
 import logging
 from app import app
 
@@ -21,3 +21,5 @@ class HWarmup(bh.HBase):
         logging.debug('self2 = %r',_s)
         _s.response.headers['Content-Type'] = 'text/plain'
         _s.response.write('Warmup successful')
+
+logging.info('QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ')
